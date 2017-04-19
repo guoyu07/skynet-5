@@ -98,7 +98,7 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
   {
     if($context == 'afterReceive')
     {
-      if($this->response->get('_skynet_clusters') !== null)
+      if($this->response->get('_skynet_clusters') !== null && $this->request->get('@<<reset') === null)
       {
         $clustersAry = explode(';', $this->response->get('_skynet_clusters'));
         
@@ -119,7 +119,16 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
 
     if($context == 'beforeSend')
     { 
-      
+      if($this->request->get('@reset') !== null && $this->request->get('_skynet_sender_url') !== null)
+      {
+        $u = SkynetHelper::getMyUrl();       
+        if($this->clustersRegistry->removeAll($this->request->get('_skynet_sender_url')))
+        {
+          $this->response->set('@<<reset', 'DELETED');
+        } else {          
+          $this->response->set('@<<reset', 'NOT DELETED');
+        }
+      }
     }
   }
 
@@ -194,7 +203,8 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
     $console = [];
     $console[] = ['@add', ['cluster address', 'cluster address1, address2 ...'], ''];   
     $console[] = ['@connect', ['cluster address', 'cluster address1, address2 ...'], ''];  
-    $console[] = ['@to', 'cluster address', ''];  
+    $console[] = ['@to', 'cluster address', ''];
+    $console[] = ['@reset', ['cluster address', 'cluster address1, address2 ...'], ''];    
     
     return array('cli' => $cli, 'console' => $console);    
   }

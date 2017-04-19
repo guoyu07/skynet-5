@@ -301,7 +301,10 @@ class Skynet
 
           /* Save remote cluster address in database if not exists yet */
           $this->clustersRegistry->setStateId($this->connectId);          
-          $this->clustersRegistry->add($cluster);
+          if($this->isConnected)
+          {
+            $this->clustersRegistry->add($cluster);
+          }
         } else {
           $this->addState(SkynetTypes::HEADER,'[[[[ERROR]]]: PROBLEM WITH RECEIVING HEADER: '.$address.'. IGNORING THIS CLUSTER...');
         }
@@ -327,6 +330,8 @@ class Skynet
   */
   public function connect($remote_cluster = null, $chain = null)
   {
+    $this->isConnected = false; 
+    
     if($this->verifier->isDatabaseView())
     {
       return false;
@@ -394,19 +399,25 @@ class Skynet
       $adapter = $this->connection->connect();
       $this->responseData = $adapter['data'];
 
-      if($this->responseData === null)
+      if($this->responseData === null || $this->responseData === false)
       {
         throw new SkynetException(SkynetTypes::CONN_ERR);
       }
-
+      
+      if($adapter['result'] === true)
+      {
+        $this->isConnected = true; 
+      }        
+      
       /* Parse response */
       $this->response->setRawReceivedData($this->responseData);
-      if(!empty($this->responseData)) 
+      if(!empty($this->responseData) && $this->responseData !== false) 
       {
-        $this->isResponse = true;
+        $this->isResponse = true;           
+        $this->addState(SkynetTypes::CONN_OK, 'RESPONSE DATA TRANSFER OK: '. $this->clusterUrl);
+      } else {
+        $this->addState(SkynetTypes::CONN_OK, '[[ERROR]] RECEIVING RESPONSE: '. $this->clusterUrl);
       }
-      $this->isConnected = true;      
-      $this->addState(SkynetTypes::CONN_OK, 'DATA TRANSFER OK : '. $this->connection->getUrl());
 
       $this->response->parseResponse();
       $responses = $this->response->getResponseData();
@@ -423,7 +434,10 @@ class Skynet
       }
       
       /* Add cluster to database if not exists */
-      $this->clustersRegistry->add($cluster);
+      if($this->isConnected)
+      {
+        $this->clustersRegistry->add($cluster);
+      }
 
       /* Launch response listeners */
       if($cluster->getHeader()->getId() !== null 

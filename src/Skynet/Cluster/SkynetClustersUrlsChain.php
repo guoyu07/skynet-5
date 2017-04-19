@@ -17,6 +17,7 @@ namespace Skynet\Cluster;
 use Skynet\Error\SkynetErrorsTrait;
 use Skynet\State\SkynetStatesTrait;
 use Skynet\Common\SkynetHelper;
+use Skynet\Secure\SkynetVerifier;
 
  /**
   * Skynet Cluster Urls Chain
@@ -42,6 +43,9 @@ class SkynetClustersUrlsChain
 
   /** @var string Sender URL */
   private $senderUrl;
+  
+ /** @var SkynetVerifier Verifier instance */
+  private $verifier;
 
  /**
   * Constructor
@@ -49,6 +53,7 @@ class SkynetClustersUrlsChain
   public function __construct()
   {
     $this->myUrl = SkynetHelper::getMyUrl();
+    $this->verifier = new SkynetVerifier();
   }
 
  /**
@@ -66,7 +71,10 @@ class SkynetClustersUrlsChain
   */
   public function loadFromRequest()
   {
-    if($this->request === null) return false;
+    if($this->request === null) 
+    {
+      return false;
+    }
     if($this->request->get('_skynet_clusters_chain') !== null)
     {
       $this->senderUrl = $this->request->getSenderClusterUrl();

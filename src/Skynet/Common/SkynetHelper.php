@@ -89,4 +89,12 @@ class SkynetHelper
   {
     return self::getServerAddress().self::getMyself();
   }
+  
+  public function isUrl($url)
+  {
+    if(preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $url))
+    {
+      return true;
+    }
+  }
 }

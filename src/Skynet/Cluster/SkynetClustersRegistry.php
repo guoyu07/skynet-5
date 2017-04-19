@@ -349,6 +349,32 @@ class SkynetClustersRegistry
     }
   }
 
+  /**
+  * Removes cluster from database
+  *
+  * @param string $url Not remove
+  *
+  * @return bool True if success
+  */
+  public function removeAll($url = null)
+  {
+    try
+    {
+      $stmt = $this->db->prepare(
+      'DELETE FROM skynet_clusters WHERE url != :url');
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      if($stmt->execute()) 
+      {
+        return true;
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  }  
+  
  /**
   * Removes cluster from database
   *

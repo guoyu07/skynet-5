@@ -197,13 +197,40 @@ class SkynetClusterHeader
     }
 
     /* Assign received header data */
-    if(isset($remoteHeader->_skynet_chain)) $this->chain = (int)$this->decrypt($remoteHeader->_skynet_chain);
-    if(isset($remoteHeader->_skynet_chain_updated_at)) $this->updated_at = $this->decrypt($remoteHeader->_skynet_chain_updated_at);
-    if(isset($remoteHeader->_skynet_id)) $this->id = $this->decrypt($remoteHeader->_skynet_id);
-    if(isset($remoteHeader->_skynet_cluster_url)) $this->url = $this->decrypt($remoteHeader->_skynet_cluster_url);
-    if(isset($remoteHeader->_skynet_cluster_ip)) $this->ip = $this->decrypt($remoteHeader->_skynet_cluster_ip);
-    if(isset($remoteHeader->_skynet_version)) $this->version = $this->decrypt($remoteHeader->_skynet_version);
-    if(isset($remoteHeader->_skynet_clusters)) $this->clusters = $this->decrypt($remoteHeader->_skynet_clusters);
+    if(isset($remoteHeader->_skynet_chain)) 
+    {
+      $this->chain = (int)$this->decrypt($remoteHeader->_skynet_chain);
+    }
+    
+    if(isset($remoteHeader->_skynet_chain_updated_at)) 
+    {
+      $this->updated_at = $this->decrypt($remoteHeader->_skynet_chain_updated_at);
+    }
+    
+    if(isset($remoteHeader->_skynet_id)) 
+    {
+      $this->id = $this->decrypt($remoteHeader->_skynet_id);
+    }
+    
+    if(isset($remoteHeader->_skynet_cluster_url)) 
+    {
+      $this->url = $this->decrypt($remoteHeader->_skynet_cluster_url);
+    }
+    
+    if(isset($remoteHeader->_skynet_cluster_ip)) 
+    {
+      $this->ip = $this->decrypt($remoteHeader->_skynet_cluster_ip);
+    }
+    
+    if(isset($remoteHeader->_skynet_version)) 
+    {
+      $this->version = $this->decrypt($remoteHeader->_skynet_version);
+    }
+    
+    if(isset($remoteHeader->_skynet_clusters)) 
+    {
+      $this->clusters = $this->decrypt($remoteHeader->_skynet_clusters);
+    }
 
     /* For debug, return received data */
     return $adapter;
@@ -217,13 +244,41 @@ class SkynetClusterHeader
   public function fromResponse(SkynetResponse $response)
   {
     $data = $response->getResponseData();
-    if(isset($data['_skynet_chain'])) $this->chain = (int)$data['_skynet_chain'];
-    if(isset($data['_skynet_chain_updated_at'])) $this->updated_at = $data['_skynet_chain_updated_at'];
-    if(isset($data['_skynet_id'])) $this->id = $data['_skynet_id'];
-    if(isset($data['_skynet_cluster_url'])) $this->url = $data['_skynet_cluster_url'];
-    if(isset($data['_skynet_cluster_ip'])) $this->ip = $data['_skynet_cluster_ip'];
-    if(isset($data['_skynet_version'])) $this->version = $data['_skynet_version'];
-    if(isset($data['_skynet_clusters'])) $this->clusters = $data['_skynet_clusters'];   
+    
+    if(isset($data['_skynet_chain'])) 
+    {
+      $this->chain = (int)$data['_skynet_chain'];
+    }
+    
+    if(isset($data['_skynet_chain_updated_at'])) 
+    {
+      $this->updated_at = $data['_skynet_chain_updated_at'];
+    }
+    
+    if(isset($data['_skynet_id'])) 
+    {
+      $this->id = $data['_skynet_id'];
+    }
+    
+    if(isset($data['_skynet_cluster_url'])) 
+    {
+      $this->url = $data['_skynet_cluster_url'];
+    }
+    
+    if(isset($data['_skynet_cluster_ip'])) 
+    {
+      $this->ip = $data['_skynet_cluster_ip'];
+    }
+    
+    if(isset($data['_skynet_version'])) 
+    {
+      $this->version = $data['_skynet_version'];
+    }
+    
+    if(isset($data['_skynet_clusters'])) 
+    {      
+      $this->clusters = $data['_skynet_clusters'];   
+    }
   }
 
  /**
@@ -234,13 +289,41 @@ class SkynetClusterHeader
   public function fromRequest(SkynetRequest $request)
   {
     $data = $request->getRequestsData();
-    if(isset($data['_skynet_chain'])) $this->chain = (int)$data['_skynet_chain'];
-    if(isset($data['_skynet_chain_updated_at'])) $this->updated_at = $data['_skynet_chain_updated_at'];
-    if(isset($data['_skynet_id'])) $this->id = $data['_skynet_id'];
-    if(isset($data['_skynet_cluster_url'])) $this->url = $data['_skynet_cluster_url'];
-    if(isset($data['_skynet_cluster_ip'])) $this->ip = $data['_skynet_cluster_ip'];
-    if(isset($data['_skynet_version'])) $this->version = $data['_skynet_version'];
-    if(isset($data['_skynet_clusters'])) $this->clusters = $data['_skynet_clusters'];
+    
+    if(isset($data['_skynet_chain'])) 
+    {
+      $this->chain = (int)$data['_skynet_chain'];
+    }
+    
+    if(isset($data['_skynet_chain_updated_at'])) 
+    {
+      $this->updated_at = $data['_skynet_chain_updated_at'];
+    }    
+    
+    if(isset($data['_skynet_id'])) 
+    {
+      $this->id = $data['_skynet_id'];
+    }
+    
+    if(isset($data['_skynet_cluster_url'])) 
+    {
+      $this->url = $data['_skynet_cluster_url'];      
+    }
+    
+    if(isset($data['_skynet_cluster_ip'])) 
+    {
+      $this->ip = $data['_skynet_cluster_ip'];
+    }
+    
+    if(isset($data['_skynet_version'])) 
+    {
+      $this->version = $data['_skynet_version'];
+    }
+    
+    if(isset($data['_skynet_clusters'])) 
+    {
+      $this->clusters = $data['_skynet_clusters'];
+    }
   }
 
  /**

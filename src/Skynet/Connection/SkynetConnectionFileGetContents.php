@@ -50,7 +50,8 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
   */
   private function init($address)
   {
-    $data = null;    
+    $data = null; 
+    $result = null;
     try 
     {
       if(!\SkynetUser\SkynetConfig::get('core_connection_ssl_verify'))
@@ -65,16 +66,21 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
         $data = @file_get_contents($address);
       }   
       
-      if($data === null)
+      if($data === null || $data === false)
       {
+        $result = false;
         throw new SkynetException('DATA IS NULL');
       }          
+      $result = true;
       
     } catch(SkynetException $e)
     {
       $this->addError(SkynetTypes::FILE_GET_CONTENTS, 'Connection error: NO DATA RECEIVED', $e);            
-    }    
-    return $data;
+    }   
+    
+    $ret['data'] = $data;
+    $ret['result'] = $result;
+    return $ret;
   }
 
  /**
@@ -103,7 +109,8 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
     }
 
     $this->prepareParams();
-    $this->data = $this->init($address.$this->params);
+    $data = $this->init($address.$this->params);
+    $this->data = $data['data'];
     if($this->data === null) 
     {
       $this->addError(SkynetTypes::FILE_GET_CONTENTS, 'Connection error: RESPONSE DATA IS NULL');
@@ -113,6 +120,7 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
     $adapter = [];
     $adapter['data'] = $this->data;
     $adapter['params'] = $this->requests;
+    $adapter['result'] = $data['result'];
       
     return $adapter;
   }

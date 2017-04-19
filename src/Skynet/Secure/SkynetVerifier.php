@@ -258,6 +258,7 @@ class SkynetVerifier
   {
     if(
       !empty($address)
+      && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address)
       && $address != 'http://'.SkynetHelper::getMyUrl()
       && $address != 'https://'.SkynetHelper::getMyUrl())
     {
