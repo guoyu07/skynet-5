@@ -60,7 +60,7 @@ You can download or clone repository. Remember that Skynet is still in developme
 
 
 # 2.2. Requirements
-Skynet Framework requires these components for work:
+Skynet Framework requires these components to launch:
 
 - Webserver with PHP 5.5+ interpreter
 - PDO extension (for databases connections) 
