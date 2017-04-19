@@ -11,7 +11,7 @@ With Skynet you can create different instances of Skynet (called "clusters") and
 
 Skynet clusters works on request-response architecture as peer-to-peer clusters. They can connects between itselfs, requesting data, responds for them and more. Skynet have self-replication and self-update mechanisms, so you can clone or update your clusters even by remote easy access. Event-listener architecture implemented in Skynet allows you to create your own Event Listeners with easy to use API and allow you to expand Skynet's capabilities according to your needs. Skynet can operate in two modes - as PHP script administrated by browser and in PHP CLI. Thanks to both of these features Skynet offers console interface for quick and easy commands sending and parameters to other clusters. Skynet clusters work on dynamically created databases based on information from other clusters, requests and responses. Framework also have powerful logging system works on .txt files and database. Skynet is ONLY ONE FILE compiled from source classes (compiler is included). This feature allows you to operate Skynet easily using a single file from any location.
 
-![Skynet](https://github.com/szczyglinski/skynet/manual/Manual/img/skynet.png)
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/skynet.png)
 
 **NOTE: Skynet can be some of kind C&C service and can offers powerful possibilites with this. Please do not use Skynet for illegal purposes.**
 
@@ -2867,7 +2867,7 @@ Every Skynet cluster have its own Panel, you can run Panel e.g. by placing Skyne
 # 9.1. View: Connections
 Connections View have 3 sections: status data (left column), connections data (right column) and webconsole (bottom).
 
-![Skynet](https://github.com/szczyglinski/skynet/manual/Manual/img/cp_connections.jpg)
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/cp_connections.jpg)
 
 ##  Status data 
 
@@ -2916,7 +2916,7 @@ On the to you will se select list where you can select actual viewing table and 
 Records list can be deleted via *Delete* button.
 You can also export any record to text file by clicking on *Generate TXT* button.
 
-![Skynet](https://github.com/szczyglinski/skynet/manual/Manual/img/cp_database.jpg)
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/cp_database.jpg)
 
 ##  Database tables: 
 
