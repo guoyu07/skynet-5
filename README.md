@@ -2,7 +2,7 @@
 
 ------------
 Current version: 1.0.0-alpha (2017.04.19)
-[https://skynetframework.blogspot.com](https://www.skynetframework.blogspot.com)
+[https://skynetframework.blogspot.com](https://skynetframework.blogspot.com)
 
 
 # 1. What is Skynet?
