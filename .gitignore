@@ -1,9 +1,9 @@
-/_compiled/*.*
-/_download/*.*
-/logs/*
+/_compiled/*.php
+/_download/*.php
+/logs/*.txt
 *.db
 /sandbox/*
 /manual/Manual/manual.php
 /manual/Manual/pages/
-/skynetCluster.php
-/skynetCluster2.php
+skynetCluster.php
+skynetCluster2.php
