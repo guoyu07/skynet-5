@@ -77,7 +77,7 @@ After downloaded and unpacked (or cloned) repository you should see files struct
 - **logs/** - log files
 - **manual/** - manual and API documentation
 - **src/** - Skynet core, source classes
-- **dev.php** - Non-compiled Skynet cluster (works on classes from *src/* directory via autoloader)
+- **dev.php** - Non-compiled Skynet cluster (works on classes from */src* directory via autoloader)
 - **skynet.php** - Compiled Skynet cluster (all classes are compiled into single standalone file)
 - **compiler.php** - Comilater script whitch compiling sources from */src* folder into single standalone file
 - **keygen.php** - Skynet Key ID generator
@@ -136,7 +136,7 @@ http://localhost/skynet/keygen.php
 ```
 
 
-This keygen generates randomly key in every launch. When you generate you key, place them into your Skynet config file:
+This keygen generates randomly key in every launch. When you generate your key, place it into your Skynet config file:
 
 ```php
 /src/SkynetUser/SkynetConfig.php
