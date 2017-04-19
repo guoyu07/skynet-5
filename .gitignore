@@ -4,6 +4,7 @@
 *.db
 /sandbox/*
 /manual/Manual/manual.php
+/manual/Manual/manual.txt
 /manual/Manual/pages/
 skynetCluster.php
 skynetCluster2.php

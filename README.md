@@ -74,7 +74,6 @@ After downloaded and unpacked (or cloned) repository you should see files struct
 
 - **_compiled/** - compiled standalone versions will be placed here by default
 - **_download/** - folder for downloaded files
-- **db_schemas/** - .sql files for database schema (if you will create database manualy, in other case Skynet do it automaticaly)
 - **logs/** - log files
 - **manual/** - manual and API documentation
 - **src/** - Skynet core, source classes
