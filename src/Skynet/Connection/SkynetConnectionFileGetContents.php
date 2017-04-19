@@ -50,17 +50,31 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
   */
   private function init($address)
   {
-    if(!\SkynetUser\SkynetConfig::get('core_connection_ssl_verify'))
+    $data = null;    
+    try 
     {
-       $options = array(
-        "ssl" => array(
-            "verify_peer" => false,
-            "verify_peer_name" => false,
-        ));
-      return file_get_contents($address, false, stream_context_create($options));
-    } else {
-      return file_get_contents($address);
-    }
+      if(!\SkynetUser\SkynetConfig::get('core_connection_ssl_verify'))
+      {
+         $options = array(
+          "ssl" => array(
+              "verify_peer" => false,
+              "verify_peer_name" => false,
+          ));
+        $data = @file_get_contents($address, false, stream_context_create($options));       
+      } else {
+        $data = @file_get_contents($address);
+      }   
+      
+      if($data === null)
+      {
+        throw new SkynetException('DATA IS NULL');
+      }          
+      
+    } catch(SkynetException $e)
+    {
+      $this->addError(SkynetTypes::FILE_GET_CONTENTS, 'Connection error: NO DATA RECEIVED', $e);            
+    }    
+    return $data;
   }
 
  /**
@@ -94,8 +108,13 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
     {
       $this->addError(SkynetTypes::FILE_GET_CONTENTS, 'Connection error: RESPONSE DATA IS NULL');
     }
-    $this->launchConnectListeners();
-    return $this->data;
+    $this->launchConnectListeners($this);
+    
+    $adapter = [];
+    $adapter['data'] = $this->data;
+    $adapter['params'] = $this->requests;
+      
+    return $adapter;
   }
 
  /**
