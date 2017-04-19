@@ -1,0 +1,382 @@
+<?php
+
+/**
+ * Skynet/Renderer/Html//SkynetRendererHtmlElements.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+namespace Skynet\Renderer\Html;
+
+use Skynet\SkynetVersion;
+
+ /**
+  * Skynet Renderer HTML Elements generator
+  *
+  */
+class SkynetRendererHtmlElements
+{   
+  /** @var string New Line Char */
+  private $nl;
+  
+  /** @var string > Char */
+  private $gt;
+  
+  /** @var string < Char */
+  private $lt;
+  
+  /** @var string Separator tag */
+  private $separator;
+  
+  /** @var string CSS Stylesheet */
+  private $css;
+  
+  /** @var Skynet SkynetRendererHtmlThemes Themes Container*/
+  private $themes;
+  
+  
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    $this->themes = new SkynetRendererHtmlThemes();
+    $this->css = $this->themes->getTheme(\SkynetUser\SkynetConfig::get('core_renderer_theme'));
+    $this->nl = '<br/>';
+    $this->gt = '&gt;';
+    $this->lt = '&lt;';
+    $this->separator = '<hr/>'; 
+  }   
+  
+ /**
+  * Sets CSS styles
+  *
+  * @param string $styles CSS styles data
+  */ 
+  public function setCss($styles)
+  {
+    $this->css = $styles;    
+  }
+  
+ /**
+  * Adds subtitle
+  * 
+  * @param string $title Text to decorate
+  * @param string|null $class Optional CSS class
+  *
+  * @return string HTML code
+  */  
+  public function addSubtitle($title, $class = null)
+  {  
+    return $this->addH3('[### '.$title.' ###]', $class);
+  }
+  
+ /**
+  * Returns line separator tag
+  *
+  * @return string HTML code
+  */  
+  public function addSeparator()
+  {
+    return $this->separator;
+  } 
+  
+  /**
+  * Adds bold
+  * 
+  * @param string $html Text to decorate
+  * @param string|null $class Optional CSS class
+  *
+  * @return string HTML code
+  */    
+  public function addBold($html, $class = null)
+  {
+    $cls = '';
+    if(!$class !== null) 
+    {
+      $cls = ' class="'.$class.'"';
+    }
+    return '<b'.$cls.'>'.$html.'</b>';
+  }
+ 
+ /**
+  * Adds span
+  * 
+  * @param string $html Text to decorate
+  * @param string|null $class Optional CSS class
+  *
+  * @return string HTML code
+  */   
+  public function addSpan($html, $class = null)
+  {
+    $cls = '';
+    if(!$class !== null) 
+    {
+      $cls = ' class="'.$class.'"';
+    }
+    return '<span'.$cls.'>'.$html.'</span>';
+  } 
+ 
+ /**
+  * Adds Heading1
+  * 
+  * @param string $html Text to decorate
+  * @param string|null $class Optional CSS class
+  *
+  * @return string HTML code
+  */   
+  public function addH1($html, $class = null)
+  {
+    $cls = '';
+    if(!$class !== null) 
+    {
+      $cls = ' class="'.$class.'"';
+    }
+    return '<h1'.$cls.'>'.$html.'</h1>';
+  }
+  
+ /**
+  * Adds Heading2
+  * 
+  * @param string $html Text to decorate
+  * @param string|null $class Optional CSS class
+  *
+  * @return string HTML code
+  */   
+  public function addH2($html, $class = null)
+  {
+    $cls = '';
+    if(!$class !== null) 
+    {
+      $cls = ' class="'.$class.'"';
+    }
+    return '<h2'.$cls.'>'.$html.'</h2>';
+  }
+  
+ /**
+  * Adds Heading3
+  * 
+  * @param string $html Text to decorate
+  * @param string|null $class Optional CSS class
+  *
+  * @return string HTML code
+  */   
+  public function addH3($html, $class = null)
+  {
+    $cls = '';
+    if(!$class !== null) 
+    {
+      $cls = ' class="'.$class.'"';
+    }
+    return '<h3'.$cls.'>'.$html.'</h3>';
+  }
+  
+ /**
+  * Adds URL
+  * 
+  * @param string $link URL
+  * @param string $name Name of link
+  * @param bool $target True if _blank
+  * @param string $class CSS class
+  *
+  * @return string HTML code
+  */   
+  public function addUrl($link, $name = null, $target = true, $class = null)
+  {
+    if($name === null) 
+    {
+      $name = $link;
+    }
+    $blank = '';
+    if($target) 
+    {
+      $blank = ' target="_blank"';
+    }
+    $cls = '';
+    if(!$class !== null) 
+    {
+      $cls = ' class="'.$class.'"';
+    }
+    return '<a'.$cls.' href="'.$link.'"'.$blank.' title="'.strip_tags($name).'">'.$name.'</a>';    
+  }
+
+ /**
+  * Adds any HTML
+  * 
+  * @param string $html HTML code
+  *
+  * @return string HTML code
+  */    
+  public function addHtml($html)
+  {
+    return $html;
+  }
+
+ 
+ /**
+  * Adds section container
+  * 
+  * @param string $id Identifier
+  *
+  * @return string HTML code
+  */    
+  public function addSectionId($id)
+  {
+    return '<div id="'.$id.'">';
+  }
+  
+ /**
+  * Adds section container
+  * 
+  * @param string $class Class name
+  *
+  * @return string HTML code
+  */
+  public function addSectionClass($class)
+  {
+    return '<div class="'.$class.'">';
+  }
+  
+ /**
+  * Adds section closing tag
+  *
+  * @return string HTML code
+  */
+  public function addSectionEnd()
+  {
+    return '</div>';
+  }
+  
+ /**
+  * Adds clearing floats
+  * 
+  *
+  * @return string HTML code
+  */   
+  public function addClr()
+  {
+    return '<div class="clr"></div>';
+  }
+ 
+ 
+ /**
+  * Adds table key => value row
+  * 
+  * @param string $key TD 1
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addValRow($key, $val)
+  {
+    return '<tr><td class="tdKey">'.$key.'</td><td class="tdVal">'.$val.'</td></tr>';
+  }
+ 
+ /**
+  * Adds table header row
+  * 
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addHeaderRow($val)
+  {
+    return '<tr><th class="tdHeader" colspan="2">'.$val.'</th></tr>';
+  } 
+ 
+ /**
+  * Adds table row
+  * 
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addRow($val)
+  {
+    return '<tr><td colspan="2">'.$val.'</td></tr>';
+  } 
+  
+ /**
+  * Adds HTML head tags
+  *
+  * @return string HTML code
+  */ 
+  public function addHeader()
+  {
+    $html = '<html><head>';
+    $html.= '<title>SKYNET '.SkynetVersion::VERSION.'</title>';
+    $html.= $this->css;
+    $html.= '</head><body>';
+    return $html;
+  } 
+      
+ /**
+  * Adds HTML body ending tags
+  *
+  * @return string HTML code
+  */
+  public function addFooter()
+  {
+    $html = '</body></html>';
+    return $html;
+  }
+  
+ /**
+  * Returns header
+  *
+  * @return string HTML code
+  */  
+  public function addSkynetHeader()
+  {
+    $header = $this->addH1('//\\\\ SKYNET v.'.SkynetVersion::VERSION);
+    $header.= '(c) 2017 Marcin Szczyglinski | Check for newest versions here: '.$this->addUrl(SkynetVersion::WEBSITE);
+    $header.= $this->getNl();     
+    return $header;
+  }
+    
+ /**
+  * Returns new line
+  *
+  * @return string HTML 
+  */
+  public function getNl()
+  {
+    return $this->nl;
+  }
+  
+ /**
+  * Returns > arrow
+  *
+  * @return string HTML 
+  */
+  public function getGt()
+  {
+    return $this->gt;
+  }
+  
+ /**
+  * Returns < arrow
+  *
+  * @return string HTML 
+  */
+  public function getLt()
+  {
+    return $this->lt;
+  }
+  
+ /**
+  * Returns separator
+  *
+  * @return string HTML 
+  */
+  public function getSeparator()
+  {
+    return $this->separator;
+  }
+}

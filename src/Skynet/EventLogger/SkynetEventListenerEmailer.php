@@ -1,0 +1,391 @@
+<?php
+
+/**
+ * Skynet/EventLogger/SkynetEventListenerEmailer.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+namespace Skynet\EventLogger;
+
+use Skynet\EventListener\SkynetEventListenerAbstract;
+use Skynet\EventListener\SkynetEventListenerInterface;
+use Skynet\Filesystem\SkynetLogFile;
+use Skynet\Common\SkynetTypes;
+use Skynet\Common\SkynetHelper;
+use Skynet\Error\SkynetException;
+use Skynet\SkynetVersion;
+
+ /**
+  * Skynet Emailer
+  *
+  * Sends email with response and request
+  */
+class SkynetEventListenerEmailer extends SkynetEventListenerAbstract implements SkynetEventListenerInterface
+{
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    parent::__construct();
+  }
+
+ /**
+  * onConnect Event
+  *
+  * Actions executes when onConnect event is fired
+  *
+  * @param SkynetConnectionInterface $conn Connection adapter instance
+  */
+  public function onConnect($conn = null)  
+  {   
+    /* code executed before connection to cluster */  
+  }
+
+ /**
+  * onRequest Event
+  *
+  * Actions executes when onRequest event is fired
+  * Context: beforeSend - executes in sender when creating request.
+  * Context: afterReceive - executes in responder when request received from sender.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onRequest($context = null)
+  {
+    if($context == 'beforeSend')
+    {
+        /* code executed in sender before creating request */  
+    }
+    
+    if($context == 'afterReceive')
+    {
+      /* code executed in responder after received request */  
+      
+      if($this->request->get('@emailer') !== null)
+      {
+        $this->opt_set('emailer', $this->request->get('@emailer'));
+      }      
+      
+      if(\SkynetUser\SkynetConfig::get('emailer_requests'))
+      {
+        if($this->opt_get('emailer') == 1)
+        {
+          $address = \SkynetUser\SkynetConfig::get('emailer_email_address');
+          $data = $this->createLog('request', $context, true);
+          if($this->sendMail($address, '[SKYNET] onRequest:', $data))
+          {
+            $this->response->set('@<<emailSent', $address);
+          } else {
+            $this->response->set('@<<emailSentError', $address);
+          }          
+        }         
+      }
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+        /* code executed in sender after received response */  
+    }
+
+    if($context == 'beforeSend')
+    {      
+      /* code executed in responder before create response for request */
+      
+      if($this->request->get('@emailer') !== null)
+      {
+        $this->opt_set('emailer', $this->request->get('@emailer'));
+      }  
+      
+      if(\SkynetUser\SkynetConfig::get('emailer_responses'))
+      {
+        if($this->opt_get('emailer') == 1)
+        {
+          $address = \SkynetUser\SkynetConfig::get('emailer_email_address');
+          $data = $this->createLog('response', $context, true);
+          
+          if($this->sendMail($address, '[SKYNET] onResponse:', $data))
+          {
+            $this->response->set('@<<emailSent', $address);
+          } else {
+            $this->response->set('@<<emailSentError', $address);
+          }           
+        } 
+      }
+    }
+  }
+
+ /**
+  * onBroadcast Event
+  *
+  * Actions executes when onBroadcast event is fired.
+  * Context: beforeSend - executes in responder when @broadcast command received from request.
+  * Context: afterReceive - executes in sender when response for @broadcast received.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onBroadcast($context = null)
+  {
+    if($context == 'beforeSend')
+    {
+      /* code executed in responder when creating response for requested @broadcast */  
+    }
+  }
+
+ /**
+  * onEcho Event
+  *
+  * Actions executes when onEcho event is fired.
+  * Context: beforeSend - executes in responder when @echo command received from request.
+  * Context: afterReceive - executes in sender when response for @echo received.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onEcho($context = null)
+  {
+    if($context == 'beforeSend')
+    {
+      /* code executed in responder when creating response for requested @echo */  
+    }    
+  }    
+     
+ /**
+  * onCli Event
+  *
+  * Actions executes when CLI command in input
+  * Access to CLI: $this->cli
+  */ 
+  public function onCli()
+  {
+  
+  }
+
+ /**
+  * onConsole Event
+  *
+  * Actions executes when HTML Console command in input
+  * Access to Console: $this->console
+  */   
+  public function onConsole()
+  {    
+    
+  }   
+  
+ /**
+  * Registers commands
+  * 
+  * Must returns: 
+  * ['cli'] - array with cli commands [command, description]
+  * ['console'] - array with console commands [command, description]
+  *
+  * @return array[] commands
+  */   
+  public function registerCommands()
+  {    
+    $cli = [];
+    $console = [];    
+    
+    $console[] = ['@emailer', ['1', '0'], 'TO ALL'];   
+    
+    return array('cli' => $cli, 'console' => $console);    
+  }
+  
+ /**
+  * Sends email
+  *
+  * @param string $to Email address
+  * @param string $subject Email subject
+  * @param string $message Email message body
+  *
+  * @return bool True if success
+  */    
+  private function sendMail($to, $subject, $message)
+  {    
+    try
+    {
+      if(@mail($to, $subject, $message))
+      {
+        $this->addState(SkynetTypes::EMAIL, 'Email sended: ['.$to.'] '.$subject);
+        return true;
+      } else {
+        throw new SkynetException('Email not sent: ['.$to.'] '.$subject);
+      }
+    } catch(SkynetException $e)
+    {
+      $this->addError(SkynetTypes::EMAIL, $e->getMessage(), $e);
+    }    
+  }
+
+ /**
+  * Create log data for email
+  *
+  * @param string $event Event name/key
+  * @param string $context Context - beforeSend | afterReceive
+  * @param bool $toFile If True file log will be created
+  *
+  * @return string Parsed data
+  */  
+  private function createLog($event, $context, $toFile = false)
+  {    
+    switch($event)
+    {
+      case 'request': 
+      
+        $receiver = '';
+        $direction = '';
+        $suffix = '';
+
+        if($context == 'afterReceive')
+        {
+          if(isset($this->requestsData['_skynet_sender_url']))
+          {
+            $receiver = $this->requestsData['_skynet_sender_url'];
+          }
+          $direction = 'from';
+          $suffix = 'in';
+          
+        } elseif($context == 'beforeSend')
+        {
+          if(isset($this->receiverClusterUrl))
+          {
+            $receiver = $this->receiverClusterUrl;
+          }
+          $direction = 'to';
+          $suffix = 'out';
+        }
+
+        $fileName = 'email_'.$suffix;
+        $logFile = new SkynetLogFile('REQUEST');
+        $logFile->setFileName($fileName);
+        $logFile->setCounter($this->connId);
+        $logFile->setHeader("Request ".$direction.": ".$receiver);
+        foreach($this->requestsData as $k => $v)
+        {
+          $logFile->addLine($this->parseLine($k, $v));
+        }
+        return $logFile->save(null, $toFile);
+      break;
+      
+      case 'response':
+      
+        $remote = '';
+        $direction = '';
+        $suffix = '';
+        if($context == 'afterReceive')
+        {
+          if(isset($this->responseData['_skynet_cluster_url']))
+          {
+            $remote = $this->responseData['_skynet_cluster_url'];
+          }
+          $direction = 'from';
+          $suffix = 'in';
+        } elseif($context == 'beforeSend')
+        {
+          if(isset($this->requestsData['_skynet_sender_url']))
+          {
+            $remote = $this->requestsData['_skynet_sender_url'];
+          }
+          $direction = 'to';
+          $suffix = 'out';
+        }
+
+        $fileName = 'email_'.$suffix;
+        $logFile = new SkynetLogFile('RESPONSE');
+        $logFile->setFileName($fileName);
+        $logFile->setCounter($this->connId);
+        $logFile->setHeader("Response ".$direction.": ".$remote);
+
+        foreach($this->responseData as $k => $v)
+        {
+          $logFile->addLine($this->parseLine($k, $v));
+        }
+        /* If from response sender */
+        if($direction == 'to')
+        {
+          $logFile->addSeparator();
+          $logFile->addLine("RESPONSE FOR THIS REQUEST FROM [".$remote."]");
+          foreach($this->requestsData as $k => $v)
+          {
+            $logFile->addLine($this->parseLine($k, $v));
+          }
+        }
+        return $logFile->save(null, $toFile);
+      
+      break;
+    }
+  }  
+  
+ /**
+  * Parse single line
+  *
+  * @param string $k Field name/key
+  * @param string $v Field value
+  * @param bool $force Force include if internal param
+  *
+  * @return string Parsed line
+  */
+  private function parseLine($k, $v, $force = false)
+  {     
+    $row = '';
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_internal_data') || $force)
+    {
+       $row = "  ".$k.": ".$this->decodeIfNeeded($k, $v);
+    } else {
+       if(!$this->verifier->isInternalParameter($k)) 
+       {
+         $row = "  ".$k.": ".$this->decodeIfNeeded($k, $v);
+       }
+    }       
+    return $row;
+  }
+  
+ /**
+  * Decodes value if encrypted
+  *
+  * @param string $key Field name/key
+  * @param string $val Value
+  *
+  * @return string Decoded value
+  */
+  private function decodeIfNeeded($key, $val)
+  {
+    if(is_numeric($key)) return $val;
+    if($key == '_skynet_clusters' || $key == '@_skynet_clusters')
+    {
+      $ret = [];
+      $clusters = explode(';', $val);
+      foreach($clusters as $cluster)
+      {
+        $ret[] = base64_decode($cluster);
+      }
+      return implode('; ', $ret);
+    }
+
+    $toDecode = ['_skynet_clusters_chain', '@_skynet_clusters_chain'];
+    if(in_array($key, $toDecode))
+    {      
+      return base64_decode($val);
+    } else {     
+      return $val;
+    }
+  }
+}

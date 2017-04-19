@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta charset="utf-8"/>
+    <title>API Documentation</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+    <link href="../css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/prism.css" rel="stylesheet" media="all"/>
+    <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+    <!--[if lt IE 9]>
+    <script src="../js/html5.js"></script>
+    <![endif]-->
+    <script src="../js/jquery-1.11.0.min.js"></script>
+    <script src="../js/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery.smooth-scroll.js"></script>
+    <script src="../js/prism.min.js"></script>
+    <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
+    <script type="text/javascript">
+    function loadExternalCodeSnippets() {
+        Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+            var src = pre.getAttribute('data-src');
+            var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+            var language = 'php';
+
+            var code = document.createElement('code');
+            code.className = 'language-' + language;
+
+            pre.textContent = '';
+
+            code.textContent = 'Loading…';
+
+            pre.appendChild(code);
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('GET', src, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+
+                    if (xhr.status < 400 && xhr.responseText) {
+                        code.textContent = xhr.responseText;
+
+                        Prism.highlightElement(code);
+                    }
+                    else if (xhr.status >= 400) {
+                        code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                    }
+                    else {
+                        code.textContent = '✖ Error: File does not exist or is empty';
+                    }
+                }
+            };
+
+            xhr.send(null);
+        });
+    }
+
+    $(document).ready(function(){
+        loadExternalCodeSnippets();
+    });
+    $('#source-view').on('shown', function () {
+        loadExternalCodeSnippets();
+    })
+</script>
+
+    <link rel="shortcut icon" href="../images/favicon.ico"/>
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="../images/apple-touch-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="../images/apple-touch-icon-114x114.png"/>
+</head>
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <i class="icon-ellipsis-vertical"></i>
+            </a>
+            <a class="brand" href="../index.html">API Documentation</a>
+
+            <div class="nav-collapse">
+                <ul class="nav pull-right">
+                                        <li class="dropdown">
+                        <a href="../index.html" class="dropdown-toggle" data-toggle="dropdown">
+                            API Documentation <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                                                        <li><a href="../namespaces/Skynet.html">\Skynet</a></li>
+                                                        <li><a href="../namespaces/SkynetUser.html">\SkynetUser</a></li>
+                                                    </ul>
+                    </li>
+                                        <li class="dropdown" id="charts-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Charts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../graphs/class.html">
+                                    <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown" id="reports-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Reports <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../reports/errors.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/markers.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="icon-list-alt"></i>&#160;Markers <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/deprecated.html">
+                                                                                                            <i class="icon-list-alt"></i>&#160;Deprecated <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--<div class="go_to_top">-->
+    <!--<a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>-->
+    <!--</div>-->
+</div>
+
+<div id="___" class="container-fluid">
+        <section class="row-fluid">
+        <div class="span2 sidebar">
+                                <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-1419199435"></a>
+                                <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
+            </div>
+            <div id="namespace-1419199435" class="accordion-body collapse in">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1627968490"></a>
+                                <a href="../namespaces/Skynet.html" style="margin-left: 30px; padding-left: 0">Skynet</a>
+            </div>
+            <div id="namespace-1627968490" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1603933875"></a>
+                                <a href="../namespaces/Skynet.Cluster.html" style="margin-left: 30px; padding-left: 0">Cluster</a>
+            </div>
+            <div id="namespace-1603933875" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetCluster.html">SkynetCluster</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClusterHeader.html">SkynetClusterHeader</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClustersRegistry.html">SkynetClustersRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html">SkynetClustersUrlsChain</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-132358157"></a>
+                                <a href="../namespaces/Skynet.Common.html" style="margin-left: 30px; padding-left: 0">Common</a>
+            </div>
+            <div id="namespace-132358157" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Common.SkynetHelper.html">SkynetHelper</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Common.SkynetTypes.html">SkynetTypes</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1542160782"></a>
+                                <a href="../namespaces/Skynet.Connection.html" style="margin-left: 30px; padding-left: 0">Connection</a>
+            </div>
+            <div id="namespace-1542160782" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Connection.SkynetConnectionInterface.html">SkynetConnectionInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionAbstract.html">SkynetConnectionAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionCurl.html">SkynetConnectionCurl</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionFileGetContents.html">SkynetConnectionFileGetContents</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionsFactory.html">SkynetConnectionsFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-499059692"></a>
+                                <a href="../namespaces/Skynet.Console.html" style="margin-left: 30px; padding-left: 0">Console</a>
+            </div>
+            <div id="namespace-499059692" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetCli.html">SkynetCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetCommand.html">SkynetCommand</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetConsole.html">SkynetConsole</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-10015216"></a>
+                                <a href="../namespaces/Skynet.Core.html" style="margin-left: 30px; padding-left: 0">Core</a>
+            </div>
+            <div id="namespace-10015216" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Core.Skynet.html">Skynet</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetChain.html">SkynetChain</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetPeer.html">SkynetPeer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetResponder.html">SkynetResponder</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1860882257"></a>
+                                <a href="../namespaces/Skynet.Data.html" style="margin-left: 30px; padding-left: 0">Data</a>
+            </div>
+            <div id="namespace-1860882257" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetField.html">SkynetField</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetParams.html">SkynetParams</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetRequest.html">SkynetRequest</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetResponse.html">SkynetResponse</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1705997835"></a>
+                                <a href="../namespaces/Skynet.Database.html" style="margin-left: 30px; padding-left: 0">Database</a>
+            </div>
+            <div id="namespace-1705997835" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetDatabase.html">SkynetDatabase</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetGenerator.html">SkynetGenerator</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetOptions.html">SkynetOptions</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetRegistry.html">SkynetRegistry</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-360840015"></a>
+                                <a href="../namespaces/Skynet.Encryptor.html" style="margin-left: 30px; padding-left: 0">Encryptor</a>
+            </div>
+            <div id="namespace-360840015" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Encryptor.SkynetEncryptorInterface.html">SkynetEncryptorInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Encryptor.SkynetEncryptorBase64.html">SkynetEncryptorBase64</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Encryptor.SkynetEncryptorsFactory.html">SkynetEncryptorsFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-225442621"></a>
+                                <a href="../namespaces/Skynet.Error.html" style="margin-left: 30px; padding-left: 0">Error</a>
+            </div>
+            <div id="namespace-225442621" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                            <li class="trait"><a href="../classes/Skynet.Error.SkynetErrorsTrait.html">SkynetErrorsTrait</a></li>
+                                                                            <li class="class"><a href="../classes/Skynet.Error.SkynetError.html">SkynetError</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Error.SkynetErrorsRegistry.html">SkynetErrorsRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Error.SkynetException.html">SkynetException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-969599519"></a>
+                                <a href="../namespaces/Skynet.EventListener.html" style="margin-left: 30px; padding-left: 0">EventListener</a>
+            </div>
+            <div id="namespace-969599519" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.EventListener.SkynetEventListenerInterface.html">SkynetEventListenerInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerAbstract.html">SkynetEventListenerAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerCli.html">SkynetEventListenerCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerCloner.html">SkynetEventListenerCloner</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerClusters.html">SkynetEventListenerClusters</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerEcho.html">SkynetEventListenerEcho</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerExec.html">SkynetEventListenerExec</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerFiles.html">SkynetEventListenerFiles</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerOptions.html">SkynetEventListenerOptions</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerRegistry.html">SkynetEventListenerRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenersFactory.html">SkynetEventListenersFactory</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerSleeper.html">SkynetEventListenerSleeper</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerUpdater.html">SkynetEventListenerUpdater</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-260223327"></a>
+                                <a href="../namespaces/Skynet.EventLogger.html" style="margin-left: 30px; padding-left: 0">EventLogger</a>
+            </div>
+            <div id="namespace-260223327" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerEmailer.html">SkynetEventListenerEmailer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerLoggerDatabase.html">SkynetEventListenerLoggerDatabase</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerLoggerFiles.html">SkynetEventListenerLoggerFiles</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventLoggersFactory.html">SkynetEventLoggersFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1969852919"></a>
+                                <a href="../namespaces/Skynet.Filesystem.html" style="margin-left: 30px; padding-left: 0">Filesystem</a>
+            </div>
+            <div id="namespace-1969852919" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Filesystem.SkynetCloner.html">SkynetCloner</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Filesystem.SkynetLogFile.html">SkynetLogFile</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-725548456"></a>
+                                <a href="../namespaces/Skynet.Renderer.html" style="margin-left: 30px; padding-left: 0">Renderer</a>
+            </div>
+            <div id="namespace-725548456" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-412032768"></a>
+                                <a href="../namespaces/Skynet.Renderer.Cli.html" style="margin-left: 30px; padding-left: 0">Cli</a>
+            </div>
+            <div id="namespace-412032768" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCli.html">SkynetRendererCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliConnectionsRenderer.html">SkynetRendererCliConnectionsRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliDatabaseRenderer.html">SkynetRendererCliDatabaseRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliDebugRenderer.html">SkynetRendererCliDebugRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliElements.html">SkynetRendererCliElements</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-19137203"></a>
+                                <a href="../namespaces/Skynet.Renderer.Html.html" style="margin-left: 30px; padding-left: 0">Html</a>
+            </div>
+            <div id="namespace-19137203" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtml.html">SkynetRendererHtml</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlConnectionsRenderer.html">SkynetRendererHtmlConnectionsRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlConsoleRenderer.html">SkynetRendererHtmlConsoleRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlDatabaseRenderer.html">SkynetRendererHtmlDatabaseRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlDebugRenderer.html">SkynetRendererHtmlDebugRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlElements.html">SkynetRendererHtmlElements</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlThemes.html">SkynetRendererHtmlThemes</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Renderer.SkynetRendererInterface.html">SkynetRendererInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.SkynetRendererAbstract.html">SkynetRendererAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.SkynetRenderersFactory.html">SkynetRenderersFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1418927242"></a>
+                                <a href="../namespaces/Skynet.Secure.html" style="margin-left: 30px; padding-left: 0">Secure</a>
+            </div>
+            <div id="namespace-1418927242" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Secure.SkynetAuth.html">SkynetAuth</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Secure.SkynetVerifier.html">SkynetVerifier</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1920558954"></a>
+                                <a href="../namespaces/Skynet.State.html" style="margin-left: 30px; padding-left: 0">State</a>
+            </div>
+            <div id="namespace-1920558954" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                            <li class="trait"><a href="../classes/Skynet.State.SkynetStatesTrait.html">SkynetStatesTrait</a></li>
+                                                                            <li class="class"><a href="../classes/Skynet.State.SkynetState.html">SkynetState</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.State.SkynetStatesRegistry.html">SkynetStatesRegistry</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1074053269"></a>
+                                <a href="../namespaces/Skynet.Tools.html" style="margin-left: 30px; padding-left: 0">Tools</a>
+            </div>
+            <div id="namespace-1074053269" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetCompiler.html">SkynetCompiler</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetKeyGen.html">SkynetKeyGen</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetPwdGen.html">SkynetPwdGen</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-367575955"></a>
+                                <a href="../namespaces/Skynet.Updater.html" style="margin-left: 30px; padding-left: 0">Updater</a>
+            </div>
+            <div id="namespace-367575955" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Updater.SkynetUpdater.html">SkynetUpdater</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.SkynetLauncher.html">SkynetLauncher</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.SkynetVersion.html">SkynetVersion</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-201380820"></a>
+                                <a href="../namespaces/SkynetUser.html" style="margin-left: 30px; padding-left: 0">SkynetUser</a>
+            </div>
+            <div id="namespace-201380820" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/SkynetUser.SkynetConfig.html">SkynetConfig</a></li>
+                                                    <li class="class"><a href="../classes/SkynetUser.SkynetEventListenerMyListener.html">SkynetEventListenerMyListener</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </section>
+    <section class="row-fluid">
+        <div class="span10 offset2">
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <nav>
+                                                <a href="../namespaces/Skynet.Cluster.html">\Skynet\Cluster</a> <i class="icon-level-up"></i>
+                                            </nav>
+                    <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
+
+                    <h1><small>\Skynet\Cluster</small>SkynetClustersUrlsChain</h1>
+                    <p><em>Skynet Cluster Urls Chain</em></p>
+                    <p>Stores clusters URLs in encoded chain</p>
+                    
+                                        
+                    <section id="summary">
+                        <h2>Summary</h2>
+                        <section class="row-fluid heading">
+                            <section class="span4">
+                                <a href="#methods">Methods</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#properties">Properties</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#constants">Constants</a>
+                            </section>
+                        </section>
+                        <section class="row-fluid public">
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method___construct" class="">__construct()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_assignRequest" class="">assignRequest()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_loadFromRequest" class="">loadFromRequest()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_isClusterInChain" class="">isClusterInChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_isMyClusterInChain" class="">isMyClusterInChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_isSenderClusterInChain" class="">isSenderClusterInChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_addClusterToChain" class="">addClusterToChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_addMyClusterToChain" class="">addMyClusterToChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_addSenderClusterToChain" class="">addSenderClusterToChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_getClustersUrlsChain" class="">getClustersUrlsChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_getClustersUrlsPlainChain" class="">getClustersUrlsPlainChain()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No public properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No constants found</em>
+                                                            </section>
+                        </section>
+                        <section class="row-fluid protected">
+                            <section class="span4">
+                                                                    <em>No protected methods found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No protected properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                        <section class="row-fluid private">
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_encryptRawChain" class="">encryptRawChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_decryptRawChain" class="">decryptRawChain()</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#method_explodeChain" class="">explodeChain()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#property_rawUrlsChain" class="">$rawUrlsChain</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#property_decryptedUrlsChain" class="">$decryptedUrlsChain</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#property_clusters" class="">$clusters</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#property_request" class="">$request</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#property_myUrl" class="">$myUrl</a><br />
+                                                                    <a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html#property_senderUrl" class="">$senderUrl</a><br />
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                    </section>
+                </div>
+                <aside class="span4 detailsbar">
+                                        
+                    
+                    <dl>
+                        <dt>File</dt>
+                            <dd><a href="../files/Skynet.Cluster.SkynetClustersUrlsChain.html"><div class="path-wrapper">Skynet\Cluster\SkynetClustersUrlsChain.php</div></a></dd>
+                                                <dt>Package</dt>
+                            <dd><div class="namespace-wrapper">Skynet</div></dd>
+                                                <dt>Class hierarchy</dt>
+                            <dd class="hierarchy">
+                                                                                                                                                                    <div class="namespace-wrapper">\Skynet\Cluster\SkynetClustersUrlsChain</div>
+                            </dd>
+
+                        
+                        
+                        
+                        
+                                                                        </dl>
+                    <h2>Tags</h2>
+                    <table class="table table-condensed">
+                                            <tr><td colspan="2"><em>None found</em></td></tr>
+                                        </table>
+                </aside>
+            </div>
+
+                        
+                                    <a id="properties" name="properties"></a>
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <h2>Properties</h2>
+                </div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_rawUrlsChain" name="property_rawUrlsChain" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$rawUrlsChain</h3>
+                <pre class="signature">$rawUrlsChain : string</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                string
+                &mdash; Raw urls chain                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_decryptedUrlsChain" name="property_decryptedUrlsChain" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$decryptedUrlsChain</h3>
+                <pre class="signature">$decryptedUrlsChain : string</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                string
+                &mdash; Decrypted urls chain                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_clusters" name="property_clusters" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$clusters</h3>
+                <pre class="signature">$clusters : array&lt;mixed,string&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,string&gt;
+                &mdash; Array of clusters in chain                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_request" name="property_request" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$request</h3>
+                <pre class="signature">$request : \Skynet\Cluster\SkynetRequest</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                \Skynet\Cluster\SkynetRequest
+                &mdash; Assigned request                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_myUrl" name="property_myUrl" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$myUrl</h3>
+                <pre class="signature">$myUrl : string</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                string
+                &mdash; My cluster URL                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_senderUrl" name="property_senderUrl" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$senderUrl</h3>
+                <pre class="signature">$senderUrl : string</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                string
+                &mdash; Sender URL                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                            
+                                    <a id="methods" name="methods"></a>
+            <div class="row-fluid">
+                <div class="span8 content class"><h2>Methods</h2></div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method___construct" name="method___construct" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">__construct()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">__construct() </pre>
+                <p><em>Constructor</em></p>
+                
+
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_assignRequest" name="method_assignRequest" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">assignRequest()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">assignRequest(\Skynet\Cluster\SkynetRequest  <span class="argument">$request</span>) </pre>
+                <p><em>Assigns $request object</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>\Skynet\Cluster\SkynetRequest</td>
+                                <td>$request </td>
+                                <td></td>
+                            </tr>
+                                            </table>
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_loadFromRequest" name="method_loadFromRequest" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">loadFromRequest()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">loadFromRequest() </pre>
+                <p><em>Loads clusters urls saved in request into $this-&gt;clusters[] array</em></p>
+                
+
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_isClusterInChain" name="method_isClusterInChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">isClusterInChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">isClusterInChain(string  <span class="argument">$url</span>) : boolean</pre>
+                <p><em>Checks if cluster url exists in $this-&gt;clusters[] array</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$url </td>
+                                <td><p>Cluster URL to check</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                            &mdash; <p>True if exists</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_isMyClusterInChain" name="method_isMyClusterInChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">isMyClusterInChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">isMyClusterInChain() : boolean</pre>
+                <p><em>Checks if my cluster url exists in $this-&gt;clusters[] array</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                            &mdash; <p>True if exists</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_isSenderClusterInChain" name="method_isSenderClusterInChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">isSenderClusterInChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">isSenderClusterInChain() : boolean</pre>
+                <p><em>Checks if request sender&#039;s cluster url exists in $this-&gt;clusters[] array</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                            &mdash; <p>True if exists</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_addClusterToChain" name="method_addClusterToChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">addClusterToChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">addClusterToChain(string  <span class="argument">$url</span>) </pre>
+                <p><em>Adds cluster URL into $this-&gt;clusters[] array</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$url </td>
+                                <td><p>Cluster URL to add</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_addMyClusterToChain" name="method_addMyClusterToChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">addMyClusterToChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">addMyClusterToChain() : boolean</pre>
+                <p><em>Adds my cluster URL into $this-&gt;clusters[] array</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_addSenderClusterToChain" name="method_addSenderClusterToChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">addSenderClusterToChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">addSenderClusterToChain() : boolean</pre>
+                <p><em>Adds request sender&#039;s cluster URL into $this-&gt;clusters[] array</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getClustersUrlsChain" name="method_getClustersUrlsChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getClustersUrlsChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getClustersUrlsChain() : string</pre>
+                <p><em>Returns base64 encrypted chain generated from $this-&gt;clusters[] array</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>Base64 encode clusters urls chain</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getClustersUrlsPlainChain" name="method_getClustersUrlsPlainChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getClustersUrlsPlainChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getClustersUrlsPlainChain() : string</pre>
+                <p><em>Returns NOT encrypted raw chain generated from $this-&gt;clusters[] array</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>Base64 encode clusters urls chain</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_encryptRawChain" name="method_encryptRawChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">encryptRawChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">encryptRawChain(string  <span class="argument">$chain</span>) : string</pre>
+                <p><em>Encode raw chain by base64</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$chain </td>
+                                <td></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>Base64 encoded urls chain</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_decryptRawChain" name="method_decryptRawChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">decryptRawChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">decryptRawChain(string  <span class="argument">$chain</span>) : string</pre>
+                <p><em>Decode raw chain by base64</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$chain </td>
+                                <td></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>Base64 decoded urls chain</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_explodeChain" name="method_explodeChain" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">explodeChain()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">explodeChain() : array&lt;mixed,string&gt;</pre>
+                <p><em>Explode decoded urls chain and returns aray of clusters</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,string&gt;
+                                            &mdash; <p>Array of clusters</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    </div>
+    </section>
+
+    <div id="source-view" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-view-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="source-view-label">SkynetClustersUrlsChain.php</h3>
+        </div>
+        <div class="modal-body">
+            <pre data-src="../files/Skynet\Cluster\SkynetClustersUrlsChain.php.txt" class="language-php line-numbers"></pre>
+        </div>
+    </div>
+
+    <footer class="row-fluid">
+        <section class="span10 offset2">
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <section class="row-fluid footer-sections">
+                        <section class="span4">
+                                                        <h1><i class="icon-code"></i></h1>
+                            <div>
+                                <ul>
+                                                                            <li><a href="../namespaces/Skynet.html">\Skynet</a></li>
+                                                                            <li><a href="../namespaces/SkynetUser.html">\SkynetUser</a></li>
+                                                                    </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-bar-chart"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../graphs/class.html">Class Hierarchy Diagram</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-pushpin"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../reports/errors.html">Errors</a></li>
+                                    <li><a href="../reports/markers.html">Markers</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                    </section>
+                </section>
+            </section>
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <hr />
+                    Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
+                    on April 17th, 2017 at 23:29.
+                </section>
+            </section>
+        </section>
+    </footer>
+</div>
+
+</body>
+</html>

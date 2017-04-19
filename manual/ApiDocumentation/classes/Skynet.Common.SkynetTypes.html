@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta charset="utf-8"/>
+    <title>API Documentation</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+    <link href="../css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/prism.css" rel="stylesheet" media="all"/>
+    <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+    <!--[if lt IE 9]>
+    <script src="../js/html5.js"></script>
+    <![endif]-->
+    <script src="../js/jquery-1.11.0.min.js"></script>
+    <script src="../js/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery.smooth-scroll.js"></script>
+    <script src="../js/prism.min.js"></script>
+    <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
+    <script type="text/javascript">
+    function loadExternalCodeSnippets() {
+        Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+            var src = pre.getAttribute('data-src');
+            var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+            var language = 'php';
+
+            var code = document.createElement('code');
+            code.className = 'language-' + language;
+
+            pre.textContent = '';
+
+            code.textContent = 'Loading…';
+
+            pre.appendChild(code);
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('GET', src, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+
+                    if (xhr.status < 400 && xhr.responseText) {
+                        code.textContent = xhr.responseText;
+
+                        Prism.highlightElement(code);
+                    }
+                    else if (xhr.status >= 400) {
+                        code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                    }
+                    else {
+                        code.textContent = '✖ Error: File does not exist or is empty';
+                    }
+                }
+            };
+
+            xhr.send(null);
+        });
+    }
+
+    $(document).ready(function(){
+        loadExternalCodeSnippets();
+    });
+    $('#source-view').on('shown', function () {
+        loadExternalCodeSnippets();
+    })
+</script>
+
+    <link rel="shortcut icon" href="../images/favicon.ico"/>
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="../images/apple-touch-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="../images/apple-touch-icon-114x114.png"/>
+</head>
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <i class="icon-ellipsis-vertical"></i>
+            </a>
+            <a class="brand" href="../index.html">API Documentation</a>
+
+            <div class="nav-collapse">
+                <ul class="nav pull-right">
+                                        <li class="dropdown">
+                        <a href="../index.html" class="dropdown-toggle" data-toggle="dropdown">
+                            API Documentation <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                                                        <li><a href="../namespaces/Skynet.html">\Skynet</a></li>
+                                                        <li><a href="../namespaces/SkynetUser.html">\SkynetUser</a></li>
+                                                    </ul>
+                    </li>
+                                        <li class="dropdown" id="charts-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Charts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../graphs/class.html">
+                                    <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown" id="reports-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Reports <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../reports/errors.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/markers.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="icon-list-alt"></i>&#160;Markers <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/deprecated.html">
+                                                                                                            <i class="icon-list-alt"></i>&#160;Deprecated <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--<div class="go_to_top">-->
+    <!--<a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>-->
+    <!--</div>-->
+</div>
+
+<div id="___" class="container-fluid">
+        <section class="row-fluid">
+        <div class="span2 sidebar">
+                                <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-1702654252"></a>
+                                <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
+            </div>
+            <div id="namespace-1702654252" class="accordion-body collapse in">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1159285779"></a>
+                                <a href="../namespaces/Skynet.html" style="margin-left: 30px; padding-left: 0">Skynet</a>
+            </div>
+            <div id="namespace-1159285779" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2015848178"></a>
+                                <a href="../namespaces/Skynet.Cluster.html" style="margin-left: 30px; padding-left: 0">Cluster</a>
+            </div>
+            <div id="namespace-2015848178" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetCluster.html">SkynetCluster</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClusterHeader.html">SkynetClusterHeader</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClustersRegistry.html">SkynetClustersRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html">SkynetClustersUrlsChain</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2069318507"></a>
+                                <a href="../namespaces/Skynet.Common.html" style="margin-left: 30px; padding-left: 0">Common</a>
+            </div>
+            <div id="namespace-2069318507" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Common.SkynetHelper.html">SkynetHelper</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Common.SkynetTypes.html">SkynetTypes</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1017207046"></a>
+                                <a href="../namespaces/Skynet.Connection.html" style="margin-left: 30px; padding-left: 0">Connection</a>
+            </div>
+            <div id="namespace-1017207046" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Connection.SkynetConnectionInterface.html">SkynetConnectionInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionAbstract.html">SkynetConnectionAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionCurl.html">SkynetConnectionCurl</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionFileGetContents.html">SkynetConnectionFileGetContents</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionsFactory.html">SkynetConnectionsFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1839478628"></a>
+                                <a href="../namespaces/Skynet.Console.html" style="margin-left: 30px; padding-left: 0">Console</a>
+            </div>
+            <div id="namespace-1839478628" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetCli.html">SkynetCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetCommand.html">SkynetCommand</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetConsole.html">SkynetConsole</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1606281321"></a>
+                                <a href="../namespaces/Skynet.Core.html" style="margin-left: 30px; padding-left: 0">Core</a>
+            </div>
+            <div id="namespace-1606281321" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Core.Skynet.html">Skynet</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetChain.html">SkynetChain</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetPeer.html">SkynetPeer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetResponder.html">SkynetResponder</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2005043876"></a>
+                                <a href="../namespaces/Skynet.Data.html" style="margin-left: 30px; padding-left: 0">Data</a>
+            </div>
+            <div id="namespace-2005043876" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetField.html">SkynetField</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetParams.html">SkynetParams</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetRequest.html">SkynetRequest</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetResponse.html">SkynetResponse</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1242931610"></a>
+                                <a href="../namespaces/Skynet.Database.html" style="margin-left: 30px; padding-left: 0">Database</a>
+            </div>
+            <div id="namespace-1242931610" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetDatabase.html">SkynetDatabase</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetGenerator.html">SkynetGenerator</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetOptions.html">SkynetOptions</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetRegistry.html">SkynetRegistry</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1853641580"></a>
+                                <a href="../namespaces/Skynet.Encryptor.html" style="margin-left: 30px; padding-left: 0">Encryptor</a>
+            </div>
+            <div id="namespace-1853641580" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Encryptor.SkynetEncryptorInterface.html">SkynetEncryptorInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Encryptor.SkynetEncryptorBase64.html">SkynetEncryptorBase64</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Encryptor.SkynetEncryptorsFactory.html">SkynetEncryptorsFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1770446782"></a>
+                                <a href="../namespaces/Skynet.Error.html" style="margin-left: 30px; padding-left: 0">Error</a>
+            </div>
+            <div id="namespace-1770446782" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                            <li class="trait"><a href="../classes/Skynet.Error.SkynetErrorsTrait.html">SkynetErrorsTrait</a></li>
+                                                                            <li class="class"><a href="../classes/Skynet.Error.SkynetError.html">SkynetError</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Error.SkynetErrorsRegistry.html">SkynetErrorsRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Error.SkynetException.html">SkynetException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1928010631"></a>
+                                <a href="../namespaces/Skynet.EventListener.html" style="margin-left: 30px; padding-left: 0">EventListener</a>
+            </div>
+            <div id="namespace-1928010631" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.EventListener.SkynetEventListenerInterface.html">SkynetEventListenerInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerAbstract.html">SkynetEventListenerAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerCli.html">SkynetEventListenerCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerCloner.html">SkynetEventListenerCloner</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerClusters.html">SkynetEventListenerClusters</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerEcho.html">SkynetEventListenerEcho</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerExec.html">SkynetEventListenerExec</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerFiles.html">SkynetEventListenerFiles</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerOptions.html">SkynetEventListenerOptions</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerRegistry.html">SkynetEventListenerRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenersFactory.html">SkynetEventListenersFactory</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerSleeper.html">SkynetEventListenerSleeper</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerUpdater.html">SkynetEventListenerUpdater</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1042751402"></a>
+                                <a href="../namespaces/Skynet.EventLogger.html" style="margin-left: 30px; padding-left: 0">EventLogger</a>
+            </div>
+            <div id="namespace-1042751402" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerEmailer.html">SkynetEventListenerEmailer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerLoggerDatabase.html">SkynetEventListenerLoggerDatabase</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerLoggerFiles.html">SkynetEventListenerLoggerFiles</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventLoggersFactory.html">SkynetEventLoggersFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-746296944"></a>
+                                <a href="../namespaces/Skynet.Filesystem.html" style="margin-left: 30px; padding-left: 0">Filesystem</a>
+            </div>
+            <div id="namespace-746296944" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Filesystem.SkynetCloner.html">SkynetCloner</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Filesystem.SkynetLogFile.html">SkynetLogFile</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1173206314"></a>
+                                <a href="../namespaces/Skynet.Renderer.html" style="margin-left: 30px; padding-left: 0">Renderer</a>
+            </div>
+            <div id="namespace-1173206314" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-425909131"></a>
+                                <a href="../namespaces/Skynet.Renderer.Cli.html" style="margin-left: 30px; padding-left: 0">Cli</a>
+            </div>
+            <div id="namespace-425909131" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCli.html">SkynetRendererCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliConnectionsRenderer.html">SkynetRendererCliConnectionsRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliDatabaseRenderer.html">SkynetRendererCliDatabaseRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliDebugRenderer.html">SkynetRendererCliDebugRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliElements.html">SkynetRendererCliElements</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1331396278"></a>
+                                <a href="../namespaces/Skynet.Renderer.Html.html" style="margin-left: 30px; padding-left: 0">Html</a>
+            </div>
+            <div id="namespace-1331396278" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtml.html">SkynetRendererHtml</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlConnectionsRenderer.html">SkynetRendererHtmlConnectionsRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlConsoleRenderer.html">SkynetRendererHtmlConsoleRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlDatabaseRenderer.html">SkynetRendererHtmlDatabaseRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlDebugRenderer.html">SkynetRendererHtmlDebugRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlElements.html">SkynetRendererHtmlElements</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlThemes.html">SkynetRendererHtmlThemes</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Renderer.SkynetRendererInterface.html">SkynetRendererInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.SkynetRendererAbstract.html">SkynetRendererAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.SkynetRenderersFactory.html">SkynetRenderersFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2121802029"></a>
+                                <a href="../namespaces/Skynet.Secure.html" style="margin-left: 30px; padding-left: 0">Secure</a>
+            </div>
+            <div id="namespace-2121802029" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Secure.SkynetAuth.html">SkynetAuth</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Secure.SkynetVerifier.html">SkynetVerifier</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1216752526"></a>
+                                <a href="../namespaces/Skynet.State.html" style="margin-left: 30px; padding-left: 0">State</a>
+            </div>
+            <div id="namespace-1216752526" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                            <li class="trait"><a href="../classes/Skynet.State.SkynetStatesTrait.html">SkynetStatesTrait</a></li>
+                                                                            <li class="class"><a href="../classes/Skynet.State.SkynetState.html">SkynetState</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.State.SkynetStatesRegistry.html">SkynetStatesRegistry</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-444880412"></a>
+                                <a href="../namespaces/Skynet.Tools.html" style="margin-left: 30px; padding-left: 0">Tools</a>
+            </div>
+            <div id="namespace-444880412" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetCompiler.html">SkynetCompiler</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetKeyGen.html">SkynetKeyGen</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetPwdGen.html">SkynetPwdGen</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1411499746"></a>
+                                <a href="../namespaces/Skynet.Updater.html" style="margin-left: 30px; padding-left: 0">Updater</a>
+            </div>
+            <div id="namespace-1411499746" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Updater.SkynetUpdater.html">SkynetUpdater</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.SkynetLauncher.html">SkynetLauncher</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.SkynetVersion.html">SkynetVersion</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-522376297"></a>
+                                <a href="../namespaces/SkynetUser.html" style="margin-left: 30px; padding-left: 0">SkynetUser</a>
+            </div>
+            <div id="namespace-522376297" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/SkynetUser.SkynetConfig.html">SkynetConfig</a></li>
+                                                    <li class="class"><a href="../classes/SkynetUser.SkynetEventListenerMyListener.html">SkynetEventListenerMyListener</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </section>
+    <section class="row-fluid">
+        <div class="span10 offset2">
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <nav>
+                                                <a href="../namespaces/Skynet.Common.html">\Skynet\Common</a> <i class="icon-level-up"></i>
+                                            </nav>
+                    <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
+
+                    <h1><small>\Skynet\Common</small>SkynetTypes</h1>
+                    <p><em>Skynet Types</em></p>
+                    <p>Defines types constants</p>
+                    
+                                        
+                    <section id="summary">
+                        <h2>Summary</h2>
+                        <section class="row-fluid heading">
+                            <section class="span4">
+                                <a href="#methods">Methods</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#properties">Properties</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#constants">Constants</a>
+                            </section>
+                        </section>
+                        <section class="row-fluid public">
+                            <section class="span4">
+                                                                    <em>No public methods found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No public properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_STATUS_OK" class="">STATUS_OK</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_STATUS_ERR" class="">STATUS_ERR</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_CONN_OK" class="">CONN_OK</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_CONN_ERR" class="">CONN_ERR</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_DBCONN_OK" class="">DBCONN_OK</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_DBCONN_ERR" class="">DBCONN_ERR</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_CURL" class="">CURL</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_CURL_ERR" class="">CURL_ERR</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_CLONER" class="">CLONER</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_FILE_GET_CONTENTS" class="">FILE_GET_CONTENTS</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_PDO" class="">PDO</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_DB" class="">DB</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_CHAIN" class="">CHAIN</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_VERIFY" class="">VERIFY</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_HEADER" class="">HEADER</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_RESPONSE" class="">RESPONSE</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_REQUEST" class="">REQUEST</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_CLUSTER" class="">CLUSTER</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_CLUSTERS_DB" class="">CLUSTERS_DB</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_LOGFILE" class="">LOGFILE</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_EMAIL" class="">EMAIL</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_REGISTRY" class="">REGISTRY</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_OPTIONS" class="">OPTIONS</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_EXCEPTION" class="">EXCEPTION</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_UPDATER" class="">UPDATER</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_TXT_LOG" class="">TXT_LOG</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_DB_LOG" class="">DB_LOG</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_A_RESPONSE_OK" class="">A_RESPONSE_OK</a><br />
+                                                                    <a href="../classes/Skynet.Common.SkynetTypes.html#constant_A_REQUEST_OK" class="">A_REQUEST_OK</a><br />
+                                                            </section>
+                        </section>
+                        <section class="row-fluid protected">
+                            <section class="span4">
+                                                                    <em>No protected methods found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No protected properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                        <section class="row-fluid private">
+                            <section class="span4">
+                                                                    <em>No private methods found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No private properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                    </section>
+                </div>
+                <aside class="span4 detailsbar">
+                                        
+                    
+                    <dl>
+                        <dt>File</dt>
+                            <dd><a href="../files/Skynet.Common.SkynetTypes.html"><div class="path-wrapper">Skynet\Common\SkynetTypes.php</div></a></dd>
+                                                <dt>Package</dt>
+                            <dd><div class="namespace-wrapper">Skynet</div></dd>
+                                                <dt>Class hierarchy</dt>
+                            <dd class="hierarchy">
+                                                                                                                                                                    <div class="namespace-wrapper">\Skynet\Common\SkynetTypes</div>
+                            </dd>
+
+                        
+                        
+                        
+                        
+                                                                        </dl>
+                    <h2>Tags</h2>
+                    <table class="table table-condensed">
+                                            <tr><td colspan="2"><em>None found</em></td></tr>
+                                        </table>
+                </aside>
+            </div>
+
+                                    <a id="constants" name="constants"></a>
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <h2>Constants</h2>
+                </div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_STATUS_OK" name="constant_STATUS_OK" class="anchor"></a>
+            <article id="constant_STATUS_OK" class="constant">
+                <h3 class="">STATUS_OK</h3>
+                <pre class="signature">STATUS_OK</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_STATUS_ERR" name="constant_STATUS_ERR" class="anchor"></a>
+            <article id="constant_STATUS_ERR" class="constant">
+                <h3 class="">STATUS_ERR</h3>
+                <pre class="signature">STATUS_ERR</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_CONN_OK" name="constant_CONN_OK" class="anchor"></a>
+            <article id="constant_CONN_OK" class="constant">
+                <h3 class="">CONN_OK</h3>
+                <pre class="signature">CONN_OK</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_CONN_ERR" name="constant_CONN_ERR" class="anchor"></a>
+            <article id="constant_CONN_ERR" class="constant">
+                <h3 class="">CONN_ERR</h3>
+                <pre class="signature">CONN_ERR</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_DBCONN_OK" name="constant_DBCONN_OK" class="anchor"></a>
+            <article id="constant_DBCONN_OK" class="constant">
+                <h3 class="">DBCONN_OK</h3>
+                <pre class="signature">DBCONN_OK</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_DBCONN_ERR" name="constant_DBCONN_ERR" class="anchor"></a>
+            <article id="constant_DBCONN_ERR" class="constant">
+                <h3 class="">DBCONN_ERR</h3>
+                <pre class="signature">DBCONN_ERR</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_CURL" name="constant_CURL" class="anchor"></a>
+            <article id="constant_CURL" class="constant">
+                <h3 class="">CURL</h3>
+                <pre class="signature">CURL</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_CURL_ERR" name="constant_CURL_ERR" class="anchor"></a>
+            <article id="constant_CURL_ERR" class="constant">
+                <h3 class="">CURL_ERR</h3>
+                <pre class="signature">CURL_ERR</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_CLONER" name="constant_CLONER" class="anchor"></a>
+            <article id="constant_CLONER" class="constant">
+                <h3 class="">CLONER</h3>
+                <pre class="signature">CLONER</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_FILE_GET_CONTENTS" name="constant_FILE_GET_CONTENTS" class="anchor"></a>
+            <article id="constant_FILE_GET_CONTENTS" class="constant">
+                <h3 class="">FILE_GET_CONTENTS</h3>
+                <pre class="signature">FILE_GET_CONTENTS</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_PDO" name="constant_PDO" class="anchor"></a>
+            <article id="constant_PDO" class="constant">
+                <h3 class="">PDO</h3>
+                <pre class="signature">PDO</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_DB" name="constant_DB" class="anchor"></a>
+            <article id="constant_DB" class="constant">
+                <h3 class="">DB</h3>
+                <pre class="signature">DB</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_CHAIN" name="constant_CHAIN" class="anchor"></a>
+            <article id="constant_CHAIN" class="constant">
+                <h3 class="">CHAIN</h3>
+                <pre class="signature">CHAIN</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_VERIFY" name="constant_VERIFY" class="anchor"></a>
+            <article id="constant_VERIFY" class="constant">
+                <h3 class="">VERIFY</h3>
+                <pre class="signature">VERIFY</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_HEADER" name="constant_HEADER" class="anchor"></a>
+            <article id="constant_HEADER" class="constant">
+                <h3 class="">HEADER</h3>
+                <pre class="signature">HEADER</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_RESPONSE" name="constant_RESPONSE" class="anchor"></a>
+            <article id="constant_RESPONSE" class="constant">
+                <h3 class="">RESPONSE</h3>
+                <pre class="signature">RESPONSE</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_REQUEST" name="constant_REQUEST" class="anchor"></a>
+            <article id="constant_REQUEST" class="constant">
+                <h3 class="">REQUEST</h3>
+                <pre class="signature">REQUEST</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_CLUSTER" name="constant_CLUSTER" class="anchor"></a>
+            <article id="constant_CLUSTER" class="constant">
+                <h3 class="">CLUSTER</h3>
+                <pre class="signature">CLUSTER</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_CLUSTERS_DB" name="constant_CLUSTERS_DB" class="anchor"></a>
+            <article id="constant_CLUSTERS_DB" class="constant">
+                <h3 class="">CLUSTERS_DB</h3>
+                <pre class="signature">CLUSTERS_DB</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_LOGFILE" name="constant_LOGFILE" class="anchor"></a>
+            <article id="constant_LOGFILE" class="constant">
+                <h3 class="">LOGFILE</h3>
+                <pre class="signature">LOGFILE</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_EMAIL" name="constant_EMAIL" class="anchor"></a>
+            <article id="constant_EMAIL" class="constant">
+                <h3 class="">EMAIL</h3>
+                <pre class="signature">EMAIL</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_REGISTRY" name="constant_REGISTRY" class="anchor"></a>
+            <article id="constant_REGISTRY" class="constant">
+                <h3 class="">REGISTRY</h3>
+                <pre class="signature">REGISTRY</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_OPTIONS" name="constant_OPTIONS" class="anchor"></a>
+            <article id="constant_OPTIONS" class="constant">
+                <h3 class="">OPTIONS</h3>
+                <pre class="signature">OPTIONS</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_EXCEPTION" name="constant_EXCEPTION" class="anchor"></a>
+            <article id="constant_EXCEPTION" class="constant">
+                <h3 class="">EXCEPTION</h3>
+                <pre class="signature">EXCEPTION</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_UPDATER" name="constant_UPDATER" class="anchor"></a>
+            <article id="constant_UPDATER" class="constant">
+                <h3 class="">UPDATER</h3>
+                <pre class="signature">UPDATER</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_TXT_LOG" name="constant_TXT_LOG" class="anchor"></a>
+            <article id="constant_TXT_LOG" class="constant">
+                <h3 class="">TXT_LOG</h3>
+                <pre class="signature">TXT_LOG</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_DB_LOG" name="constant_DB_LOG" class="anchor"></a>
+            <article id="constant_DB_LOG" class="constant">
+                <h3 class="">DB_LOG</h3>
+                <pre class="signature">DB_LOG</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_A_RESPONSE_OK" name="constant_A_RESPONSE_OK" class="anchor"></a>
+            <article id="constant_A_RESPONSE_OK" class="constant">
+                <h3 class="">A_RESPONSE_OK</h3>
+                <pre class="signature">A_RESPONSE_OK</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="constant_A_REQUEST_OK" name="constant_A_REQUEST_OK" class="anchor"></a>
+            <article id="constant_A_REQUEST_OK" class="constant">
+                <h3 class="">A_REQUEST_OK</h3>
+                <pre class="signature">A_REQUEST_OK</pre>
+                <p><em></em></p>
+                
+            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                            
+                        
+                                </div>
+    </section>
+
+    <div id="source-view" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-view-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="source-view-label">SkynetTypes.php</h3>
+        </div>
+        <div class="modal-body">
+            <pre data-src="../files/Skynet\Common\SkynetTypes.php.txt" class="language-php line-numbers"></pre>
+        </div>
+    </div>
+
+    <footer class="row-fluid">
+        <section class="span10 offset2">
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <section class="row-fluid footer-sections">
+                        <section class="span4">
+                                                        <h1><i class="icon-code"></i></h1>
+                            <div>
+                                <ul>
+                                                                            <li><a href="../namespaces/Skynet.html">\Skynet</a></li>
+                                                                            <li><a href="../namespaces/SkynetUser.html">\SkynetUser</a></li>
+                                                                    </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-bar-chart"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../graphs/class.html">Class Hierarchy Diagram</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-pushpin"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../reports/errors.html">Errors</a></li>
+                                    <li><a href="../reports/markers.html">Markers</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                    </section>
+                </section>
+            </section>
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <hr />
+                    Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
+                    on April 17th, 2017 at 23:29.
+                </section>
+            </section>
+        </section>
+    </footer>
+</div>
+
+</body>
+</html>

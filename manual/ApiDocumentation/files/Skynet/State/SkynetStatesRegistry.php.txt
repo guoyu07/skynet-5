@@ -1,0 +1,84 @@
+<?php
+
+/**
+ * Skynet/State/SkynetStatesRegistry.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+namespace Skynet\State;
+
+ /**
+  * Skynet States Registry
+  *
+  * Registry stores all states generates by Skynet
+  */
+class SkynetStatesRegistry
+{
+  /** @var SkynetState[] Array of states */
+  protected $states = [];
+
+  /** @var SkynetStatesRegistry Instance of this */
+  private static $instance = null;
+
+
+ /**
+  * Constructor (private)
+  */
+  protected function __construct() {}
+
+ /**
+  * __clone (private)
+  */
+  protected function __clone() {}
+
+ /**
+  * Returns instance of this
+  *
+  * @return SkynetStatesRegistry
+  */
+  public static function getInstance()
+  {
+    if(self::$instance === null)
+    {
+      self::$instance = new static();
+    }
+    return self::$instance;
+  }
+
+ /**
+  * Adds state to registry
+  *
+  * @param SkynetState $state
+  */
+  public function addState(SkynetState $state)
+  {
+    $this->states[] = $state;
+  }
+
+ /**
+  * Returns stored states
+  *
+  * @return SkynetState[]
+  */
+  public function getStates()
+  {
+    return $this->states;
+  }
+
+ /**
+  * Checks for states exists in registry
+  *
+  * @return bool True if are states
+  */
+  public function areStates()
+  {
+    if(count($this->states) > 0) return true;
+  }
+}

@@ -1,0 +1,344 @@
+<?php
+
+/**
+ * Skynet/Data/SkynetResponse.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+namespace Skynet\Data;
+
+use Skynet\Error\SkynetErrorsTrait;
+use Skynet\State\SkynetStatesTrait;
+use Skynet\Cluster\SkynetClustersRegistry;
+use Skynet\Cluster\SkynetClusterHeader;
+use Skynet\Core\SkynetChain;
+use Skynet\Encryptor\SkynetEncryptorsFactory;
+use Skynet\Secure\SkynetVerifier;
+use Skynet\Common\SkynetTypes;
+use Skynet\Data\SkynetParams;
+use Skynet\SkynetVersion;
+
+ /**
+  * Skynet Response
+  *
+  * Stores and generates Responses
+  *
+  * @uses SkynetErrorsTrait
+  * @uses SkynetStatesTrait
+  */
+class SkynetResponse
+{
+  use SkynetErrorsTrait, SkynetStatesTrait;
+
+  /** @var SkynetField[] Array of response fields*/
+  private $fields = [];
+
+  /** @var SkynetField[] Array of raw response fields */
+  private $rawFields = [];
+
+  /** @var string[] Parsed connection params */
+  private $params = [];
+
+  /** @var SkynetRequest Assigned Request */
+  private $request;
+
+  /** @var string Raw data from connection */
+  private $rawReceivedData;
+
+  /** @var SkynetVerifier SkynetVerifier instance*/
+  private $verifier;
+
+  /** @var bool Is cluster received in response */
+  private $receivedClusters;
+
+  /** @var SkynetClustersRegistry SkynetClustersRegistry instance */
+  private $clustersRegistry;
+
+  /** @var SkynetClusterHeader SkynetClusterHeader instance */
+  private $clusterHeader;
+
+  /** @var SkynetEncryptorInterface SkynetEncryptorInterface instance */
+  private $encryptor;
+  
+  /** @var SkynetParams Params Operations */
+  protected $paramsParser;
+  
+  /** @var SkynetChain SkynetChain instance */
+  private $skynetChain;
+
+
+ /**
+  * Constructor
+  *
+  * @return SkynetResponse $this Instance of $this
+  */
+  public function __construct()
+  {
+    $this->verifier = new SkynetVerifier();
+    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clusterHeader = new SkynetClusterHeader();
+    $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
+    $this->paramsParser = new SkynetParams();
+    $this->skynetChain = new SkynetChain();
+    return $this;
+  }
+  
+ /**
+  * Quick alias for add new response field
+  *
+  * @param string $key Field name/key
+  * @param string $value Field value
+  *
+  * @return SkynetResponse Instance of $this
+  */
+  public function add($key, $value)
+  {
+    return $this->set($key, $value);
+  }
+
+ /**
+  * Quick alias for add new response field
+  *
+  * @param string $key Field name/key
+  * @param string $value Field value
+  *
+  * @return SkynetResponse Instance of $this
+  */
+  public function set($key, $value)
+  {
+    if(is_array($value))
+    {
+       $this->addField($key, new SkynetField($key, $this->paramsParser->packParams($value)));
+    } else {
+       $this->addField($key, new SkynetField($key, $value));
+    }
+    return $this;
+  }
+  
+ /**
+  * Returns value of response field
+  *
+  * @param string $key Field key
+  * @return string Value of requested field
+  */
+  public function get($key = null)
+  {
+    if($key !== null)
+    {
+      if(array_key_exists($key, $this->fields))
+      {
+        $field = $this->fields[$key];
+        $value = $field->getValue();
+        
+        if($this->paramsParser->isPacked($value))
+        {
+           return $this->paramsParser->unpackParams($value);
+        } else {
+           return $value;
+        }
+       
+      } else {
+        return null;
+      }
+    }
+  }
+
+ /**
+  * Sets raw received JSON data from connection
+  *
+  * @param string $data Raw received JSON data
+  */
+  public function setRawReceivedData($data)
+  {
+     $this->rawReceivedData = $data;
+  }
+
+ /**
+  * Adds new response field
+  *
+  * @param string $key Key
+  * @param SkynetField $field New response field
+  */
+  public function addField($key, SkynetField $field)
+  {
+    $this->fields[$key] = $field;
+  }
+
+ /**
+  * Adds new RAW response field
+  *
+  * @param string $key Param key name
+  * @param SkynetField $field New RAW response field
+  */
+  public function addRawField($key, SkynetField $field)
+  {
+    $this->rawFields[$key] = $field;
+  }
+
+ /**
+  * Parses response from received JSON data *
+  */
+  public function parseResponse()
+  {
+    $json = json_decode($this->rawReceivedData);
+    if($json !== null)
+    {
+      foreach($json as $k => $v)
+      {
+        $this->addField($k, new SkynetField($k, $v, true));
+        $this->addRawField($k, new SkynetField($k, $v, null));
+      }
+      $this->isResponse = true;
+    }
+  }
+
+ /**
+  * Returns array with response fields
+  *
+  * @return SkynetField[] Array of response fields
+  */
+  public function getFields()
+  {
+    return $this->fields;
+  }
+
+ /**
+  * Gets response fields as associative array indexed by keys
+  *
+  * @return string[] Indexed associative array with response fields
+  */
+  public function getResponseData()
+  {
+    $fields = [];
+    foreach($this->fields as $field)
+    {
+      $name = $field->getName();
+      $field->setIsEncrypted(null);
+      $fields[$name] = $field->getValue();
+      if($this->receivedClusters === null && $name == '_skynet_clusters')
+      {
+        $remoteData = [];
+        $remoteData['_skynet_cluster_url'] = '';
+        $remoteData['_skynet_clusters'] = $field->getValue();
+        $this->receivedClusters = true;
+      }
+    }
+    return $fields;
+  }
+
+ /**
+  * Gets RAW response fields (without any encrypt/decrypt manipulations)
+  *
+  * @return SkynetField[] Raw response fields
+  */
+  public function getRawFields()
+  {
+    if(\SkynetUser\SkynetConfig::get('core_raw')) 
+    {
+      return $this->fields;
+    }
+
+    $fields = [];
+    foreach($this->rawFields as $k => $v)
+    {
+      $fields[$k] = $v;
+    }
+    return $fields;
+  }
+
+ /**
+  * Gets params used for connection
+  *
+  * @return string[] Array of connection params
+  */
+  public function getParams()
+  {
+    return $this->params;
+  }
+
+ /**
+  * Adds request fields to response and prefix them with @
+  */
+  private function addMetaRequest()
+  {
+    $requests = $this->request->getRequests();
+    foreach($requests as $k => $v)
+    {
+      if(strpos($k, '@') !== 0) 
+      {
+        $key = '@'.$k;
+        $this->fields[$key] = new SkynetField($key, $v);
+      }
+    }
+  }
+
+ /**
+  * Assigns $request object
+  *
+  * @param SkynetRequest $request
+  */
+  public function assignRequest(SkynetRequest $request)
+  {
+    $this->request = $request;
+  }
+
+ /**
+  * Adds internal skynet control data to request
+  */
+  private function addMetaData()
+  {
+    $clusterHeader = new SkynetClusterHeader();
+    $clusterHeader->generate();
+    
+    $this->set('_skynet', 1);
+    $this->set('_skynet_id', $clusterHeader->getId());
+    $this->set('_skynet_hash', $this->verifier->generateHash());
+    $this->set('_skynet_chain', $clusterHeader->getChain());
+    $this->set('_skynet_chain_updated_at', $clusterHeader->getUpdatedAt());
+    $this->set('_skynet_version', $clusterHeader->getVersion());
+    $this->set('_skynet_cluster_url', $clusterHeader->getUrl());
+    $this->set('_skynet_cluster_ip', $clusterHeader->getIp());
+    $this->set('_skynet_cluster_time', time());
+    $this->set('_skynet_clusters', $this->skynetChain->parseMyClusters());
+  }
+
+ /**
+  * Generate JSON response from fields
+  *
+  * @param bool $force Forces JSON generation even if ID Key is incorrect
+  *
+  * @return string JSON encoded response
+  */
+  public function generateResponse($force = false)
+  {
+    /* If not authorized */
+    if(!$this->verifier->isRequestKeyVerified() && !$force)
+    {
+      return false;
+    }
+
+    $this->addMetaData();
+    if(\SkynetUser\SkynetConfig::get('response_include_request')) 
+    {
+      $this->addMetaRequest();
+    }
+
+    $ary = [];
+    foreach($this->fields as $field)
+    {
+      $field->setIsEncrypted(false);
+      $key = $field->getName();
+      $value = $field->getValue();
+      $ary[$key] = $value;
+    }
+    $ary['_skynet_checksum'] = $this->verifier->generateChecksum($ary);
+    return json_encode($ary);
+  }
+}

@@ -1,0 +1,241 @@
+<?php
+
+/**
+ * Skynet/Console/SkynetCli.php
+ *
+ * Operates on commands when running in CLI
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+namespace Skynet\Console;
+
+use Skynet\Error\SkynetErrorsTrait;
+use Skynet\State\SkynetStatesTrait;
+
+ /**
+  * Skynet CLI Parser
+  *
+  * Operates from CLI
+  */
+class SkynetCli
+{
+  use SkynetErrorsTrait, SkynetStatesTrait;
+  
+  /** @var string[] Commands passed in CLI */
+  private $commands = [];  
+
+  /** @var string[] Commands params passed in CLI */
+  private $params = [];
+  
+  /** @var string[] Commands with their params */
+  private $commandsData = [];
+  
+  /** @var string[] $_SERVER['argc'] Arguments count*/
+  private $argc;
+  
+  /** @var string[] $_SERVER['argv'] Arguments values */
+  private $argv = [];
+  
+  /** @var int Num of passed args without argv[0] - (script name) */
+  private $numArgs;
+  
+   /** @var bool True if passed args */
+  private $areArgs = false;
+  
+  /** @var string Actual CLI argument */
+  private $actualCmd;
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    if($this->isCli())
+    {
+      $this->argc = $_SERVER['argc'];
+      $this->argv = $_SERVER['argv'];
+      $this->numArgs = $this->argc - 1;
+      
+      if($this->haveArgs())
+      {
+        $this->areArgs = true;
+        $this->getArgs();
+      }
+    }
+  }
+
+ /**
+  * Checks environment for CLI
+  *
+  * @return bool True if in CLI
+  */ 
+  public function isCli()
+  {
+    if(defined('STDIN'))
+    {
+       return true;
+    }
+
+    if(php_sapi_name() === 'cli')
+    {
+       return true;
+    }
+
+    if(array_key_exists('SHELL', $_ENV)) 
+    {
+       return true;
+    }
+
+    if(empty($_SERVER['REMOTE_ADDR']) and !isset($_SERVER['HTTP_USER_AGENT']) and count($_SERVER['argv']) > 0) 
+    {
+       return true;
+    } 
+
+    if(!array_key_exists('REQUEST_METHOD', $_SERVER))
+    {
+       return true;
+    }
+
+    return false;
+  }
+
+ /**
+  * Checks for CLI args exists
+  *
+  * @return bool True if are args
+  */   
+  public function haveArgs()
+  {
+    if($this->numArgs > 0)
+    {
+      return true;
+    }
+  }
+
+ /**
+  * Gets and parses arguments
+  *
+  * @return string[] Array with args and their params
+  */ 
+  public function getArgs()
+  { 
+    $cmds = [];
+    $params = [];       
+   
+    foreach($this->argv as $k => $arg)
+    {
+      if($k > 0)
+      {
+        /* if command */
+        if(strpos($arg, '-') === 0)
+        {
+          $cmd = substr($arg, 1, strlen($arg));
+          $this->commands[] = $cmd;
+          $this->actualCmd = $cmd;
+          $this->commandsData[$cmd] = [];
+          
+        } else {
+          /* if command param */
+          if($this->actualCmd !== null)
+          {
+            $key = $this->actualCmd;
+            if(is_array($this->commandsData[$key]))
+            {
+              $this->commandsData[$key][] = $arg;
+            }             
+          }       
+          $this->params[] = $arg;
+        }    
+      }
+    }  
+    
+    return $this->commandsData;
+  }
+ 
+ /**
+  * Checks for command exists in args
+  *
+  * @param string $cmd Command name
+  *
+  * @return bool True if exists
+  */  
+ public function isCommand($cmd)
+ {
+   if(array_key_exists($cmd, $this->commandsData))
+   {
+      return true;
+   }   
+ }
+
+ /**
+  * Returns params array for arg
+  *
+  * @param string $cmd Command name
+  *
+  * @return string[] Params
+  */  
+ public function getParams($cmd)
+ {
+   if(array_key_exists($cmd, $this->commandsData))
+   {
+      return $this->commandsData[$cmd];
+   } 
+ }
+ 
+ /**
+  * Returns first param 
+  *
+  * @param string $cmd Command name
+  *
+  * @return string Param
+  */  
+ public function getParam($cmd)
+ {
+   if(array_key_exists($cmd, $this->commandsData))
+   {
+      return $this->commandsData[$cmd][0];
+   } 
+ }
+
+ /**
+  * Checks for command params
+  *
+  * @param string[] $params Check if have params
+  *
+  * @return bool True if are params
+  */ 
+  public function areParams($params)
+  {
+    if(is_array($params) && count($params) > 0)
+    {
+      return true;
+    }
+  }
+
+ /**
+  * Returns array with commands passed to CLI
+  *
+  * @return string[] Array with commands
+  */   
+  public function getCommands()
+  {
+    return $this->commands;
+  }
+
+ /**
+  * Returns array with commands and params, [command] => params
+  *
+  * @return string[] Array with commands and params
+  */    
+  public function getCommandsData()
+  {
+    return $this->commandsData;
+  }  
+}

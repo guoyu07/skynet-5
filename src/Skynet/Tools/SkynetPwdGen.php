@@ -1,0 +1,81 @@
+<?php 
+
+/**
+ * Skynet/Tools/SkynetPwdGen.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+ 
+ namespace Skynet\Tools;
+
+ /**
+  * Standalone password hash generator
+  */   
+class SkynetPwdGen
+{  
+
+ /**
+  * Constructor
+  */  
+  public function __construct()
+  {
+    
+  }
+  
+ /**
+  * Generates key
+  *
+  * @param string $password Plain password
+  *
+  * @return string Generated hash
+  */    
+  public function generate($password)
+  {    
+    return password_hash($password, PASSWORD_BCRYPT);
+  }
+
+ /**
+  * Generates hash
+  *
+  * @param string $mode HTML or CLI
+  *
+  * @return string Generated Skynet password hash
+  */   
+  public function show($mode = 'html')
+  {
+    $output = '';
+    $typeHtml = '<h1>Password hash generator</h1><form method="post">Type your password as plain text and click on GENERATE: <input type="text" name="pwd"><input type="submit" value="GENERATE"></form>';
+    $typeCli = 'Type your password as argument';
+    
+    switch($mode)
+    {
+      case 'html':
+        if(isset($_POST['pwd']) && !empty($_POST['pwd']))
+        {
+          $output = 'Generated hash for password <b>'.$_POST['pwd'].'</b>: <h2>'.$this->generate($_POST['pwd']).'</h2>Place generated password hash into const <b>PASSWORD</b> in <b>/src/SkynetUser/SkynetConfig.php</b> configuration file.<hr>'.$typeHtml;
+        } else {
+          $output = $typeHtml;
+        }
+      break;
+      
+      
+      case 'cli':
+        $c = $_SERVER['argc']; 
+        $pwdIndex = $c - 1;
+        if($c > 1 && !empty($_SERVER['argv'][$pwdIndex]))
+        {
+           $output = "\nGenerated hash for password [".$_SERVER["argv"][$pwdIndex]."]: >>> ".$this->generate($_SERVER["argv"][$pwdIndex])." <<< \nPlace generated password hash into const PASSWORD in /src/SkynetUser/SkynetConfig.php configuration file.\n\n";
+        } else {
+           $output = $typeCli;
+        }
+      break;      
+    }
+    return $output;
+  }
+}

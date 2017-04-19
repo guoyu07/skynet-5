@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta charset="utf-8"/>
+    <title>API Documentation</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+    <link href="../css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/prism.css" rel="stylesheet" media="all"/>
+    <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+    <!--[if lt IE 9]>
+    <script src="../js/html5.js"></script>
+    <![endif]-->
+    <script src="../js/jquery-1.11.0.min.js"></script>
+    <script src="../js/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery.smooth-scroll.js"></script>
+    <script src="../js/prism.min.js"></script>
+    <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
+    <script type="text/javascript">
+    function loadExternalCodeSnippets() {
+        Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+            var src = pre.getAttribute('data-src');
+            var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+            var language = 'php';
+
+            var code = document.createElement('code');
+            code.className = 'language-' + language;
+
+            pre.textContent = '';
+
+            code.textContent = 'Loading…';
+
+            pre.appendChild(code);
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('GET', src, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+
+                    if (xhr.status < 400 && xhr.responseText) {
+                        code.textContent = xhr.responseText;
+
+                        Prism.highlightElement(code);
+                    }
+                    else if (xhr.status >= 400) {
+                        code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                    }
+                    else {
+                        code.textContent = '✖ Error: File does not exist or is empty';
+                    }
+                }
+            };
+
+            xhr.send(null);
+        });
+    }
+
+    $(document).ready(function(){
+        loadExternalCodeSnippets();
+    });
+    $('#source-view').on('shown', function () {
+        loadExternalCodeSnippets();
+    })
+</script>
+
+    <link rel="shortcut icon" href="../images/favicon.ico"/>
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="../images/apple-touch-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="../images/apple-touch-icon-114x114.png"/>
+</head>
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <i class="icon-ellipsis-vertical"></i>
+            </a>
+            <a class="brand" href="../index.html">API Documentation</a>
+
+            <div class="nav-collapse">
+                <ul class="nav pull-right">
+                                        <li class="dropdown">
+                        <a href="../index.html" class="dropdown-toggle" data-toggle="dropdown">
+                            API Documentation <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                                                        <li><a href="../namespaces/Skynet.html">\Skynet</a></li>
+                                                        <li><a href="../namespaces/SkynetUser.html">\SkynetUser</a></li>
+                                                    </ul>
+                    </li>
+                                        <li class="dropdown" id="charts-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Charts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../graphs/class.html">
+                                    <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown" id="reports-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Reports <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../reports/errors.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/markers.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="icon-list-alt"></i>&#160;Markers <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/deprecated.html">
+                                                                                                            <i class="icon-list-alt"></i>&#160;Deprecated <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--<div class="go_to_top">-->
+    <!--<a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>-->
+    <!--</div>-->
+</div>
+
+<div id="___" class="container-fluid">
+        <section class="row-fluid">
+        <div class="span2 sidebar">
+                                <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-653866810"></a>
+                                <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
+            </div>
+            <div id="namespace-653866810" class="accordion-body collapse in">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-586808212"></a>
+                                <a href="../namespaces/Skynet.html" style="margin-left: 30px; padding-left: 0">Skynet</a>
+            </div>
+            <div id="namespace-586808212" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2124024150"></a>
+                                <a href="../namespaces/Skynet.Cluster.html" style="margin-left: 30px; padding-left: 0">Cluster</a>
+            </div>
+            <div id="namespace-2124024150" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetCluster.html">SkynetCluster</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClusterHeader.html">SkynetClusterHeader</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClustersRegistry.html">SkynetClustersRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Cluster.SkynetClustersUrlsChain.html">SkynetClustersUrlsChain</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-30708192"></a>
+                                <a href="../namespaces/Skynet.Common.html" style="margin-left: 30px; padding-left: 0">Common</a>
+            </div>
+            <div id="namespace-30708192" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Common.SkynetHelper.html">SkynetHelper</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Common.SkynetTypes.html">SkynetTypes</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-704258278"></a>
+                                <a href="../namespaces/Skynet.Connection.html" style="margin-left: 30px; padding-left: 0">Connection</a>
+            </div>
+            <div id="namespace-704258278" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Connection.SkynetConnectionInterface.html">SkynetConnectionInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionAbstract.html">SkynetConnectionAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionCurl.html">SkynetConnectionCurl</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionFileGetContents.html">SkynetConnectionFileGetContents</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Connection.SkynetConnectionsFactory.html">SkynetConnectionsFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-871282002"></a>
+                                <a href="../namespaces/Skynet.Console.html" style="margin-left: 30px; padding-left: 0">Console</a>
+            </div>
+            <div id="namespace-871282002" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetCli.html">SkynetCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetCommand.html">SkynetCommand</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Console.SkynetConsole.html">SkynetConsole</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-648852870"></a>
+                                <a href="../namespaces/Skynet.Core.html" style="margin-left: 30px; padding-left: 0">Core</a>
+            </div>
+            <div id="namespace-648852870" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Core.Skynet.html">Skynet</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetChain.html">SkynetChain</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetPeer.html">SkynetPeer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Core.SkynetResponder.html">SkynetResponder</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1062362012"></a>
+                                <a href="../namespaces/Skynet.Data.html" style="margin-left: 30px; padding-left: 0">Data</a>
+            </div>
+            <div id="namespace-1062362012" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetField.html">SkynetField</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetParams.html">SkynetParams</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetRequest.html">SkynetRequest</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Data.SkynetResponse.html">SkynetResponse</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1338230697"></a>
+                                <a href="../namespaces/Skynet.Database.html" style="margin-left: 30px; padding-left: 0">Database</a>
+            </div>
+            <div id="namespace-1338230697" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetDatabase.html">SkynetDatabase</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetGenerator.html">SkynetGenerator</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetOptions.html">SkynetOptions</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Database.SkynetRegistry.html">SkynetRegistry</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-459356208"></a>
+                                <a href="../namespaces/Skynet.Encryptor.html" style="margin-left: 30px; padding-left: 0">Encryptor</a>
+            </div>
+            <div id="namespace-459356208" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Encryptor.SkynetEncryptorInterface.html">SkynetEncryptorInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Encryptor.SkynetEncryptorBase64.html">SkynetEncryptorBase64</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Encryptor.SkynetEncryptorsFactory.html">SkynetEncryptorsFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2035209154"></a>
+                                <a href="../namespaces/Skynet.Error.html" style="margin-left: 30px; padding-left: 0">Error</a>
+            </div>
+            <div id="namespace-2035209154" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                            <li class="trait"><a href="../classes/Skynet.Error.SkynetErrorsTrait.html">SkynetErrorsTrait</a></li>
+                                                                            <li class="class"><a href="../classes/Skynet.Error.SkynetError.html">SkynetError</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Error.SkynetErrorsRegistry.html">SkynetErrorsRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Error.SkynetException.html">SkynetException</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1669902643"></a>
+                                <a href="../namespaces/Skynet.EventListener.html" style="margin-left: 30px; padding-left: 0">EventListener</a>
+            </div>
+            <div id="namespace-1669902643" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.EventListener.SkynetEventListenerInterface.html">SkynetEventListenerInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerAbstract.html">SkynetEventListenerAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerCli.html">SkynetEventListenerCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerCloner.html">SkynetEventListenerCloner</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerClusters.html">SkynetEventListenerClusters</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerEcho.html">SkynetEventListenerEcho</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerExec.html">SkynetEventListenerExec</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerFiles.html">SkynetEventListenerFiles</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerOptions.html">SkynetEventListenerOptions</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerRegistry.html">SkynetEventListenerRegistry</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenersFactory.html">SkynetEventListenersFactory</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerSleeper.html">SkynetEventListenerSleeper</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventListener.SkynetEventListenerUpdater.html">SkynetEventListenerUpdater</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1396603688"></a>
+                                <a href="../namespaces/Skynet.EventLogger.html" style="margin-left: 30px; padding-left: 0">EventLogger</a>
+            </div>
+            <div id="namespace-1396603688" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerEmailer.html">SkynetEventListenerEmailer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerLoggerDatabase.html">SkynetEventListenerLoggerDatabase</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventListenerLoggerFiles.html">SkynetEventListenerLoggerFiles</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.EventLogger.SkynetEventLoggersFactory.html">SkynetEventLoggersFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1395163006"></a>
+                                <a href="../namespaces/Skynet.Filesystem.html" style="margin-left: 30px; padding-left: 0">Filesystem</a>
+            </div>
+            <div id="namespace-1395163006" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Filesystem.SkynetCloner.html">SkynetCloner</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Filesystem.SkynetLogFile.html">SkynetLogFile</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1194663730"></a>
+                                <a href="../namespaces/Skynet.Renderer.html" style="margin-left: 30px; padding-left: 0">Renderer</a>
+            </div>
+            <div id="namespace-1194663730" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1342659038"></a>
+                                <a href="../namespaces/Skynet.Renderer.Cli.html" style="margin-left: 30px; padding-left: 0">Cli</a>
+            </div>
+            <div id="namespace-1342659038" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCli.html">SkynetRendererCli</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliConnectionsRenderer.html">SkynetRendererCliConnectionsRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliDatabaseRenderer.html">SkynetRendererCliDatabaseRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliDebugRenderer.html">SkynetRendererCliDebugRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Cli.SkynetRendererCliElements.html">SkynetRendererCliElements</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1547563931"></a>
+                                <a href="../namespaces/Skynet.Renderer.Html.html" style="margin-left: 30px; padding-left: 0">Html</a>
+            </div>
+            <div id="namespace-1547563931" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtml.html">SkynetRendererHtml</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlConnectionsRenderer.html">SkynetRendererHtmlConnectionsRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlConsoleRenderer.html">SkynetRendererHtmlConsoleRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlDatabaseRenderer.html">SkynetRendererHtmlDatabaseRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlDebugRenderer.html">SkynetRendererHtmlDebugRenderer</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlElements.html">SkynetRendererHtmlElements</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlThemes.html">SkynetRendererHtmlThemes</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                    <li class="interface"><a href="../classes/Skynet.Renderer.SkynetRendererInterface.html">SkynetRendererInterface</a></li>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Renderer.SkynetRendererAbstract.html">SkynetRendererAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Renderer.SkynetRenderersFactory.html">SkynetRenderersFactory</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1647450455"></a>
+                                <a href="../namespaces/Skynet.Secure.html" style="margin-left: 30px; padding-left: 0">Secure</a>
+            </div>
+            <div id="namespace-1647450455" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Secure.SkynetAuth.html">SkynetAuth</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Secure.SkynetVerifier.html">SkynetVerifier</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1140038230"></a>
+                                <a href="../namespaces/Skynet.State.html" style="margin-left: 30px; padding-left: 0">State</a>
+            </div>
+            <div id="namespace-1140038230" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                            <li class="trait"><a href="../classes/Skynet.State.SkynetStatesTrait.html">SkynetStatesTrait</a></li>
+                                                                            <li class="class"><a href="../classes/Skynet.State.SkynetState.html">SkynetState</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.State.SkynetStatesRegistry.html">SkynetStatesRegistry</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1564410789"></a>
+                                <a href="../namespaces/Skynet.Tools.html" style="margin-left: 30px; padding-left: 0">Tools</a>
+            </div>
+            <div id="namespace-1564410789" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetCompiler.html">SkynetCompiler</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetKeyGen.html">SkynetKeyGen</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.Tools.SkynetPwdGen.html">SkynetPwdGen</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1898239545"></a>
+                                <a href="../namespaces/Skynet.Updater.html" style="margin-left: 30px; padding-left: 0">Updater</a>
+            </div>
+            <div id="namespace-1898239545" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.Updater.SkynetUpdater.html">SkynetUpdater</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Skynet.SkynetLauncher.html">SkynetLauncher</a></li>
+                                                    <li class="class"><a href="../classes/Skynet.SkynetVersion.html">SkynetVersion</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-858795767"></a>
+                                <a href="../namespaces/SkynetUser.html" style="margin-left: 30px; padding-left: 0">SkynetUser</a>
+            </div>
+            <div id="namespace-858795767" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/SkynetUser.SkynetConfig.html">SkynetConfig</a></li>
+                                                    <li class="class"><a href="../classes/SkynetUser.SkynetEventListenerMyListener.html">SkynetEventListenerMyListener</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </section>
+    <section class="row-fluid">
+        <div class="span10 offset2">
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <nav>
+                                                <a href="../namespaces/Skynet.Console.html">\Skynet\Console</a> <i class="icon-level-up"></i>
+                                            </nav>
+                    <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
+
+                    <h1><small>\Skynet\Console</small>SkynetConsole</h1>
+                    <p><em>Skynet Console</em></p>
+                    
+                    
+                                        
+                    <section id="summary">
+                        <h2>Summary</h2>
+                        <section class="row-fluid heading">
+                            <section class="span4">
+                                <a href="#methods">Methods</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#properties">Properties</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#constants">Constants</a>
+                            </section>
+                        </section>
+                        <section class="row-fluid public">
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method___construct" class="">__construct()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_isInput" class="">isInput()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_addCommand" class="">addCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_addCustomCommand" class="">addCustomCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getCommands" class="">getCommands()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getCustomCommands" class="">getCustomCommands()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getConsoleCommands" class="">getConsoleCommands()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getConsoleRequests" class="">getConsoleRequests()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getCommand" class="">getCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getCustomCommand" class="">getCustomCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getConsoleCommand" class="">getConsoleCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_isCommand" class="">isCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_isCustomCommand" class="">isCustomCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_isConsoleCommand" class="">isConsoleCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_isAnyConsoleCommand" class="">isAnyConsoleCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getParserErrors" class="">getParserErrors()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_addParserError" class="">addParserError()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getParserStates" class="">getParserStates()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_addParserState" class="">addParserState()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_parseConsoleInput" class="">parseConsoleInput()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_clear" class="">clear()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No public properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No constants found</em>
+                                                            </section>
+                        </section>
+                        <section class="row-fluid protected">
+                            <section class="span4">
+                                                                    <em>No protected methods found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No protected properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                        <section class="row-fluid private">
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_registerListenersCommands" class="">registerListenersCommands()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getQueryType" class="">getQueryType()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_parseMultipleSpacesIntoSingle" class="">parseMultipleSpacesIntoSingle()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_parseCmdParams" class="">parseCmdParams()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getParamType" class="">getParamType()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getParamKeyVal" class="">getParamKeyVal()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_getCommandFromQuery" class="">getCommandFromQuery()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_createCommand" class="">createCommand()</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#method_createParamRequest" class="">createParamRequest()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_commands" class="">$commands</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_consoleCommands" class="">$consoleCommands</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_consoleRequests" class="">$consoleRequests</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_customCommands" class="">$customCommands</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_parserErrors" class="">$parserErrors</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_parserStates" class="">$parserStates</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_actualQueryNumber" class="">$actualQueryNumber</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_eventListeners" class="">$eventListeners</a><br />
+                                                                    <a href="../classes/Skynet.Console.SkynetConsole.html#property_eventLoggers" class="">$eventLoggers</a><br />
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                    </section>
+                </div>
+                <aside class="span4 detailsbar">
+                                        
+                    
+                    <dl>
+                        <dt>File</dt>
+                            <dd><a href="../files/Skynet.Console.SkynetConsole.html"><div class="path-wrapper">Skynet\Console\SkynetConsole.php</div></a></dd>
+                                                <dt>Package</dt>
+                            <dd><div class="namespace-wrapper">Skynet</div></dd>
+                                                <dt>Class hierarchy</dt>
+                            <dd class="hierarchy">
+                                                                                                                                                                    <div class="namespace-wrapper">\Skynet\Console\SkynetConsole</div>
+                            </dd>
+
+                        
+                        
+                        
+                        
+                                                                        </dl>
+                    <h2>Tags</h2>
+                    <table class="table table-condensed">
+                                            <tr><td colspan="2"><em>None found</em></td></tr>
+                                        </table>
+                </aside>
+            </div>
+
+                        
+                                    <a id="properties" name="properties"></a>
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <h2>Properties</h2>
+                </div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_commands" name="property_commands" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$commands</h3>
+                <pre class="signature">$commands : array&lt;mixed,\Skynet\Console\SkynetCommand&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,<a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>&gt;
+                &mdash; Array of helper commands                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_consoleCommands" name="property_consoleCommands" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$consoleCommands</h3>
+                <pre class="signature">$consoleCommands : array&lt;mixed,\Skynet\Console\SkynetCommand&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,<a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>&gt;
+                &mdash; Array of console commands                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_consoleRequests" name="property_consoleRequests" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$consoleRequests</h3>
+                <pre class="signature">$consoleRequests : array&lt;mixed,mixed&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,mixed&gt;
+                &mdash; Array of console requests                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_customCommands" name="property_customCommands" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$customCommands</h3>
+                <pre class="signature">$customCommands : array&lt;mixed,\Skynet\Console\SkynetCommand&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,<a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>&gt;
+                &mdash; Array of helper custom commands                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_parserErrors" name="property_parserErrors" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$parserErrors</h3>
+                <pre class="signature">$parserErrors : array&lt;mixed,string&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,string&gt;
+                &mdash; Parser Errors                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_parserStates" name="property_parserStates" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$parserStates</h3>
+                <pre class="signature">$parserStates : array&lt;mixed,string&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,string&gt;
+                &mdash; Parser States                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_actualQueryNumber" name="property_actualQueryNumber" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$actualQueryNumber</h3>
+                <pre class="signature">$actualQueryNumber : integer</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                integer
+                &mdash; actual parsed query                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_eventListeners" name="property_eventListeners" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$eventListeners</h3>
+                <pre class="signature">$eventListeners : array&lt;mixed,\Skynet\Console\SkynetEventListenersInterface&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,\Skynet\Console\SkynetEventListenersInterface&gt;
+                &mdash; Array of Event Listeners                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_eventLoggers" name="property_eventLoggers" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$eventLoggers</h3>
+                <pre class="signature">$eventLoggers : array&lt;mixed,\Skynet\Console\SkynetEventListenersInterface&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,\Skynet\Console\SkynetEventListenersInterface&gt;
+                &mdash; Array of Event Loggers                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                            
+                                    <a id="methods" name="methods"></a>
+            <div class="row-fluid">
+                <div class="span8 content class"><h2>Methods</h2></div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method___construct" name="method___construct" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">__construct()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">__construct() </pre>
+                <p><em>Constructor</em></p>
+                
+
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_isInput" name="method_isInput" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">isInput()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">isInput() : boolean</pre>
+                <p><em>Returns true if is console input</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                            &mdash; <p>True if is input</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_addCommand" name="method_addCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">addCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">addCommand(string  <span class="argument">$code</span>, array&lt;mixed,string&gt;|null  <span class="argument">$params = null</span>, string|null  <span class="argument">$desc = null</span>) </pre>
+                <p><em>Adds command to registry</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$code </td>
+                                <td><p>Command code</p></td>
+                            </tr>
+                                                    <tr>
+                                <td>array&lt;mixed,string&gt;|null</td>
+                                <td>$params </td>
+                                <td><p>Command params</p></td>
+                            </tr>
+                                                    <tr>
+                                <td>string|null</td>
+                                <td>$desc </td>
+                                <td><p>Command description</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_addCustomCommand" name="method_addCustomCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">addCustomCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">addCustomCommand(string  <span class="argument">$code</span>, array&lt;mixed,string&gt;|null  <span class="argument">$params = null</span>, string|null  <span class="argument">$desc = null</span>) </pre>
+                <p><em>Adds custom command to registry</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$code </td>
+                                <td><p>Command code</p></td>
+                            </tr>
+                                                    <tr>
+                                <td>array&lt;mixed,string&gt;|null</td>
+                                <td>$params </td>
+                                <td><p>Command params</p></td>
+                            </tr>
+                                                    <tr>
+                                <td>string|null</td>
+                                <td>$desc </td>
+                                <td><p>Command description</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getCommands" name="method_getCommands" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getCommands()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getCommands() : array&lt;mixed,\Skynet\Console\SkynetCommand&gt;</pre>
+                <p><em>Returns commands registry</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,<a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>&gt;
+                                            &mdash; <p>Commands</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getCustomCommands" name="method_getCustomCommands" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getCustomCommands()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getCustomCommands() : array&lt;mixed,\Skynet\Console\SkynetCommand&gt;</pre>
+                <p><em>Returns custom commands registry</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,<a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>&gt;
+                                            &mdash; <p>Commands</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getConsoleCommands" name="method_getConsoleCommands" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getConsoleCommands()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getConsoleCommands() : array&lt;mixed,\Skynet\Console\SkynetCommand&gt;</pre>
+                <p><em>Returns console parsed commands</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,<a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>&gt;
+                                            &mdash; <p>Commands</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getConsoleRequests" name="method_getConsoleRequests" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getConsoleRequests()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getConsoleRequests() : array&lt;mixed,mixed&gt;</pre>
+                <p><em>Returns console parsed requests</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,mixed&gt;
+                                            &mdash; <p>Requests</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getCommand" name="method_getCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getCommand(string  <span class="argument">$code = null</span>) : \Skynet\Console\SkynetCommand</pre>
+                <p><em>Returns command by code</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$code </td>
+                                <td><p>Command code</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    <a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>
+                                            &mdash; <p>Command</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getCustomCommand" name="method_getCustomCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getCustomCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getCustomCommand(string  <span class="argument">$code = null</span>) : \Skynet\Console\SkynetCommand</pre>
+                <p><em>Returns custom command by code</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$code </td>
+                                <td><p>Command code</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    <a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>
+                                            &mdash; <p>Command</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getConsoleCommand" name="method_getConsoleCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getConsoleCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getConsoleCommand(string  <span class="argument">$code = null</span>) : \Skynet\Console\SkynetCommand</pre>
+                <p><em>Returns console command by code</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$code </td>
+                                <td><p>Command code</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    <a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>
+                                            &mdash; <p>Command</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_isCommand" name="method_isCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">isCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">isCommand(string  <span class="argument">$code = null</span>) : boolean</pre>
+                <p><em>Checks for command exists</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$code </td>
+                                <td><p>Command code</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                            &mdash; <p>True if exists</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_isCustomCommand" name="method_isCustomCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">isCustomCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">isCustomCommand(string  <span class="argument">$code = null</span>) : boolean</pre>
+                <p><em>Checks for custom command exists</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$code </td>
+                                <td><p>Command code</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                            &mdash; <p>True if exists</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_isConsoleCommand" name="method_isConsoleCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">isConsoleCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">isConsoleCommand(string  <span class="argument">$code = null</span>) : boolean</pre>
+                <p><em>Checks for console command exists</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$code </td>
+                                <td><p>Command code</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                            &mdash; <p>True if exists</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_isAnyConsoleCommand" name="method_isAnyConsoleCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">isAnyConsoleCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">isAnyConsoleCommand() : boolean</pre>
+                <p><em>Checks for ny console command exists</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    boolean
+                                            &mdash; <p>True if are commands</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getParserErrors" name="method_getParserErrors" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getParserErrors()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getParserErrors() : array&lt;mixed,string&gt;</pre>
+                <p><em>Returns parser errors</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,string&gt;
+                                            &mdash; <p>Erros</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_addParserError" name="method_addParserError" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">addParserError()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">addParserError(string  <span class="argument">$msg</span>) </pre>
+                <p><em>Adds parse error</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$msg </td>
+                                <td><p>error</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getParserStates" name="method_getParserStates" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">getParserStates()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getParserStates() : array&lt;mixed,string&gt;</pre>
+                <p><em>Returns parser states</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,string&gt;
+                                            &mdash; <p>Erros</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_addParserState" name="method_addParserState" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">addParserState()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">addParserState(string  <span class="argument">$msg</span>) </pre>
+                <p><em>Adds parser state</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$msg </td>
+                                <td><p>state</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_parseConsoleInput" name="method_parseConsoleInput" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">parseConsoleInput()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">parseConsoleInput(string  <span class="argument">$input</span>) </pre>
+                <p><em>Parses input</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$input </td>
+                                <td><p>Console input</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_clear" name="method_clear" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">clear()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">clear() </pre>
+                <p><em>Resets REQUEST</em></p>
+                
+
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_registerListenersCommands" name="method_registerListenersCommands" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">registerListenersCommands()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">registerListenersCommands() </pre>
+                <p><em>Registers listeners commands</em></p>
+                
+
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getQueryType" name="method_getQueryType" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">getQueryType()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getQueryType(string  <span class="argument">$query</span>) : string</pre>
+                <p><em>Returns type of query, false if incorrect query</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$query </td>
+                                <td><p>Query to check</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>Query type</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_parseMultipleSpacesIntoSingle" name="method_parseMultipleSpacesIntoSingle" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">parseMultipleSpacesIntoSingle()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">parseMultipleSpacesIntoSingle(string  <span class="argument">$str</span>) : string</pre>
+                <p><em>Removes multiple spaces</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$str </td>
+                                <td><p>Original string</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>String with single spaces</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_parseCmdParams" name="method_parseCmdParams" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">parseCmdParams()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">parseCmdParams(string  <span class="argument">$paramsStr</span>) : array&lt;mixed,mixed&gt;</pre>
+                <p><em>Parses and returns params from params string</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$paramsStr </td>
+                                <td><p>String with params</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,mixed&gt;
+                                            &mdash; <p>Array with params</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getParamType" name="method_getParamType" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">getParamType()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getParamType(string  <span class="argument">$paramStr</span>) : string</pre>
+                <p><em>Returns param type</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$paramStr </td>
+                                <td><p>param raw string</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>Type of param</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getParamKeyVal" name="method_getParamKeyVal" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">getParamKeyVal()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getParamKeyVal(string  <span class="argument">$paramStr</span>) : array&lt;mixed,string&gt;</pre>
+                <p><em>Returns array [key] =&gt; value from parsed param</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$paramStr </td>
+                                <td><p>param raw string</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,string&gt;
+                                            &mdash; <p>Param array</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_getCommandFromQuery" name="method_getCommandFromQuery" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">getCommandFromQuery()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">getCommandFromQuery(string  <span class="argument">$query</span>) : array&lt;mixed,mixed&gt;</pre>
+                <p><em>Parses command query, returns array with command name and params</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$query </td>
+                                <td><p>Command single query</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,mixed&gt;
+                                            &mdash; <p>Array with command data</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_createCommand" name="method_createCommand" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">createCommand()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">createCommand(string  <span class="argument">$query</span>) : \Skynet\Console\SkynetCommand</pre>
+                <p><em>Returns command from query</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$query </td>
+                                <td><p>raw query</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    <a href="../classes/Skynet.Console.SkynetCommand.html">\Skynet\Console\SkynetCommand</a>
+                                            &mdash; <p>Parsed command with params</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_createParamRequest" name="method_createParamRequest" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">createParamRequest()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">createParamRequest(string  <span class="argument">$query</span>) : array&lt;mixed,mixed&gt;</pre>
+                <p><em>Returns key value pair array from param/query</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>string</td>
+                                <td>$query </td>
+                                <td><p>raw query/param</p></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,mixed&gt;
+                                            &mdash; <p>Array [key] =&gt; value</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    </div>
+    </section>
+
+    <div id="source-view" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-view-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="source-view-label">SkynetConsole.php</h3>
+        </div>
+        <div class="modal-body">
+            <pre data-src="../files/Skynet\Console\SkynetConsole.php.txt" class="language-php line-numbers"></pre>
+        </div>
+    </div>
+
+    <footer class="row-fluid">
+        <section class="span10 offset2">
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <section class="row-fluid footer-sections">
+                        <section class="span4">
+                                                        <h1><i class="icon-code"></i></h1>
+                            <div>
+                                <ul>
+                                                                            <li><a href="../namespaces/Skynet.html">\Skynet</a></li>
+                                                                            <li><a href="../namespaces/SkynetUser.html">\SkynetUser</a></li>
+                                                                    </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-bar-chart"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../graphs/class.html">Class Hierarchy Diagram</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-pushpin"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../reports/errors.html">Errors</a></li>
+                                    <li><a href="../reports/markers.html">Markers</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                    </section>
+                </section>
+            </section>
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <hr />
+                    Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
+                    on April 17th, 2017 at 23:29.
+                </section>
+            </section>
+        </section>
+    </footer>
+</div>
+
+</body>
+</html>

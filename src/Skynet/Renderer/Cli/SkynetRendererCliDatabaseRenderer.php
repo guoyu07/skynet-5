@@ -1,0 +1,258 @@
+<?php
+
+/**
+ * Skynet/Renderer/Cli/SkynetRendererCliDatabaseRenderer.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+namespace Skynet\Renderer\Cli;
+
+use Skynet\Database\SkynetDatabase;
+use Skynet\Console\SkynetCli;
+
+ /**
+  * Skynet Renderer HTML Database Renderer
+  *
+  */
+class SkynetRendererCliDatabaseRenderer
+{   
+  /** @var SkynetRendererHtmlElements HTML Tags generator */
+  private $elements;
+  
+  /** @var string Current table in Database view */
+  protected $selectedTable;
+  
+  /** @var string[] Array with table names */
+  protected $dbTables;
+  
+  /** @var SkynetDatabase DB Instance */
+  protected $database;
+  
+  /** @var PDO Connection instance */
+  protected $db;
+  
+  /** @var string[] Array with tables fields */
+  protected $tablesFields = [];
+  
+  /** @var string Sort by */
+  protected $tableSortBy;
+  
+  /** @var string Sort order */
+  protected $tableSortOrder;
+  
+  /** @var int Current pagination */
+  protected $tablePage;
+  
+  /** @var int Limit records per page */
+  protected $tablePerPageLimit;
+  
+  /** @var SkynetCli Cli commands parser */ 
+  protected $cli;
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    $this->elements = new SkynetRendererCliElements();
+    $this->database = SkynetDatabase::getInstance();    
+    $this->dbTables = $this->database->getDbTables();   
+    $this->tablesFields = $this->database->getTablesFields();
+    $this->tablePerPageLimit = 10;
+    $this->cli = new SkynetCli();
+    
+    $this->db = $this->database->connect();
+    
+    
+    if($this->cli->isCli())
+    {
+      if($this->cli->isCommand('db'))
+      {
+        $params = $this->cli->getParams('db');
+        if($params !== null)
+        {
+          if(isset($params[0]) && !empty($params[0]))
+          {
+            if(array_key_exists($params[0], $this->dbTables))
+            {
+              $this->selectedTable = $params[0];
+            } 
+          }
+          
+          if(isset($params[1]) && !empty($params[1]) && is_numeric($params[1]))
+          {
+             $this->tablePage = (int)$params[1];
+          }
+          
+          if(isset($params[2]) && !empty($params[2]))
+          {
+             $this->tableSortBy = $params[2];
+          }
+          
+          if(isset($params[3]) && !empty($params[3]))
+          {
+             $this->tableSortOrder = strtoupper($params[3]);
+          }         
+        } 
+
+        if($this->cli->isCommand('del'))
+        {
+          $delParam = $this->cli->getParam('del');
+          if($delParam !== null && is_numeric($delParam))
+          {
+            $this->database->deleteRecordId($this->selectedTable, intval($delParam));            
+          }        
+        }
+        
+        if($this->cli->isCommand('truncate'))
+        {
+           $this->database->deleteAllRecords($this->selectedTable);                 
+        }
+      }      
+    }
+    
+    /* Set defaults */   
+    if($this->selectedTable === null)
+    {
+      $this->selectedTable = 'skynet_clusters';
+    }
+   
+    if($this->tableSortBy === null)
+    {
+      $this->tableSortBy = 'id';
+    }
+    
+    if($this->tableSortOrder === null)
+    {
+      $this->tableSortOrder = 'DESC';
+    }
+    
+    if($this->tablePage === null)
+    {
+      $this->tablePage = 1;
+    }
+  }   
+  
+ /**
+  * Assigns Elements Generator
+  *
+  * @param SkynetRendererHtmlElements $elements
+  */
+  public function assignElements($elements)
+  {
+    $this->elements = $elements;   
+  }  
+  
+    
+ /**
+  * Renders and returns records
+  *
+  * @return string HTML code
+  */  
+  public function renderDatabaseView()
+  {
+    $recordRows = [];    
+    $start = 0;
+    if($this->tablePage > 1)
+    {
+      $min = (int)$this->tablePage - 1;
+      $start = $min * $this->tablePerPageLimit;
+    }
+    
+    $rows = $this->database->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
+    if($rows !== false && count($rows) > 0)
+    {
+      $numRecords = $this->database->countTableRows($this->selectedTable);
+      $numPages = (int)ceil($numRecords / $this->tablePerPageLimit);
+    
+      $fields = $this->tablesFields[$this->selectedTable];   
+      $header = $this->renderTableHeader($fields);
+      $recordRows[] = ' '.$header.$this->elements->getNl().'+++++++++++++++++++++++++++'.$this->elements->getNl();
+      $i = 0;
+      foreach($rows as $row)
+      {
+        $recordRows[] = $this->renderTableRow($fields, $row); 
+        $i++;
+      }       
+      $recordRows[] = '+++++++++++++++++++++++++++'.$this->elements->getNl().' '.$header;
+      return 'Displaying ['.$i.'] records: [Page '.$this->tablePage.' / '.$numPages.'] [All records: '.$numRecords.'] from table: ['.$this->selectedTable.']'.$this->elements->getSeparator().implode('', $recordRows);
+      
+    } else {
+      return 'No records.';
+    }    
+  } 
+
+
+ /**
+  * Renders and returns table header
+  *
+  * @param string[] $fields Array with table fields
+  *
+  * @return string HTML code
+  */  
+  private function renderTableHeader($fields)
+  {
+    $td = [];
+    foreach($fields as $k => $v)
+    {     
+      $td[] = '['.$v.']';         
+    }     
+    return implode(' ', $td);    
+  }
+
+ /**
+  * Renders and returns single record
+  *  
+  * @param string[] $fields Array with table fields
+  * @param mixed[] $rowData Record from database
+  *
+  * @return string HTML code
+  */   
+  private function renderTableRow($fields, $rowData)
+  {    
+    $td = [];
+    if(!is_array($fields)) 
+    {
+      return false;
+    }
+    
+    $typesTime = ['created_at', 'updated_at', 'last_connect'];
+    $typesSkynetId = ['skynet_id'];
+    $typesUrl = ['sender_url', 'receiver_url', 'ping_from', 'url', 'remote_cluster'];
+    $typesData = [];
+    
+    foreach($fields as $k => $v)
+    {
+      if(array_key_exists($k, $rowData))
+      {
+        $data = $rowData[$k];
+        
+        if(in_array($k, $typesTime))
+        {
+          $data = date(\SkynetUser\SkynetConfig::get('core_date_format'), $data);
+        }
+        
+        if(in_array($k, $typesUrl) && !empty($data))
+        {
+          $data = $this->elements->addUrl(\SkynetUser\SkynetConfig::get('core_connection_protocol').$data, $data);
+        }        
+        
+        if(empty($data)) 
+        {
+          $data = '-';
+        }
+        
+        $td[] = $data;
+      }     
+    }  
+    
+    return implode(' | ', $td).$this->elements->getSeparator();    
+  }
+}
