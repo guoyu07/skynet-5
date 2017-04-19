@@ -79,7 +79,7 @@ After downloaded and unpacked (or cloned) repository you should see files struct
 - **src/** - Skynet core, source classes
 - **dev.php** - Non-compiled Skynet cluster (works on classes from *src/* directory via autoloader)
 - **skynet.php** - Compiled Skynet cluster (all classes are compiled into single standalone file)
-- **compile.php** - Comilater script whitch compiling sources from */src* folder into single standalone file
+- **compiler.php** - Comilater script whitch compiling sources from */src* folder into single standalone file
 - **keygen.php** - Skynet Key ID generator
 - **pwdgen.php** - Password hash to Skynet Panel generator
 - **README.MD** - Readme file
