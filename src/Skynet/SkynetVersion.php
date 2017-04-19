@@ -29,5 +29,5 @@ class SkynetVersion
    const WEBSITE = 'https://github.com/szczyglinski/skynet';
    
    /** @var string blog */
-   const BLOG = 'https://www.skynetframework.blogspot.com';
+   const BLOG = 'https://skynetframework.blogspot.com';
 }
