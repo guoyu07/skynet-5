@@ -154,6 +154,10 @@ class Skynet
   
   /** @var string[] Array of console outputs */
   private $consoleOutput = [];
+  
+  private $clusters = [];
+  
+  private $connMode = 2;  
 
 
  /**
@@ -182,6 +186,9 @@ class Skynet
     $this->options = new SkynetOptions();
     
     $this->verifier->assignRequest($this->request);
+    
+    $this->clusters = $this->clustersRegistry->getAll();
+    $this->modeController();
 
     /* Self-updater of Skynet */
     if(\SkynetUser\SkynetConfig::get('core_updater'))
@@ -216,7 +223,10 @@ class Skynet
     /* Start broadcasting clusters */
     if($startBroadcast === true) 
     {
-      $this->broadcast();
+      if($this->connMode == 2)
+      {
+        $this->broadcast();
+      }
     }
     echo $this->renderOutput();   
   }
@@ -233,7 +243,7 @@ class Skynet
   public function broadcast()
   {
     /* Disable broadcast when cluster is sleeped */
-    if($this->options->getOptionsValue('sleep') == 1)
+    if($this->options->getOptionsValue('sleep') == 1 || $this->verifier->isPing())
     {
       return false;
     }
@@ -261,11 +271,10 @@ class Skynet
     /* Load actual chain value from db */
     $this->skynetChain->loadChain();
 
-    /* Get clusters saved in db */
-    $clusters = $this->clustersRegistry->getAll();
-    if(is_array($clusters) && count($clusters) > 0)
+    /* Get clusters saved in db */   
+    if(is_array($this->clusters) && count($this->clusters) > 0)
     {
-      foreach($clusters as $cluster)
+      foreach($this->clusters as $cluster)
       {
         /* First, request for header with correct ID and get remote chain value */
         $this->responseHeaderData = null;
@@ -308,6 +317,7 @@ class Skynet
         } else {
           $this->addState(SkynetTypes::HEADER,'[[[[ERROR]]]: PROBLEM WITH RECEIVING HEADER: '.$address.'. IGNORING THIS CLUSTER...');
         }
+        
         if($this->breakConnections) 
         {
           break;
@@ -358,7 +368,7 @@ class Skynet
         $this->clusterUrl = $remote_cluster;
       }
     }
-    
+   
     if(empty($this->clusterUrl) || $this->clusterUrl === null)
     {
       return false;
@@ -408,7 +418,7 @@ class Skynet
       
       if($adapter['result'] === true)
       {
-        $this->isConnected = true; 
+        $this->isConnected = true;        
       }        
       
       /* Parse response */
@@ -426,6 +436,7 @@ class Skynet
 
       /* Get header of remote cluster */
       $cluster->getHeader()->setStateId($this->connectId);
+      $cluster->getHeader()->setConnId($this->connectId);
       $cluster->fromResponse($this->response);
 
       /* If single connection via $skynet->connect(CLUSTER_ADDRESS); */
@@ -439,6 +450,7 @@ class Skynet
       if($this->isConnected)
       {
         $this->clustersRegistry->add($cluster);
+        $cluster->getHeader()->setResult(1);
       }
 
       /* Launch response listeners */
@@ -454,9 +466,14 @@ class Skynet
     /* If connection errors */
     } catch(SkynetException $e)
     {
+      $cluster->getHeader()->setResult(-1);
       $this->addState(SkynetTypes::CONN_ERR, SkynetTypes::CONN_ERR.' : '. $this->connection->getUrl().$this->connection->getParams());
       $this->addError('Connection error: '.$e->getMessage(), $e);
     }
+    
+    /* refresh clusters data */   
+    $thisCluster = key($this->clusters);
+    $this->clusters[$thisCluster] = $cluster;
 
     /* Generates debug data for every connection */    
     $this->connectionsData[] = [
@@ -584,14 +601,26 @@ class Skynet
       return '';
     }
     $chainData = $this->skynetChain->loadChain();   
+
+    /* set connection mode to output */
+    if($this->isBroadcast)
+    {
+      $renderer->setConnectionMode(2);
+    } elseif($this->isConnected)
+    {
+      $renderer->setConnectionMode(1);
+    } else {
+      $renderer->setConnectionMode(0);
+    }
     
+    $renderer->setClustersData($this->clusters);
     $renderer->setConnectionsCounter($this->successConnections);
     $renderer->addField('My address', SkynetHelper::getMyUrl());
     $renderer->addField('Broadcasting Clusters', $this->broadcastNum);
     $renderer->addField('Clusters in DB', $this->clustersRegistry->countClusters()); 
     $renderer->addField('Connection attempts', $this->connectId);
     $renderer->addField('Succesful connections', $this->successConnections);
-    $renderer->addField('Chain', $chainData['chain'] . ' (updated at: '.date('H:i:s d.m.Y', $chainData['updated_at']).' [' .$chainData['updated_at']. '])');
+    $renderer->addField('Chain', $chainData['chain'] . ' (updated: '.date('H:i:s d.m.Y', $chainData['updated_at']).')');
     $renderer->addField('Skynet Key ID', \SkynetUser\SkynetConfig::KEY_ID);
     $renderer->addField('Time now', date('H:i:s d.m.Y').' ['.time().']');  
     $renderer->addField('Sleeped', ($this->options->getOptionsValue('sleep') == 1) ? 'YES' : 'NO');
@@ -627,6 +656,28 @@ class Skynet
   public function __toString()
   {   
     return $this->renderOutput();
+  }
+ 
+ /**
+  * set Mode
+  *
+  * @return string Debug data
+  */
+  private function modeController()
+  {   
+    if(isset($_REQUEST['_skynetSetConnMode']))
+    {
+      if(!isset($_SESSION))
+      {
+        session_start();
+      }
+      $_SESSION['_skynetConnMode'] = $_REQUEST['_skynetSetConnMode'];      
+    }
+    
+    if(isset($_SESSION['_skynetConnMode']))
+    {
+      $this->connMode = $_SESSION['_skynetConnMode'];
+    }
   }
   
  /**
@@ -801,16 +852,18 @@ class Skynet
         $startBroadcast = false;
         $connectData = $this->console->getConsoleCommand('connect');
         $connectParams = $connectData->getParams();
+       
         if(count($connectParams) > 0)
         {
           foreach($connectParams as $param)
-          {
+          {            
             if($this->verifier->isAddressCorrect($param))
             {
               $this->connect($param); 
             }              
           }
         }
+        return false;
       }
       
       /* @add command */

@@ -56,6 +56,7 @@ class SkynetCluster
   /** @var SkynetClusterHeader Cluster header */
   private $header;
   
+  public $test;  
 
 
 

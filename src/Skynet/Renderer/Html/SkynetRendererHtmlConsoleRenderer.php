@@ -106,21 +106,8 @@ class SkynetRendererHtmlConsoleRenderer
          $options[] = '<option value="'.$code.'">'.$code.' '.$params.'</option>';        
       }      
     }    
-
-    /* Pasting commands from list */
-    $js = 'if(this.options[this.selectedIndex].value != "0") 
-    { 
-        if(document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value == "" || document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value == null) 
-        {
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value = this.options[this.selectedIndex].value + " ";
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].focus();
-        } else {
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value = document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value + "\r\n" + this.options[this.selectedIndex].value + " ";
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].focus();
-        }        
-    }';
       
-    return "<select onchange='".$js."' name='_cmd1'>".implode('', $options)."</select>";      
+    return "<select id='cmdsList' onchange='skynetControlPanel.insertCommand();' name='_cmd1'>".implode('', $options)."</select>";      
   }  
  
  /**

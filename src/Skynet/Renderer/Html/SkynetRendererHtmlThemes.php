@@ -36,8 +36,8 @@ class SkynetRendererHtmlThemes
     
     $this->themes['dark'] = '
     <style>
-    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.8rem; height: 98%; line-height: 1.4; }    
-    b { color:#4d734f; } 
+    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px }    
+    b { color:#87b989; } 
     h2 { color: #5ba15f; } 
     h3 { color:#4f8553; } 
     a { color: #eef6ef; text-decoration: none; } 
@@ -46,30 +46,74 @@ class SkynetRendererHtmlThemes
     textarea { padding:5px; width:100%; height:90%; background: #000; color: green; }
     select, input {  font-family: Verdana, Arial; font-size: 0.8rem; background: #000; color: #9ed4a2; }
     select:hover, input:hover {  color: #fff; }
-    table { font-size:0.8rem; width:100%; max-width:100%; table-layout: fixed; }
-    td { border-bottom: 1px solid #313c33; padding:4px; word-wrap: break-word; }
+    table { font-size:1.0em; width:100%; max-width:100%; table-layout: fixed; }
+    td { border-bottom: 1px solid #313c33; padding:2px; word-wrap: break-word; }
     th { color: #707070; font-weight: bold; text-align:left; }
     tr:hover { background:#0c0c0c; color: #616f62; } 
     tr:hover a {  } 
     tr:hover th { background:#000; }
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }
-    #header { height: 10%; min-height:120px; }
+    #header { height: 10%;  }
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
-    #main { height: 70%; }
+    .main { height: 90%; }
     #dbSwitch { height: 15%; max-height:15%; min-height:90px; width:100%; overflow:auto; }
     #dbRecords { height: 70%; max-height:70%; overflow:auto; }
-    #columnDebug { float:left; width:40%; max-height:100%; overflow:auto; }
-    #columnConnections { float:right; width:58%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }
+    .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
+    .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }
     #console { width: 100%; height: 15%; }
     #consoleDebug, #consoleDebug h3 { color: #3ffb6e }
     #loginSection { text-align:center; margin: auto }
     #loginSection input[type="password"] { width:400px; }
     #dbTable { table-layout: auto; }
     #authMain { text-align: center; }
+    
+    .hide { display:none; }
+    
+    .sectionAddresses { width:50%; float:left; height:100%; max-height:100%;}
+    .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
+    
+    .innerAddresses { width:100%; height:90%; max-height:90%; overflow-y:auto; }
+    .innerMode { width:100%; height:10%; max-height:10%; overflow-y:auto; }
+    .innerStates { width:100%; height:100%; max-height:100%; overflow-y:auto; }
+    
+    .hdrLogo { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
+    .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
+    .hdrColumn2 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
+    .hdrSwitch { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; text-align:right;}
+    .hdrConnection { margin-top:5px; font-size: 1.1rem; }
+    .hdrConnection .active { background-color: #3ffb6e; color: #000; }
+    
+    .tabsHeader { border-bottom:1px solid #2e2e2e;  padding-top: 20px; padding-bottom:8px; }
+    .tabsHeader a { font-size:1.3em; background: #2e2e2e; padding: 8px; margin-top:8px; margin-bottom:8px;}
+    .tabsHeader a.active { background:#fff; color: #000;}
+    
+    .tabStates { display:block; }
+    .tabConsole { display:none; }
+    .tabConfig { display:none; }
+    .tabErrors { display:none; }
+    .tabConsole { display:none; }
+    
+    .tdClusterStatus { width:10%; }
+    .tdClusterUrl { width:60%; }
+    .tdClusterPing { width:10%; }
+    .tdClusterConn { width:20%; }
+    
+    .statusIcon { padding: 1px; }
+    .statusConnected { background: #3ffb6e; }
+    .statusIdle { background: #2e2e2e; }
+    .statusError { background: red; }
+    
+    a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
+    a.btn:hover { background:#3ffb6e; color:#000; }
+      
+   
+    
+    .sectionStatus { height:75%; max-height:75%; overflow-y:auto; }
+    .sectionConsole { height:20%; max-height:20%; }
     .tdKey { width:30%; }
     .tdVal { width:70%; }
-    .tdHeader { border:0px; padding-top:50px; }
+    .tdHeader { border:0px; padding-top:30px; }
     .marked { color: #5ba15f; } 
     .exception { color: #ae3516; }
     .exception b { color: red; }
@@ -91,7 +135,12 @@ class SkynetRendererHtmlThemes
     .aDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
     .clr { clear: both; }
     .loginForm { padding-top:100px; }
-    .logo { font: normal normal 2.0rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; }
+    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }
+    
+    .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
+    .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
+    .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
+    .tblStates .tdKey { width:15%; } .tblStates .tdValue { width:85%; }
     </style>';
   }    
 

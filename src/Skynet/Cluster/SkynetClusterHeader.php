@@ -72,7 +72,11 @@ class SkynetClusterHeader
   /** @var SkynetConnectionInterface Connector instance */
   private $connection;
   
-  private $ping = 0;
+  private $ping = 0;  
+    
+  private $result = 0;
+  
+  private $connId = 0;
 
  /**
   * Constructor
@@ -362,6 +366,16 @@ class SkynetClusterHeader
   {
     return $this->id;
   }
+  
+ /**
+  * Returns Result
+  *
+  * @return int
+  */
+  public function getResult()
+  {
+    return $this->result;
+  }
 
  /**
   * Returns cluster URL
@@ -414,6 +428,16 @@ class SkynetClusterHeader
   }
 
  /**
+  * Returns conn Id
+  *
+  * @return string[]
+  */
+  public function getConnId()
+  {
+    return $this->connId;
+  }
+  
+ /**
   * Returns clusters urls array
   *
   * @return string[]
@@ -442,6 +466,26 @@ class SkynetClusterHeader
   }
 
  /**
+  * Sets result
+  *
+  * @param int $result
+  */
+  public function setResult($result)
+  {
+    $this->result = $result;
+  }
+  
+ /**
+  * Sets connect id
+  *
+  * @param int $result
+  */
+  public function setConnId($connId)
+  {
+    $this->connId = $connId;
+  }
+  
+ /**
   * Sets skynetID/key
   *
   * @param string $id
@@ -460,7 +504,7 @@ class SkynetClusterHeader
   {
     $this->url = $url;
   }
-
+  
  /**
   * Sets cluster IP
   *
@@ -470,7 +514,7 @@ class SkynetClusterHeader
   {
     $this->ip = $ip;
   }
-
+  
  /**
   * Sets cluster's Skynet version
   *

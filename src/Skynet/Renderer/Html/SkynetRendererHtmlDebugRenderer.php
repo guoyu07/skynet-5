@@ -71,7 +71,7 @@ class SkynetRendererHtmlDebugRenderer
     $rows = [];
     foreach($fields as $field)
     {
-      $rows[] = $this->elements->addRow($this->elements->addBold($field->getName()).' '.$field->getValue());   
+      $rows[] = $this->elements->addValRow($this->elements->addBold($field->getName()), $field->getValue());
     }    
     return implode('', $rows);
   } 
@@ -101,7 +101,7 @@ class SkynetRendererHtmlDebugRenderer
         $this->elements->addBold('Line: ').$errorException->getLine().$this->elements->getNl().
         $this->elements->addBold('Trace: ').str_replace('#', $this->elements->getNl().'#', $errorException->getTraceAsString()), 'exception');
       }
-      $rows[] = $this->elements->addRow($this->elements->addBold($field->getName(), 'error').' '.$this->elements->addSpan($errorData[0], 'error').$ex);      
+      $rows[] = $this->elements->addValRow($this->elements->addBold($field->getName()), $this->elements->addSpan($errorData[0], 'error').$ex);
     }  
     if(count($rows) == 0) 
     {

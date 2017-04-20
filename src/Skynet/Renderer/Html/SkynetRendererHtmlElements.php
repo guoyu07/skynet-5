@@ -40,6 +40,8 @@ class SkynetRendererHtmlElements
   /** @var Skynet SkynetRendererHtmlThemes Themes Container*/
   private $themes;
   
+  private $js;
+  
   
  /**
   * Constructor
@@ -47,6 +49,7 @@ class SkynetRendererHtmlElements
   public function __construct()
   {
     $this->themes = new SkynetRendererHtmlThemes();
+    $this->js = new SkynetRendererHtmlJavascript();
     $this->css = $this->themes->getTheme(\SkynetUser\SkynetConfig::get('core_renderer_theme'));
     $this->nl = '<br/>';
     $this->gt = '&gt;';
@@ -264,6 +267,19 @@ class SkynetRendererHtmlElements
     return '<div class="clr"></div>';
   }
  
+ /**
+  * Adds table key => value row
+  * 
+  * @param string $status TD 1
+  * @param string $url TD 1
+  * @param string $ping TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addClusterRow($status, $url, $ping, $conn)
+  {
+    return '<tr><td class="tdClusterStatus">'.$status.'</td><td class="tdClusterUrl">'.$url.'</td><td class="tdClusterPing">'.$ping.'</td><td class="tdClusterConn">'.$conn.'</td></tr>';
+  }
  
  /**
   * Adds table key => value row
@@ -278,6 +294,18 @@ class SkynetRendererHtmlElements
     return '<tr><td class="tdKey">'.$key.'</td><td class="tdVal">'.$val.'</td></tr>';
   }
  
+ /**
+  * Adds table header row
+  * 
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addHeaderRow3($col1, $col2, $col3, $col4)
+  {
+    return '<tr><th class="tdHeader">'.$col1.'</th><th class="tdHeader">'.$col2.'</th><th class="tdHeader">'.$col3.'</th><th class="tdHeader">'.$col4.'</th></tr>';
+  } 
+  
  /**
   * Adds table header row
   * 
@@ -323,7 +351,9 @@ class SkynetRendererHtmlElements
   */
   public function addFooter()
   {
-    $html = '</body></html>';
+    //$html = '<script src="skynet.js"></script>';
+    $html = '<script>'.$this->js->getJavascript().'</script>';
+    $html.= '</body></html>';
     return $html;
   }
   
@@ -336,8 +366,8 @@ class SkynetRendererHtmlElements
   {
     $header = $this->addH1('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAaCAYAAAD1wA/qAAAALHRFWHRDcmVhdGlvbiBUaW1lAMWaciAxOSBrd2kgMjAxNyAwMjo1Njo0NSArMDEwMBachLcAAAAHdElNRQfhBBMAORXFuVVnAAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAx9JREFUeNrtl19IU1Ecx+/+Ovtjioj5oEEPPS0J6inaW4EPBjXooVgPJfbQg+0hmBAoY7FUamwPU/eyDWszaq5oC5kVW8m0Qool+rIYDPawQpq49sf97XfmOTW16Zlt3oK+8OVc7j1/fp97zu/ccxnmv7aWUCgslCqViq/X6xvQtUgkYjus8sTj8QqlRCJhgsHg3Wg06pHL5XXFz/56kUA7OjqYUCikzWPFYrHp3t7e+n8Chs/nF0qpVMqEw2FDfoOSyeR7pVLZhOpwuVy2w90aQiaTMUtLS2P5EkqlUr7BwcFDqC6Hw2E77N9DdHd3cyORiDW/jTKZzH2dTsd22OtF1ntPT49wZWXFvh0E6C24OZfLMQaDge3w10MoFIpaSOZJCohZcAOYAXPBd8xm8zFWIUiy9vf31yUSCTcFhBdcjyGQzfh+aHx8XMwKBEnSgYGBRkjeWQqIafABDMABP9jwPGy324+zAqPVag9C0n6ggHgN3l+0nB6WqPcNYE7u6kyMjIy0ZbPZBQoItOT2YQge+PFWlWEDWB4dHZVUFYIk9tDQ0GEY8zMFxCvwXgwhAD+haIP03WQynakKBEnsvr6+I5DYAYpgXoD3YIga8DNKCKKk1Wo9W1EIspzUavXR1dXVEEUQLnAthhCBn5cJQZSamJg4X1EYjUZzIp1Of6UYfBIHz+AZce0QgijrdDovVgRieHj4FCR2hGJQ9OZrMATKjZd/CPFTU1NTVzeukLJkNBpPQz9RirEcYCGGQFutu1IQRB6P59qOYCwWSye0T1CM8TS/tishCPTRe1NpCKKZmZkbZcHYbLYL0C5N0be9CAKdobzVgiCam5tTkDg3/dMU0zkcjktQP0fRpw3MxxCN4HfVhiDy+Xy3NsEUU7lcriuUfT3Kr32pEUQTelG7BUG0uLh4u7W1tRC3QCD4NStut/s6ZR/orMTFEM3gj7sNQeT3+++1t7evAbS0tDBer/cmZVt0auVgiDbwJ7YgiAKBgK6rq0vImZ+fPycWi1XAhP5XMyXyHx20voA7wTF8Tw2+DF4uf2OvmFBeCOLx+NgP1c7Cc+35//8AAAAASUVORK5CYII=
 "/> SKYNET v.'.SkynetVersion::VERSION, 'logo');
-    $header.= '(c) 2017 Marcin Szczyglinski<br>Check for newest versions here: '.$this->addUrl(SkynetVersion::WEBSITE).'<br>Project website: '.$this->addUrl(SkynetVersion::BLOG);
-    $header.= $this->getNl();     
+    $header.= '(c) 2017 Marcin Szczyglinski<br>Updates: '.$this->addUrl(SkynetVersion::WEBSITE).'<br>Website: '.$this->addUrl(SkynetVersion::BLOG);
+    $header.= $this->getNl();      
     return $header;
   }
     

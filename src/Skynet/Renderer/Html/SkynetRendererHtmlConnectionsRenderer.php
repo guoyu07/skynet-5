@@ -72,7 +72,7 @@ class SkynetRendererHtmlConnectionsRenderer
     }   
       
     return '<form method="GET" action="" class="formConnections">
-    Go to connection: <select onchange="if(this.options[this.selectedIndex].value > 0) { window.location.assign(window.location.href.replace(location.hash, \'\') + \'#_connection\' + this.options[this.selectedIndex].value); }" name="_go">'.implode('', $options).'</select></form>';      
+    Go to connection: <select id="connectList" onchange="skynetControlPanel.gotoConnection();" name="_go">'.implode('', $options).'</select></form>';      
   }  
     
  /**
@@ -107,26 +107,58 @@ class SkynetRendererHtmlConnectionsRenderer
   *
   * @return string HTML code
   */   
-  public function parseConnectionFields($fields, $clusterUrl)
+  public function parseConnectionFields($fields, $clusterUrl, $id)
   {
     $names = [
-      'request_raw' => 'Request Fields {sended} (plain) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'),
-      'request_encypted' => 'Request Fields {sended} (encrypted) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'),
-      'response_raw' => 'Response Fields {received} (raw) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'),
-      'response_decrypted' => 'Response Fields {received} (decrypted) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't')
+      'request_raw' => ['Request Fields {sended} (plain) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'request_encypted' => ['Request Fields {sended} (encrypted) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'response_raw' => ['Response Fields {received} (raw) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'response_decrypted' => ['Response Fields {received} (decrypted) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'), '']
       ];      
     
     $rows = [];   
-    foreach($fields as $key => $value)
-    {
-      $rows[] = 
-        $this->elements->addHeaderRow($this->elements->addH3('[ '.$names[$key].' ]')).
-        $this->parseParamsArray($value);      
-    }
+    
+    $rows[] = $this->elements->addSectionClass('tabConnPlain'.$id);
+    $rows[] = '<table>';
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['request_raw'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['request_raw']);      
+    $rows[] = '</table>';      
+    
+    $rows[] = '<table>';
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['response_decrypted'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['response_decrypted']);      
+    $rows[] = '</table>'; 
+    $rows[] = $this->elements->addSectionEnd();
+    
+    $rows[] = $this->elements->addSectionClass('hide tabConnEncrypted'.$id);
+    $rows[] = '<table>';
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['request_encypted'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['request_encypted']);      
+    $rows[] = '</table>';     
+    
+    $rows[] = '<table>';
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['response_raw'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['response_raw']);      
+    $rows[] = '</table>'; 
+    $rows[] = $this->elements->addSectionEnd();
     
     return implode('', $rows);    
-  }
+  } 
  
+ /**
+  * Renders tabs
+  *
+  * @return string HTML code
+  */  
+  public function renderConnectionTabs($id = 0)
+  {
+    $output = [];
+    $output[] = '<div class="tabsHeader">';
+    $output[] = '<a class="tabConnPlainBtn'.$id.' active" href="javascript:skynetControlPanel.switchConnTab(\'tabConnPlain\', '.$id.');">Plain data</a> <a class="tabConnEncryptedBtn'.$id.' errors" href="javascript:skynetControlPanel.switchConnTab(\'tabConnEncrypted\', '.$id.');">Encrypted data</a> <a class="tabConnRawBtn'.$id.'" href="javascript:skynetControlPanel.switchConnTab(\'tabConnRaw\', '.$id.');">Raw data</a>';
+    $output[] = '</div>';    
+    return implode($output);
+  }
+  
  /**
   * Parses connection params array
   *
@@ -141,41 +173,41 @@ class SkynetRendererHtmlConnectionsRenderer
       $this->elements->addHtml('<a name="_connection'.$connData['id'].'"></a>').
       $this->elements->addH2('@'.$connData['id'].' Connection {').
       $this->elements->addH3('@ClusterAddress: '.$this->elements->addUrl($connData['CLUSTER URL']));
-    $rows[] = '<table>';
+    
+    
+    $rows[] = $this->renderConnectionTabs($connData['id']);
       
     $paramsFields = ['SENDED PARAMS', 'SENDED HEADER PARAMS (broadcast)'];  
     $rawDataFields = ['RECEIVED RAW DATA', 'RECEIVED RAW HEADER (broadcast)'];
-      
-    foreach($connData as $key => $value)
-    {
-      $parsedValue = $value;
-      
-      if($key == 'FIELDS')
-      {
-        $rows[] = $this->parseConnectionFields($value, $connData['CLUSTER URL']);
-                
-      } else {
-        
-        $parsedValue = $value;
-        
-        if($key == 'CLUSTER URL')
-        {
-          $parsedValue = $this->elements->addUrl($value);
-        }
-        
-        if(in_array($key, $paramsFields))
-        {
-          $parsedValue = $this->parseDebugParams($value);
-          
-        } elseif(in_array($key, $rawDataFields))
-        {
-          $parsedValue = $this->parseResponseRawData($value);
-        }        
-        
-        $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper($key).' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);   
-      }        
-    }
+    
+    $rows[] = '<table>';
+    $parsedValue = $this->elements->addUrl($connData['CLUSTER URL']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('CLUSTER URL').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);    
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Connection number').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['id']);    
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Ping').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['Ping']);   
     $rows[] = '</table>';
+    
+    
+    $rows[] = $this->parseConnectionFields($connData['FIELDS'], $connData['CLUSTER URL'], $connData['id']);
+    
+    
+    $rows[] = $this->elements->addSectionClass('hide tabConnRaw'.$connData['id']);
+    $rows[] = '<table>';
+    $parsedValue = $this->parseDebugParams($connData['SENDED PARAMS']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('CLUSTER URL').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseDebugParams($connData['SENDED HEADER PARAMS (broadcast)']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('SENDED HEADER PARAMS (broadcast)').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseResponseRawData($connData['RECEIVED RAW DATA']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW DATA').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseResponseRawData($connData['RECEIVED RAW HEADER (broadcast)']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW HEADER (broadcast)').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    $rows[] = '</table>';
+    $rows[] = $this->elements->addSectionEnd();   
+    
+    
     $rows[] = $this->elements->addH2('}');
     return implode('', $rows);    
   }

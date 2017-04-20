@@ -53,6 +53,10 @@ abstract class SkynetRendererAbstract
   
   /** @var string[] Output from listeners */
   protected $consoleOutput = [];
+  
+  protected $clustersData = [];
+  
+  protected $connectionMode = 0;
 
 
  /**
@@ -95,7 +99,7 @@ abstract class SkynetRendererAbstract
   */
   public function addField($key, $value)
   {
-    $this->fields[] = new SkynetField($key, $value);
+    $this->fields[$key] = new SkynetField($key, $value);
   }
  
  /**
@@ -116,6 +120,16 @@ abstract class SkynetRendererAbstract
   public function addConnectionData($data)
   {
     $this->connectionsData[] = $data;
+  }  
+  
+ /**
+  * Assignsclusters debug data array to renderer
+  *
+  * @param SkynetCluster[] $clusters
+  */
+  public function setClustersData($clusters)
+  {
+    $this->clustersData = $clusters;
   }
 
  /**
@@ -170,6 +184,26 @@ abstract class SkynetRendererAbstract
   public function getMode()
   {
     return $this->mode;
+  }
+ 
+ /**
+  * Sets connection mode
+  *
+  * @param int $mode
+  */
+  public function setConnectionMode($mode)
+  {
+    $this->connectionMode = $mode;
+  }
+  
+ /**
+  * Returns connection view mode
+  *
+  * @return int
+  */
+  public function getConnectionMode()
+  {
+    return $this->connectionMode;
   }
   
  /**
