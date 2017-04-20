@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.20 02:03:09 (1492653789) */
+/* Skynet Standalone | version compiled: 2017.04.20 22:59:00 (1492729140) */
 
 namespace Skynet;
 
@@ -744,6 +744,10 @@ abstract class SkynetRendererAbstract
   
   /** @var string[] Output from listeners */
   protected $consoleOutput = [];
+  
+  protected $clustersData = [];
+  
+  protected $connectionMode = 0;
 
  /**
   * Constructor
@@ -785,7 +789,7 @@ abstract class SkynetRendererAbstract
   */
   public function addField($key, $value)
   {
-    $this->fields[] = new SkynetField($key, $value);
+    $this->fields[$key] = new SkynetField($key, $value);
   }
  
  /**
@@ -806,6 +810,16 @@ abstract class SkynetRendererAbstract
   public function addConnectionData($data)
   {
     $this->connectionsData[] = $data;
+  }  
+  
+ /**
+  * Assignsclusters debug data array to renderer
+  *
+  * @param SkynetCluster[] $clusters
+  */
+  public function setClustersData($clusters)
+  {
+    $this->clustersData = $clusters;
   }
 
  /**
@@ -860,6 +874,26 @@ abstract class SkynetRendererAbstract
   public function getMode()
   {
     return $this->mode;
+  }
+ 
+ /**
+  * Sets connection mode
+  *
+  * @param int $mode
+  */
+  public function setConnectionMode($mode)
+  {
+    $this->connectionMode = $mode;
+  }
+  
+ /**
+  * Returns connection view mode
+  *
+  * @return int
+  */
+  public function getConnectionMode()
+  {
+    return $this->connectionMode;
   }
   
  /**
@@ -1556,6 +1590,7 @@ class SkynetCluster
   /** @var SkynetClusterHeader Cluster header */
   private $header;
   
+  public $test;  
 
  /**
   * Constructor
@@ -1872,7 +1907,11 @@ class SkynetClusterHeader
   /** @var SkynetConnectionInterface Connector instance */
   private $connection;
   
-  private $ping = 0;
+  private $ping = 0;  
+    
+  private $result = 0;
+  
+  private $connId = 0;
 
  /**
   * Constructor
@@ -2162,6 +2201,16 @@ class SkynetClusterHeader
   {
     return $this->id;
   }
+  
+ /**
+  * Returns Result
+  *
+  * @return int
+  */
+  public function getResult()
+  {
+    return $this->result;
+  }
 
  /**
   * Returns cluster URL
@@ -2214,6 +2263,16 @@ class SkynetClusterHeader
   }
 
  /**
+  * Returns conn Id
+  *
+  * @return string[]
+  */
+  public function getConnId()
+  {
+    return $this->connId;
+  }
+  
+ /**
   * Returns clusters urls array
   *
   * @return string[]
@@ -2242,6 +2301,26 @@ class SkynetClusterHeader
   }
 
  /**
+  * Sets result
+  *
+  * @param int $result
+  */
+  public function setResult($result)
+  {
+    $this->result = $result;
+  }
+  
+ /**
+  * Sets connect id
+  *
+  * @param int $result
+  */
+  public function setConnId($connId)
+  {
+    $this->connId = $connId;
+  }
+  
+ /**
   * Sets skynetID/key
   *
   * @param string $id
@@ -2260,7 +2339,7 @@ class SkynetClusterHeader
   {
     $this->url = $url;
   }
-
+  
  /**
   * Sets cluster IP
   *
@@ -2270,7 +2349,7 @@ class SkynetClusterHeader
   {
     $this->ip = $ip;
   }
-
+  
  /**
   * Sets cluster's Skynet version
   *
@@ -4915,6 +4994,10 @@ class Skynet
   
   /** @var string[] Array of console outputs */
   private $consoleOutput = [];
+  
+  private $clusters = [];
+  
+  private $connMode = 2;  
 
  /**
   * Constructor
@@ -4942,6 +5025,9 @@ class Skynet
     $this->options = new SkynetOptions();
     
     $this->verifier->assignRequest($this->request);
+    
+    $this->clusters = $this->clustersRegistry->getAll();
+    $this->modeController();
 
     /* Self-updater of Skynet */
     if(SkynetConfig::get('core_updater'))
@@ -4976,7 +5062,10 @@ class Skynet
     /* Start broadcasting clusters */
     if($startBroadcast === true) 
     {
-      $this->broadcast();
+      if($this->connMode == 2)
+      {
+        $this->broadcast();
+      }
     }
     echo $this->renderOutput();   
   }
@@ -4993,7 +5082,7 @@ class Skynet
   public function broadcast()
   {
     /* Disable broadcast when cluster is sleeped */
-    if($this->options->getOptionsValue('sleep') == 1)
+    if($this->options->getOptionsValue('sleep') == 1 || $this->verifier->isPing())
     {
       return false;
     }
@@ -5021,11 +5110,10 @@ class Skynet
     /* Load actual chain value from db */
     $this->skynetChain->loadChain();
 
-    /* Get clusters saved in db */
-    $clusters = $this->clustersRegistry->getAll();
-    if(is_array($clusters) && count($clusters) > 0)
+    /* Get clusters saved in db */   
+    if(is_array($this->clusters) && count($this->clusters) > 0)
     {
-      foreach($clusters as $cluster)
+      foreach($this->clusters as $cluster)
       {
         /* First, request for header with correct ID and get remote chain value */
         $this->responseHeaderData = null;
@@ -5068,6 +5156,7 @@ class Skynet
         } else {
           $this->addState(SkynetTypes::HEADER,'[[[[ERROR]]]: PROBLEM WITH RECEIVING HEADER: '.$address.'. IGNORING THIS CLUSTER...');
         }
+        
         if($this->breakConnections) 
         {
           break;
@@ -5118,7 +5207,7 @@ class Skynet
         $this->clusterUrl = $remote_cluster;
       }
     }
-    
+   
     if(empty($this->clusterUrl) || $this->clusterUrl === null)
     {
       return false;
@@ -5168,7 +5257,7 @@ class Skynet
       
       if($adapter['result'] === true)
       {
-        $this->isConnected = true; 
+        $this->isConnected = true;        
       }        
       
       /* Parse response */
@@ -5186,6 +5275,7 @@ class Skynet
 
       /* Get header of remote cluster */
       $cluster->getHeader()->setStateId($this->connectId);
+      $cluster->getHeader()->setConnId($this->connectId);
       $cluster->fromResponse($this->response);
 
       /* If single connection via $skynet->connect(CLUSTER_ADDRESS); */
@@ -5199,6 +5289,7 @@ class Skynet
       if($this->isConnected)
       {
         $this->clustersRegistry->add($cluster);
+        $cluster->getHeader()->setResult(1);
       }
 
       /* Launch response listeners */
@@ -5214,9 +5305,14 @@ class Skynet
     /* If connection errors */
     } catch(SkynetException $e)
     {
+      $cluster->getHeader()->setResult(-1);
       $this->addState(SkynetTypes::CONN_ERR, SkynetTypes::CONN_ERR.' : '. $this->connection->getUrl().$this->connection->getParams());
       $this->addError('Connection error: '.$e->getMessage(), $e);
     }
+    
+    /* refresh clusters data */   
+    $thisCluster = key($this->clusters);
+    $this->clusters[$thisCluster] = $cluster;
 
     /* Generates debug data for every connection */    
     $this->connectionsData[] = [
@@ -5344,14 +5440,26 @@ class Skynet
       return '';
     }
     $chainData = $this->skynetChain->loadChain();   
+
+    /* set connection mode to output */
+    if($this->isBroadcast)
+    {
+      $renderer->setConnectionMode(2);
+    } elseif($this->isConnected)
+    {
+      $renderer->setConnectionMode(1);
+    } else {
+      $renderer->setConnectionMode(0);
+    }
     
+    $renderer->setClustersData($this->clusters);
     $renderer->setConnectionsCounter($this->successConnections);
     $renderer->addField('My address', SkynetHelper::getMyUrl());
     $renderer->addField('Broadcasting Clusters', $this->broadcastNum);
     $renderer->addField('Clusters in DB', $this->clustersRegistry->countClusters()); 
     $renderer->addField('Connection attempts', $this->connectId);
     $renderer->addField('Succesful connections', $this->successConnections);
-    $renderer->addField('Chain', $chainData['chain'] . ' (updated at: '.date('H:i:s d.m.Y', $chainData['updated_at']).' [' .$chainData['updated_at']. '])');
+    $renderer->addField('Chain', $chainData['chain'] . ' (updated: '.date('H:i:s d.m.Y', $chainData['updated_at']).')');
     $renderer->addField('Skynet Key ID', SkynetConfig::KEY_ID);
     $renderer->addField('Time now', date('H:i:s d.m.Y').' ['.time().']');  
     $renderer->addField('Sleeped', ($this->options->getOptionsValue('sleep') == 1) ? 'YES' : 'NO');
@@ -5387,6 +5495,28 @@ class Skynet
   public function __toString()
   {   
     return $this->renderOutput();
+  }
+ 
+ /**
+  * set Mode
+  *
+  * @return string Debug data
+  */
+  private function modeController()
+  {   
+    if(isset($_REQUEST['_skynetSetConnMode']))
+    {
+      if(!isset($_SESSION))
+      {
+        session_start();
+      }
+      $_SESSION['_skynetConnMode'] = $_REQUEST['_skynetSetConnMode'];      
+    }
+    
+    if(isset($_SESSION['_skynetConnMode']))
+    {
+      $this->connMode = $_SESSION['_skynetConnMode'];
+    }
   }
   
  /**
@@ -5561,16 +5691,18 @@ class Skynet
         $startBroadcast = false;
         $connectData = $this->console->getConsoleCommand('connect');
         $connectParams = $connectData->getParams();
+       
         if(count($connectParams) > 0)
         {
           foreach($connectParams as $param)
-          {
+          {            
             if($this->verifier->isAddressCorrect($param))
             {
               $this->connect($param); 
             }              
           }
         }
+        return false;
       }
       
       /* @add command */
@@ -14639,6 +14771,9 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   /** @var SkynetRendererHtmlConsoleRenderer Console Renderer */
   private $consoleRenderer;
   
+  /** @var SkynetRendererHtmlConsoleRenderer Console Renderer */
+  private $summaryRenderer;
+  
 
  /**
   * Constructor
@@ -14652,6 +14787,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $this->databaseRenderer = new  SkynetRendererHtmlDatabaseRenderer();
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();
     $this->consoleRenderer = new  SkynetRendererHtmlConsoleRenderer();
+    $this->summaryRenderer = new  SkynetRendererHtmlSummaryRenderer();
   }
   
  /**
@@ -14665,7 +14801,33 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
      $errors_class = null;
      
     /* Center Main : Left Column */
-    $output[] = $this->elements->addSectionId('columnDebug');   
+    $output[] = $this->elements->addSectionClass('columnDebug');   
+    
+    
+    
+    $output[] = $this->elements->addSectionClass('sectionStatus');   
+    
+    
+    $output[] = $this->elements->addSectionClass('sectionAddresses');  
+    $output[] = $this->elements->addSectionClass('innerMode');
+    $output[] = $this->elements->addSectionClass('hdrConnection');
+    $output[] = $this->renderModeStatus();
+    $output[] = $this->elements->addSectionEnd();
+    $output[] = $this->elements->addSectionEnd();   
+     
+    $output[] = $this->elements->addSectionClass('innerAddresses');
+    
+    $output[] = '<table class="tblClusters">';
+    $output[] = $this->renderClustersData();    
+    $output[] = '</table>';    
+    
+    
+    $output[] = $this->elements->addSectionEnd();   
+    $output[] = $this->elements->addSectionEnd(); 
+    
+    
+    $output[] = $this->elements->addSectionClass('sectionStates');   
+    $output[] = $this->elements->addSectionClass('innerStates');
     
     /* Empty password warning */
     if(empty(SkynetConfig::PASSWORD))
@@ -14679,21 +14841,9 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
       $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Skynet ID KEY is empty or set to default value. Use [keygen.php] to generate new random ID KEY and place generated key into [/src/SkynetUser/SkynetConfig.php]', 'error');
     }
     
-    /* If console input */
-    if(isset($_REQUEST['_skynetCmdConsoleInput'])) 
-    {
-       $output[] = $this->elements->addSectionId('consoleDebug');  
-       $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Console Input'));       
-       $output[] = $this->elements->addRow($this->consoleRenderer->renderConsoleInput());
-       $output[] = $this->elements->addSectionEnd(); 
-    }
-
-    /* Center Main : Left Column: summary */
-    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Summary'));   
+   
     
-    $output[] = '<table>';
-    $output[] = $this->debugRenderer->parseFields($this->fields);
-    $output[] = '</table>';
+   
 
     /* Center Main : Left Column: errors */   
    
@@ -14701,23 +14851,62 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     {
        $errors_class = 'error';
     }  
+    $output[] = $this->renderTabs();
     
-    $output[] = '<table>';
-    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Errors', $errors_class));
+    $output[] = $this->elements->addSectionClass('tabErrors');
+    $output[] = '<table class="tblErrors">';
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Errors ('.count($this->errorsFields).')', $errors_class));
     $output[] = $this->debugRenderer->parseErrorsFields($this->errorsFields);
     $output[] = '</table>';
-
+    $output[] = $this->elements->addSectionEnd(); 
+    
+     /* If console input */
+    $output[] = $this->elements->addSectionClass('tabConsole');
+    if(isset($_REQUEST['_skynetCmdConsoleInput'])) 
+    {
+       $output[] = $this->elements->addSectionId('consoleDebug');  
+       $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Console Input'));       
+       $output[] = $this->elements->addRow($this->consoleRenderer->renderConsoleInput());
+       $output[] = $this->elements->addSectionEnd(); 
+    }
+    $output[] = $this->elements->addSectionEnd();    
+    
+    
     /* Center Main : Left Column: states */
-    $output[] = '<table>';
-    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('States'));
+    $output[] = $this->elements->addSectionClass('tabStates');
+    $output[] = '<table class="tblStates">';
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('States ('.count($this->statesFields).')'));
     $output[] = $this->debugRenderer->parseStatesFields($this->statesFields);
     $output[] = '</table>';
+    $output[] = $this->elements->addSectionEnd(); 
 
+    
+    
     /* Center Main : Left Column: Config */
-    $output[] = '<table>';
-    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Config'));
+    $output[] = $this->elements->addSectionClass('tabConfig');
+    $output[] = '<table class="tblConfig">';
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Config ('.count($this->configFields).')'));
     $output[] = $this->debugRenderer->parseConfigFields($this->configFields);
     $output[] = '</table>';
+    $output[] = $this->elements->addSectionEnd(); 
+    
+    
+    /* end inner states */
+    $output[] = $this->elements->addSectionEnd();     
+    
+    /* end sectionStates */
+    $output[] = $this->elements->addSectionEnd(); 
+    $output[] = $this->elements->addClr();
+    
+    
+    /* end section status */
+    $output[] = $this->elements->addSectionEnd(); 
+    
+    
+    $output[] = $this->elements->addSectionClass('sectionConsole');   
+    $output[] = $this->consoleRenderer->renderConsole();
+    $output[] = $this->elements->addSectionEnd(); 
+   
 
     /* Center Main : Left Column: END */  
     $output[] = $this->elements->addSectionEnd(); 
@@ -14744,7 +14933,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   {
     $output = [];   
     /* Center Main : Right Column: */
-    $output[] = $this->elements->addSectionId('columnConnections');         
+    $output[] = $this->elements->addSectionClass('columnConnections');         
     $output[] = $this->connectionsRenderer->renderConnections($this->connectionsData);
     $output[] = $this->elements->addSectionEnd();  
     return implode('', $output);      
@@ -14775,6 +14964,94 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   } 
 
  /**
+  * Renders clusters
+  *
+  * @return string HTML code
+  */ 
+  private function renderClustersData()
+  {
+    $c = count($this->clustersData);
+    $output = [];
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Your Skynet clusters ('.$c.')'));
+    if($c > 0)
+    {
+      $output[] = $this->elements->addHeaderRow3('Status', 'Cluster address', 'Ping', 'Connect');
+      foreach($this->clustersData as $cluster)
+      {
+         $class = '';
+         switch($cluster->getHeader()->getResult())
+         {
+           case -1:
+            $class = 'statusError';
+           break;
+           
+           case 0:
+            $class = 'statusIdle';
+           break;
+           
+           case 1:
+            $class = 'statusConnected';
+           break;          
+         }
+         
+         $id = $cluster->getHeader()->getConnId();
+         
+         // var_dump($cluster->getHeader());         
+         $status = '<span class="statusId'.$id.' statusIcon '.$class.'">( )</span>';
+         $url = $this->elements->addUrl($cluster->getUrl());
+         $output[] = $this->elements->addClusterRow($status, $this->elements->addBold($url), $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.SkynetConfig::get('core_connection_protocol').$cluster->getUrl().'\');" class="btn">CONNECT</a>');
+      }      
+    } else {
+      
+      $info = 'No clusters in database.';
+      $info.= $this->elements->getNl();
+      $info.= 'Add new cluster with:';
+      $info.= $this->elements->getNl();
+      $info.= $this->elements->addBold('@add "cluster address"').' command';
+      $output[] = $this->elements->addRow($info);
+    }
+   
+    return implode($output);    
+  } 
+ 
+ /**
+  * Renders and returns mode
+  *
+  * @return string HTML code
+  */  
+  private function renderModeStatus()
+  {
+    $output = [];
+    $status = $this->connectionMode;
+    
+    $classes = [];
+    $classes['idle'] = '';
+    $classes['single'] = '';
+    $classes['broadcast'] = '';
+    
+    switch($status)
+    {
+      case 0:
+       $classes['idle'] = ' active';
+      break;
+      
+      case 1:
+       $classes['single'] = ' active';
+      break;
+      
+      case 2:
+       $classes['broadcast'] = ' active';
+      break;
+    }   
+    
+    $output[] = '<b>SKYNET MODE:</b> ';
+    $output[] = '<a href="?_skynetSetConnMode=0"><span class="statusIdle'.$classes['idle'].'">Idle</span></a> ';
+    $output[] = '<a href="?_skynetSetConnMode=1"><span class="statusSingle'.$classes['single'].'">Single</span></a> ';
+    $output[] = '<a href="?_skynetSetConnMode=2"><span class="statusBroadcast'.$classes['broadcast'].'">Broadcast</span></a>';    
+    return implode($output);
+  }
+  
+ /**
   * Renders and returns header
   *
   * @return string HTML code
@@ -14786,14 +15063,24 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     
     /* --- Header --- */
     $output[] = $this->elements->addSectionId('header');
-
-    /* Header Left */
-    $output[] = $this->elements->addSectionId('headerLogo');
-    $output[] = $header;           
+    
+    
+    $output[] = $this->elements->addSectionClass('hdrLogo');
+    $output[] = $header;       
     $output[] = $this->elements->addSectionEnd();
-
-    /* Header Right */
-    $output[] = $this->elements->addSectionId('headerSwitcher');
+    
+    
+    $output[] = $this->elements->addSectionClass('hdrColumn1');
+    $output[] = $this->summaryRenderer->renderService($this->fields);
+    $output[] = $this->elements->addSectionEnd();
+    
+    
+    $output[] = $this->elements->addSectionClass('hdrColumn2');
+    $output[] = $this->summaryRenderer->renderSummary($this->fields);
+    $output[] = $this->elements->addSectionEnd();
+    
+    
+    $output[] = $this->elements->addSectionClass('hdrSwitch');
     $output[] = $this->elements->addHtml('Select view mode: '.$this->renderViewSwitcher());
     $output[] = $this->renderLogoutLink();
     
@@ -14801,7 +15088,6 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     {
       $output[] = $this->connectionsRenderer->renderGoToConnection($this->connectionsData);
     }
-    
     $output[] = $this->elements->addSectionEnd();
 
     /* Clear floats */  
@@ -14810,6 +15096,23 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output[] = $this->elements->addSectionEnd();  
 
     return implode('', $output);
+  }
+  
+ /**
+  * Renders tabs
+  *
+  * @return string HTML code
+  */  
+  public function renderTabs()
+  {     
+    $output = [];
+    $output[] = '<div class="tabsHeader">';
+    $output[] = '<a class="tabStatesBtn active" href="javascript:skynetControlPanel.switchTab(\'tabStates\');">States ('.count($this->statesFields).')</a> ';
+    $output[] = '<a class="tabErrorsBtn errors" href="javascript:skynetControlPanel.switchTab(\'tabErrors\');">Errors ('.count($this->errorsFields).')</a> ';
+    $output[] = '<a class="tabConfigBtn" href="javascript:skynetControlPanel.switchTab(\'tabConfig\');">Config ('.count($this->configFields).')</a> ';
+    $output[] = '<a class="tabConsoleBtn" href="javascript:skynetControlPanel.switchTab(\'tabConsole\');">Console</a>';
+    $output[] = '</div>';    
+    return implode($output);
   }
 
  /**
@@ -14833,16 +15136,12 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     {
       case 'connections':
          /* --- Center Main --- */
-         $this->output[] = $this->elements->addSectionId('main');          
+         $this->output[] = $this->elements->addSectionClass('main');          
          $this->output[] = $this->renderDebugSection();
          $this->output[] = $this->renderConnectionsSection();        
          $this->output[] = $this->elements->addClr();  
          $this->output[] = $this->elements->addSectionEnd();         
-         
-         /* Render console */
-         $this->output[] = $this->elements->addSectionId('console');
-         $this->output[] = $this->consoleRenderer->renderConsole();
-         $this->output[] = $this->elements->addSectionEnd();    
+  
       break; 
 
       case 'database':
@@ -14934,7 +15233,7 @@ class SkynetRendererHtmlConnectionsRenderer
     }   
       
     return '<form method="GET" action="" class="formConnections">
-    Go to connection: <select onchange="if(this.options[this.selectedIndex].value > 0) { window.location.assign(window.location.href.replace(location.hash, \'\') + \'#_connection\' + this.options[this.selectedIndex].value); }" name="_go">'.implode('', $options).'</select></form>';      
+    Go to connection: <select id="connectList" onchange="skynetControlPanel.gotoConnection();" name="_go">'.implode('', $options).'</select></form>';      
   }  
     
  /**
@@ -14969,26 +15268,58 @@ class SkynetRendererHtmlConnectionsRenderer
   *
   * @return string HTML code
   */   
-  public function parseConnectionFields($fields, $clusterUrl)
+  public function parseConnectionFields($fields, $clusterUrl, $id)
   {
     $names = [
-      'request_raw' => 'Request Fields {sended} (plain) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'),
-      'request_encypted' => 'Request Fields {sended} (encrypted) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'),
-      'response_raw' => 'Response Fields {received} (raw) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'),
-      'response_decrypted' => 'Response Fields {received} (decrypted) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't')
+      'request_raw' => ['Request Fields {sended} (plain) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'request_encypted' => ['Request Fields {sended} (encrypted) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'response_raw' => ['Response Fields {received} (raw) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'response_decrypted' => ['Response Fields {received} (decrypted) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'), '']
       ];      
     
     $rows = [];   
-    foreach($fields as $key => $value)
-    {
-      $rows[] = 
-        $this->elements->addHeaderRow($this->elements->addH3('[ '.$names[$key].' ]')).
-        $this->parseParamsArray($value);      
-    }
+    
+    $rows[] = $this->elements->addSectionClass('tabConnPlain'.$id);
+    $rows[] = '<table>';
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['request_raw'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['request_raw']);      
+    $rows[] = '</table>';      
+    
+    $rows[] = '<table>';
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['response_decrypted'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['response_decrypted']);      
+    $rows[] = '</table>'; 
+    $rows[] = $this->elements->addSectionEnd();
+    
+    $rows[] = $this->elements->addSectionClass('hide tabConnEncrypted'.$id);
+    $rows[] = '<table>';
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['request_encypted'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['request_encypted']);      
+    $rows[] = '</table>';     
+    
+    $rows[] = '<table>';
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['response_raw'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['response_raw']);      
+    $rows[] = '</table>'; 
+    $rows[] = $this->elements->addSectionEnd();
     
     return implode('', $rows);    
-  }
+  } 
  
+ /**
+  * Renders tabs
+  *
+  * @return string HTML code
+  */  
+  public function renderConnectionTabs($id = 0)
+  {
+    $output = [];
+    $output[] = '<div class="tabsHeader">';
+    $output[] = '<a class="tabConnPlainBtn'.$id.' active" href="javascript:skynetControlPanel.switchConnTab(\'tabConnPlain\', '.$id.');">Plain data</a> <a class="tabConnEncryptedBtn'.$id.' errors" href="javascript:skynetControlPanel.switchConnTab(\'tabConnEncrypted\', '.$id.');">Encrypted data</a> <a class="tabConnRawBtn'.$id.'" href="javascript:skynetControlPanel.switchConnTab(\'tabConnRaw\', '.$id.');">Raw data</a>';
+    $output[] = '</div>';    
+    return implode($output);
+  }
+  
  /**
   * Parses connection params array
   *
@@ -15003,41 +15334,41 @@ class SkynetRendererHtmlConnectionsRenderer
       $this->elements->addHtml('<a name="_connection'.$connData['id'].'"></a>').
       $this->elements->addH2('@'.$connData['id'].' Connection {').
       $this->elements->addH3('@ClusterAddress: '.$this->elements->addUrl($connData['CLUSTER URL']));
-    $rows[] = '<table>';
+    
+    
+    $rows[] = $this->renderConnectionTabs($connData['id']);
       
     $paramsFields = ['SENDED PARAMS', 'SENDED HEADER PARAMS (broadcast)'];  
     $rawDataFields = ['RECEIVED RAW DATA', 'RECEIVED RAW HEADER (broadcast)'];
-      
-    foreach($connData as $key => $value)
-    {
-      $parsedValue = $value;
-      
-      if($key == 'FIELDS')
-      {
-        $rows[] = $this->parseConnectionFields($value, $connData['CLUSTER URL']);
-                
-      } else {
-        
-        $parsedValue = $value;
-        
-        if($key == 'CLUSTER URL')
-        {
-          $parsedValue = $this->elements->addUrl($value);
-        }
-        
-        if(in_array($key, $paramsFields))
-        {
-          $parsedValue = $this->parseDebugParams($value);
-          
-        } elseif(in_array($key, $rawDataFields))
-        {
-          $parsedValue = $this->parseResponseRawData($value);
-        }        
-        
-        $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper($key).' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);   
-      }        
-    }
+    
+    $rows[] = '<table>';
+    $parsedValue = $this->elements->addUrl($connData['CLUSTER URL']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('CLUSTER URL').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);    
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Connection number').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['id']);    
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Ping').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['Ping']);   
     $rows[] = '</table>';
+    
+    
+    $rows[] = $this->parseConnectionFields($connData['FIELDS'], $connData['CLUSTER URL'], $connData['id']);
+    
+    
+    $rows[] = $this->elements->addSectionClass('hide tabConnRaw'.$connData['id']);
+    $rows[] = '<table>';
+    $parsedValue = $this->parseDebugParams($connData['SENDED PARAMS']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('CLUSTER URL').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseDebugParams($connData['SENDED HEADER PARAMS (broadcast)']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('SENDED HEADER PARAMS (broadcast)').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseResponseRawData($connData['RECEIVED RAW DATA']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW DATA').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseResponseRawData($connData['RECEIVED RAW HEADER (broadcast)']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW HEADER (broadcast)').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    $rows[] = '</table>';
+    $rows[] = $this->elements->addSectionEnd();   
+    
+    
     $rows[] = $this->elements->addH2('}');
     return implode('', $rows);    
   }
@@ -15199,21 +15530,8 @@ class SkynetRendererHtmlConsoleRenderer
          $options[] = '<option value="'.$code.'">'.$code.' '.$params.'</option>';        
       }      
     }    
-
-    /* Pasting commands from list */
-    $js = 'if(this.options[this.selectedIndex].value != "0") 
-    { 
-        if(document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value == "" || document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value == null) 
-        {
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value = this.options[this.selectedIndex].value + " ";
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].focus();
-        } else {
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value = document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value + "\r\n" + this.options[this.selectedIndex].value + " ";
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].focus();
-        }        
-    }';
       
-    return "<select onchange='".$js."' name='_cmd1'>".implode('', $options)."</select>";      
+    return "<select id='cmdsList' onchange='skynetControlPanel.insertCommand();' name='_cmd1'>".implode('', $options)."</select>";      
   }  
  
  /**
@@ -15685,7 +16003,7 @@ class SkynetRendererHtmlDebugRenderer
     $rows = [];
     foreach($fields as $field)
     {
-      $rows[] = $this->elements->addRow($this->elements->addBold($field->getName()).' '.$field->getValue());   
+      $rows[] = $this->elements->addValRow($this->elements->addBold($field->getName()), $field->getValue());
     }    
     return implode('', $rows);
   } 
@@ -15715,7 +16033,7 @@ class SkynetRendererHtmlDebugRenderer
         $this->elements->addBold('Line: ').$errorException->getLine().$this->elements->getNl().
         $this->elements->addBold('Trace: ').str_replace('#', $this->elements->getNl().'#', $errorException->getTraceAsString()), 'exception');
       }
-      $rows[] = $this->elements->addRow($this->elements->addBold($field->getName(), 'error').' '.$this->elements->addSpan($errorData[0], 'error').$ex);      
+      $rows[] = $this->elements->addValRow($this->elements->addBold($field->getName()), $this->elements->addSpan($errorData[0], 'error').$ex);
     }  
     if(count($rows) == 0) 
     {
@@ -15801,6 +16119,8 @@ class SkynetRendererHtmlElements
   /** @var Skynet SkynetRendererHtmlThemes Themes Container*/
   private $themes;
   
+  private $js;
+  
   
  /**
   * Constructor
@@ -15808,6 +16128,7 @@ class SkynetRendererHtmlElements
   public function __construct()
   {
     $this->themes = new SkynetRendererHtmlThemes();
+    $this->js = new SkynetRendererHtmlJavascript();
     $this->css = $this->themes->getTheme(SkynetConfig::get('core_renderer_theme'));
     $this->nl = '<br/>';
     $this->gt = '&gt;';
@@ -16025,6 +16346,19 @@ class SkynetRendererHtmlElements
     return '<div class="clr"></div>';
   }
  
+ /**
+  * Adds table key => value row
+  * 
+  * @param string $status TD 1
+  * @param string $url TD 1
+  * @param string $ping TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addClusterRow($status, $url, $ping, $conn)
+  {
+    return '<tr><td class="tdClusterStatus">'.$status.'</td><td class="tdClusterUrl">'.$url.'</td><td class="tdClusterPing">'.$ping.'</td><td class="tdClusterConn">'.$conn.'</td></tr>';
+  }
  
  /**
   * Adds table key => value row
@@ -16039,6 +16373,18 @@ class SkynetRendererHtmlElements
     return '<tr><td class="tdKey">'.$key.'</td><td class="tdVal">'.$val.'</td></tr>';
   }
  
+ /**
+  * Adds table header row
+  * 
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addHeaderRow3($col1, $col2, $col3, $col4)
+  {
+    return '<tr><th class="tdHeader">'.$col1.'</th><th class="tdHeader">'.$col2.'</th><th class="tdHeader">'.$col3.'</th><th class="tdHeader">'.$col4.'</th></tr>';
+  } 
+  
  /**
   * Adds table header row
   * 
@@ -16084,7 +16430,9 @@ class SkynetRendererHtmlElements
   */
   public function addFooter()
   {
-    $html = '</body></html>';
+    //$html = '<script src="skynet.js"></script>';
+    $html = '<script>'.$this->js->getJavascript().'</script>';
+    $html.= '</body></html>';
     return $html;
   }
   
@@ -16097,8 +16445,8 @@ class SkynetRendererHtmlElements
   {
     $header = $this->addH1('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAaCAYAAAD1wA/qAAAALHRFWHRDcmVhdGlvbiBUaW1lAMWaciAxOSBrd2kgMjAxNyAwMjo1Njo0NSArMDEwMBachLcAAAAHdElNRQfhBBMAORXFuVVnAAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAx9JREFUeNrtl19IU1Ecx+/+Ovtjioj5oEEPPS0J6inaW4EPBjXooVgPJfbQg+0hmBAoY7FUamwPU/eyDWszaq5oC5kVW8m0Qool+rIYDPawQpq49sf97XfmOTW16Zlt3oK+8OVc7j1/fp97zu/ccxnmv7aWUCgslCqViq/X6xvQtUgkYjus8sTj8QqlRCJhgsHg3Wg06pHL5XXFz/56kUA7OjqYUCikzWPFYrHp3t7e+n8Chs/nF0qpVMqEw2FDfoOSyeR7pVLZhOpwuVy2w90aQiaTMUtLS2P5EkqlUr7BwcFDqC6Hw2E77N9DdHd3cyORiDW/jTKZzH2dTsd22OtF1ntPT49wZWXFvh0E6C24OZfLMQaDge3w10MoFIpaSOZJCohZcAOYAXPBd8xm8zFWIUiy9vf31yUSCTcFhBdcjyGQzfh+aHx8XMwKBEnSgYGBRkjeWQqIafABDMABP9jwPGy324+zAqPVag9C0n6ggHgN3l+0nB6WqPcNYE7u6kyMjIy0ZbPZBQoItOT2YQge+PFWlWEDWB4dHZVUFYIk9tDQ0GEY8zMFxCvwXgwhAD+haIP03WQynakKBEnsvr6+I5DYAYpgXoD3YIga8DNKCKKk1Wo9W1EIspzUavXR1dXVEEUQLnAthhCBn5cJQZSamJg4X1EYjUZzIp1Of6UYfBIHz+AZce0QgijrdDovVgRieHj4FCR2hGJQ9OZrMATKjZd/CPFTU1NTVzeukLJkNBpPQz9RirEcYCGGQFutu1IQRB6P59qOYCwWSye0T1CM8TS/tishCPTRe1NpCKKZmZkbZcHYbLYL0C5N0be9CAKdobzVgiCam5tTkDg3/dMU0zkcjktQP0fRpw3MxxCN4HfVhiDy+Xy3NsEUU7lcriuUfT3Kr32pEUQTelG7BUG0uLh4u7W1tRC3QCD4NStut/s6ZR/orMTFEM3gj7sNQeT3+++1t7evAbS0tDBer/cmZVt0auVgiDbwJ7YgiAKBgK6rq0vImZ+fPycWi1XAhP5XMyXyHx20voA7wTF8Tw2+DF4uf2OvmFBeCOLx+NgP1c7Cc+35//8AAAAASUVORK5CYII=
 "/> SKYNET v.'.SkynetVersion::VERSION, 'logo');
-    $header.= '(c) 2017 Marcin Szczyglinski<br>Check for newest versions here: '.$this->addUrl(SkynetVersion::WEBSITE).'<br>Project website: '.$this->addUrl(SkynetVersion::BLOG);
-    $header.= $this->getNl();     
+    $header.= '(c) 2017 Marcin Szczyglinski<br>Updates: '.$this->addUrl(SkynetVersion::WEBSITE).'<br>Website: '.$this->addUrl(SkynetVersion::BLOG);
+    $header.= $this->getNl();      
     return $header;
   }
     
@@ -16144,6 +16492,224 @@ class SkynetRendererHtmlElements
 }
 
 /**
+ * Skynet/Renderer/Html//SkynetRendererHtmlJavascript.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+ /**
+  * Skynet Renderer Javascript
+  *
+  */
+class SkynetRendererHtmlJavascript
+{     
+ 
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    
+  }    
+ 
+ /**
+  * Returns jS
+  *
+  * @return string JS code
+  */  
+  public function getJavascript()
+  {
+    $js = "
+    var skynetControlPanel = {
+  
+  status: null,
+  
+  switchTab: function(e) {
+    
+    var tabStates = document.getElementsByClassName('tabStates');
+    var tabErrors = document.getElementsByClassName('tabErrors');
+    var tabConfig = document.getElementsByClassName('tabConfig');
+    var tabConsole = document.getElementsByClassName('tabConsole');
+    
+    tabStates[0].style.display = 'none';
+    tabErrors[0].style.display = 'none';
+    tabConfig[0].style.display = 'none';
+    tabConsole[0].style.display = 'none';
+    
+    document.getElementsByClassName('tabStatesBtn')[0].className = document.getElementsByClassName('tabStatesBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabErrorsBtn')[0].className = document.getElementsByClassName('tabErrorsBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabConfigBtn')[0].className = document.getElementsByClassName('tabConfigBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabConsoleBtn')[0].className = document.getElementsByClassName('tabConsoleBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    
+    var btnToActive = e + 'Btn';
+    document.getElementsByClassName(btnToActive)[0].className += ' active';
+    document.getElementsByClassName(e)[0].style.display = 'block';
+  },
+  
+  switchConnTab: function(e, id) {
+    
+    var tabConnPlain = document.getElementsByClassName('tabConnPlain'+id);
+    var tabConnEncrypted = document.getElementsByClassName('tabConnEncrypted'+id);
+    var tabConnRaw = document.getElementsByClassName('tabConnRaw'+id);
+    
+    tabConnPlain[0].style.display = 'none';
+    tabConnEncrypted[0].style.display = 'none';
+    tabConnRaw[0].style.display = 'none';
+    
+    document.getElementsByClassName('tabConnPlainBtn'+id)[0].className = document.getElementsByClassName('tabConnPlainBtn'+id)[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabConnEncryptedBtn'+id)[0].className = document.getElementsByClassName('tabConnEncryptedBtn'+id)[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabConnRawBtn'+id)[0].className = document.getElementsByClassName('tabConnRawBtn'+id)[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    
+    var btnToActive = e + 'Btn' + id;
+    document.getElementsByClassName(btnToActive)[0].className += ' active';
+    document.getElementsByClassName(e + id)[0].style.display = 'block';
+  },
+  
+  insertCommand: function() {
+    
+    var cmdsList = document.getElementById('cmdsList');
+    if(cmdsList.options[cmdsList.selectedIndex].value != '0') 
+    { 
+        if(document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value == '' || document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value == null) 
+        {
+          document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value = cmdsList.options[cmdsList.selectedIndex].value + ' ';
+          document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].focus();
+        } else {
+          document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value = document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value + '\\r\\n' + cmdsList.options[cmdsList.selectedIndex].value + ' ';
+          document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].focus();
+        }        
+    }
+  },
+  
+  insertConnect: function(url) {    
+    
+    var cmd = '@connect ' + url;
+    
+    if(document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value == '' || document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value == null) 
+    {
+      document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value = cmd + ' ';
+      document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].focus();
+    } else {
+      document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value = document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value + '\\r\\n' + cmd + ' ';
+      document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].focus();
+    }    
+  },
+    
+  gotoConnection() {
+    
+    var connectList = document.getElementById('connectList');
+    if(connectList.options[connectList.selectedIndex].value > 0) {       
+      window.location.assign(window.location.href.replace(location.hash, '') + '#_connection' + connectList.options[connectList.selectedIndex].value); 
+    }
+  },
+  
+  switchStatus(e)
+  {
+    var statusIdle = document.getElementsByClassName('statusIdle');
+    var statusSingle  = document.getElementsByClassName('statusSingle');
+    var statusBroadcast  = document.getElementsByClassName('statusBroadcast');
+    
+    document.getElementsByClassName('statusIdle')[0].className = document.getElementsByClassName('statusIdle')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('statusSingle')[0].className = document.getElementsByClassName('statusSingle')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('statusBroadcast')[0].className = document.getElementsByClassName('statusBroadcast')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    
+    var toActive = 'status' + e;
+    document.getElementsByClassName(toActive)[0].className += ' active';
+  }  
+}
+";
+
+  return $js;    
+  }
+}
+
+/**
+ * Skynet/Renderer/Html//SkynetRendererHtmlSummaryRenderer.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+ /**
+  * Skynet Renderer Summary Renderer
+  *
+  */
+class SkynetRendererHtmlSummaryRenderer
+{     
+  /** @var string[] HTML elements of output */
+  private $output = [];   
+  
+  /** @var SkynetRendererHtmlDebugRenderer Debug Renderer */
+  private $debugRenderer;
+  
+  /** @var SkynetRendererHtmlElements HTML Tags generator */
+  private $elements;  
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    $this->elements = new SkynetRendererHtmlElements();    
+    $this->debugRenderer = new SkynetRendererHtmlDebugRenderer();
+  }  
+  
+  public function renderService($fields)
+  {
+    $aryService = ['My address', 'Chain', 'Skynet Key ID', 'Sleeped'];
+        
+    $this->output = [];
+    $this->output[] = '<table class="tblService">';
+    $this->output[] = $this->parseFields($fields, $aryService);
+    $this->output[] = '</table>';  
+    return implode($this->output);   
+  }
+  
+  public function renderSummary($fields)
+  {
+    $arySummary = ['Broadcasting Clusters', 'Clusters in DB', 'Connection attempts', 'Succesful connections'];
+    
+    $this->output = [];
+    $this->output[] = '<table class="tblSummary">';
+    $this->output[] = $this->parseFields($fields, $arySummary);
+    $this->output[] = '</table>';  
+    return implode($this->output);   
+  }
+  
+   /**
+  * Parses assigned custom fields
+  *
+  * @param SkynetField[] $fields
+  *
+  * @return string HTML code
+  */    
+  public function parseFields($fields, $ary)
+  {
+    $rows = [];    
+    foreach($fields as $field)
+    {
+      if(in_array($field->getName(), $ary))
+      {
+        $rows[] = $this->elements->addValRow($this->elements->addBold($field->getName()), $field->getValue());
+      }
+    }    
+    return implode('', $rows);
+  }
+}
+
+/**
  * Skynet/Renderer/Html/SkynetRendererHtmlThemes.php
  *
  * @package Skynet
@@ -16177,8 +16743,8 @@ class SkynetRendererHtmlThemes
     
     $this->themes['dark'] = '
     <style>
-    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.8rem; height: 98%; line-height: 1.4; }    
-    b { color:#4d734f; } 
+    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px }    
+    b { color:#87b989; } 
     h2 { color: #5ba15f; } 
     h3 { color:#4f8553; } 
     a { color: #eef6ef; text-decoration: none; } 
@@ -16187,30 +16753,74 @@ class SkynetRendererHtmlThemes
     textarea { padding:5px; width:100%; height:90%; background: #000; color: green; }
     select, input {  font-family: Verdana, Arial; font-size: 0.8rem; background: #000; color: #9ed4a2; }
     select:hover, input:hover {  color: #fff; }
-    table { font-size:0.8rem; width:100%; max-width:100%; table-layout: fixed; }
-    td { border-bottom: 1px solid #313c33; padding:4px; word-wrap: break-word; }
+    table { font-size:1.0em; width:100%; max-width:100%; table-layout: fixed; }
+    td { border-bottom: 1px solid #313c33; padding:2px; word-wrap: break-word; }
     th { color: #707070; font-weight: bold; text-align:left; }
     tr:hover { background:#0c0c0c; color: #616f62; } 
     tr:hover a {  } 
     tr:hover th { background:#000; }
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }
-    #header { height: 10%; min-height:120px; }
+    #header { height: 10%;  }
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
-    #main { height: 70%; }
+    .main { height: 90%; }
     #dbSwitch { height: 15%; max-height:15%; min-height:90px; width:100%; overflow:auto; }
     #dbRecords { height: 70%; max-height:70%; overflow:auto; }
-    #columnDebug { float:left; width:40%; max-height:100%; overflow:auto; }
-    #columnConnections { float:right; width:58%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }
+    .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
+    .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }
     #console { width: 100%; height: 15%; }
     #consoleDebug, #consoleDebug h3 { color: #3ffb6e }
     #loginSection { text-align:center; margin: auto }
     #loginSection input[type="password"] { width:400px; }
     #dbTable { table-layout: auto; }
     #authMain { text-align: center; }
+    
+    .hide { display:none; }
+    
+    .sectionAddresses { width:50%; float:left; height:100%; max-height:100%;}
+    .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
+    
+    .innerAddresses { width:100%; height:90%; max-height:90%; overflow-y:auto; }
+    .innerMode { width:100%; height:10%; max-height:10%; overflow-y:auto; }
+    .innerStates { width:100%; height:100%; max-height:100%; overflow-y:auto; }
+    
+    .hdrLogo { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
+    .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
+    .hdrColumn2 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
+    .hdrSwitch { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; text-align:right;}
+    .hdrConnection { margin-top:5px; font-size: 1.1rem; }
+    .hdrConnection .active { background-color: #3ffb6e; color: #000; }
+    
+    .tabsHeader { border-bottom:1px solid #2e2e2e;  padding-top: 20px; padding-bottom:8px; }
+    .tabsHeader a { font-size:1.3em; background: #2e2e2e; padding: 8px; margin-top:8px; margin-bottom:8px;}
+    .tabsHeader a.active { background:#fff; color: #000;}
+    
+    .tabStates { display:block; }
+    .tabConsole { display:none; }
+    .tabConfig { display:none; }
+    .tabErrors { display:none; }
+    .tabConsole { display:none; }
+    
+    .tdClusterStatus { width:10%; }
+    .tdClusterUrl { width:60%; }
+    .tdClusterPing { width:10%; }
+    .tdClusterConn { width:20%; }
+    
+    .statusIcon { padding: 1px; }
+    .statusConnected { background: #3ffb6e; }
+    .statusIdle { background: #2e2e2e; }
+    .statusError { background: red; }
+    
+    a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
+    a.btn:hover { background:#3ffb6e; color:#000; }
+      
+   
+    
+    .sectionStatus { height:75%; max-height:75%; overflow-y:auto; }
+    .sectionConsole { height:20%; max-height:20%; }
     .tdKey { width:30%; }
     .tdVal { width:70%; }
-    .tdHeader { border:0px; padding-top:50px; }
+    .tdHeader { border:0px; padding-top:30px; }
     .marked { color: #5ba15f; } 
     .exception { color: #ae3516; }
     .exception b { color: red; }
@@ -16232,7 +16842,12 @@ class SkynetRendererHtmlThemes
     .aDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
     .clr { clear: both; }
     .loginForm { padding-top:100px; }
-    .logo { font: normal normal 2.0rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; }
+    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }
+    
+    .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
+    .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
+    .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
+    .tblStates .tdKey { width:15%; } .tblStates .tdValue { width:85%; }
     </style>';
   }    
 
@@ -17059,10 +17674,10 @@ class SkynetLauncher
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.0.1-alpha';
+   const VERSION = '1.1.0-alpha';
    
    /** @var string build */
-   const BUILD = '2017.04.20';
+   const BUILD = '2017.04.21';
    
    /** @var string website */
    const WEBSITE = 'https://github.com/szczyglinski/skynet';
