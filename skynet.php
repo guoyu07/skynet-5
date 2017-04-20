@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.19 23:44:12 (1492645452) */
+/* Skynet Standalone | version compiled: 2017.04.20 00:14:39 (1492647279) */
 
 namespace Skynet;
 
@@ -78,7 +78,7 @@ class SkynetConfig
 
     /* core_connection_type -> string:[curl|file_get_contents|...]
     Name of registered class used for connection with clusters */
-    'core_connection_type' => 'file_get_contents',
+    'core_connection_type' => 'curl',
 
     /* core_connection_protocol -> string:[http|https]
     Connections protocol */
@@ -2330,6 +2330,9 @@ class SkynetClustersRegistry
 
   /** @var SkynetCluster Actual cluster entity */
   private $cluster;
+  
+  /** @var SkynetVerifier Verifier instance */
+  private $verifier;
 
  /**
   * Constructor
@@ -2340,6 +2343,7 @@ class SkynetClustersRegistry
     $this->db_connected = $dbInstance->isDbConnected();
     $this->db_created = $dbInstance->isDbCreated();
     $this->db = $dbInstance->getDB();
+    $this->verifier = new SkynetVerifier();
   }
 
  /**
@@ -2716,6 +2720,11 @@ class SkynetClustersRegistry
     
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
+    {
+      return false;
+    }
+    
+    if(!$this->verifier->isAddressCorrect($url))
     {
       return false;
     }
@@ -3319,7 +3328,7 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
   */
   private function init($address)
   {
-    $success = null;
+    $result = null;
     try
     {
       $ch = curl_init();
@@ -3357,7 +3366,7 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
         $msg = curl_error($ch);
         $this->addError(SkynetTypes::CURL, 'Connection error: [CURL] Code: '.$msg.' | Error: '.$msg);
         $this->addState(SkynetTypes::CURL, 'CONNECTION ERROR: '.$address);
-        $success = false;
+        $result = false;
       } 
       if($responseData !== null && !empty($responseData))
       {      
@@ -4047,6 +4056,9 @@ class SkynetConsole
   /** @var SkynetEventListenersInterface[] Array of Event Loggers */
   private $eventLoggers = [];
   
+  /** @var SkynetVerifier Verifier instance */
+  private $verifier;
+  
 
  /**
   * Constructor
@@ -4056,6 +4068,7 @@ class SkynetConsole
     $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();    
     $this->registerListenersCommands();
+    $this->verifier = new SkynetVerifier();
   }
 
  /**
@@ -4375,7 +4388,7 @@ class SkynetConsole
 
   private function isParamKeyVal($input)
   {
-    if(!empty($input) && preg_match('/^[a-zA-Z0-9_-]+: *"{0,1}.+"{0,1}$/', $input))
+    if(!empty($input) && preg_match('/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}.+"{0,1}$/', $input))
     {
       return true;
     }
@@ -4391,6 +4404,25 @@ class SkynetConsole
   {
     return preg_replace("/ {2,}/", " ", $str);    
   }
+ 
+ 
+ private function areAddresses($input)
+ {
+   $urls = false;
+   $e = explode(',', $input);
+   $c = count($e);
+   if($c > 0)
+   {
+     foreach($e as $param)
+     {
+       if($this->verifier->isAddressCorrect(trim($param)))
+       {
+         $urls = true;
+       }
+     }     
+   }
+   return $urls;   
+ } 
  
  /**
   * Parses and returns params from params string
@@ -4417,13 +4449,16 @@ class SkynetConsole
     //var_dump($paramsStr);
     /* if not quoted explode for params */
     $e = explode(',', $paramsStr);
-    $numOfParams = count($e);    
+    $numOfParams = count($e); 
     
-    $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
-    if(preg_match_all($pattern, $paramsStr, $matches, PREG_PATTERN_ORDER) != 0)
+    if(!$this->areAddresses($paramsStr))
     {
-      $e = $matches[0];
-    } 
+      $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+      if(preg_match_all($pattern, $paramsStr, $matches, PREG_PATTERN_ORDER) != 0)
+      {
+        $e = $matches[0];
+      } 
+    }
 
     foreach($e as $param)
     {
@@ -5498,7 +5533,10 @@ class Skynet
         {
           foreach($connectParams as $param)
           {
-            $this->connect($param);              
+            if($this->verifier->isAddressCorrect($param))
+            {
+              $this->connect($param); 
+            }              
           }
         }
       }
@@ -5540,7 +5578,10 @@ class Skynet
               } elseif(is_string($param) && $param != 'all')
               {
                 $startBroadcast = false;
-                $this->connect($param);
+                if($this->verifier->isAddressCorrect($param))
+                {
+                  $this->connect($param); 
+                }  
               }
             }  
           }  

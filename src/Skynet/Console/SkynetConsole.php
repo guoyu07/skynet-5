@@ -16,6 +16,7 @@ namespace Skynet\Console;
 
 use Skynet\EventListener\SkynetEventListenersFactory;
 use Skynet\EventLogger\SkynetEventLoggersFactory;
+use Skynet\Secure\SkynetVerifier;
 
  /**
   * Skynet Console 
@@ -49,6 +50,9 @@ class SkynetConsole
   /** @var SkynetEventListenersInterface[] Array of Event Loggers */
   private $eventLoggers = [];
   
+  /** @var SkynetVerifier Verifier instance */
+  private $verifier;
+  
 
  /**
   * Constructor
@@ -58,6 +62,7 @@ class SkynetConsole
     $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();    
     $this->registerListenersCommands();
+    $this->verifier = new SkynetVerifier();
   }
 
  /**
@@ -377,7 +382,7 @@ class SkynetConsole
 
   private function isParamKeyVal($input)
   {
-    if(!empty($input) && preg_match('/^[a-zA-Z0-9_-]+: *"{0,1}.+"{0,1}$/', $input))
+    if(!empty($input) && preg_match('/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}.+"{0,1}$/', $input))
     {
       return true;
     }
@@ -393,6 +398,25 @@ class SkynetConsole
   {
     return preg_replace("/ {2,}/", " ", $str);    
   }
+ 
+ 
+ private function areAddresses($input)
+ {
+   $urls = false;
+   $e = explode(',', $input);
+   $c = count($e);
+   if($c > 0)
+   {
+     foreach($e as $param)
+     {
+       if($this->verifier->isAddressCorrect(trim($param)))
+       {
+         $urls = true;
+       }
+     }     
+   }
+   return $urls;   
+ } 
  
  /**
   * Parses and returns params from params string
@@ -419,13 +443,16 @@ class SkynetConsole
     //var_dump($paramsStr);
     /* if not quoted explode for params */
     $e = explode(',', $paramsStr);
-    $numOfParams = count($e);    
+    $numOfParams = count($e); 
     
-    $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
-    if(preg_match_all($pattern, $paramsStr, $matches, PREG_PATTERN_ORDER) != 0)
+    if(!$this->areAddresses($paramsStr))
     {
-      $e = $matches[0];
-    } 
+      $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+      if(preg_match_all($pattern, $paramsStr, $matches, PREG_PATTERN_ORDER) != 0)
+      {
+        $e = $matches[0];
+      } 
+    }
 
     foreach($e as $param)
     {

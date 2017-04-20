@@ -767,7 +767,10 @@ class Skynet
       
       if(!empty($address) && $address !== null)
       {
-        $this->connect($address);
+        if($this->verifier->isAddressCorrect($address))
+        {
+          $this->connect($address); 
+        } 
       }        
     }
     
@@ -799,7 +802,10 @@ class Skynet
         {
           foreach($connectParams as $param)
           {
-            $this->connect($param);              
+            if($this->verifier->isAddressCorrect($param))
+            {
+              $this->connect($param); 
+            }              
           }
         }
       }
@@ -841,7 +847,10 @@ class Skynet
               } elseif(is_string($param) && $param != 'all')
               {
                 $startBroadcast = false;
-                $this->connect($param);
+                if($this->verifier->isAddressCorrect($param))
+                {
+                  $this->connect($param); 
+                }  
               }
             }  
           }  

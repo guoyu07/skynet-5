@@ -114,7 +114,7 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
   */
   private function init($address)
   {
-    $success = null;
+    $result = null;
     try
     {
       $ch = curl_init();
@@ -152,7 +152,7 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
         $msg = curl_error($ch);
         $this->addError(SkynetTypes::CURL, 'Connection error: [CURL] Code: '.$msg.' | Error: '.$msg);
         $this->addState(SkynetTypes::CURL, 'CONNECTION ERROR: '.$address);
-        $success = false;
+        $result = false;
       } 
       if($responseData !== null && !empty($responseData))
       {      

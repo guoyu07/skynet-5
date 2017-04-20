@@ -19,6 +19,7 @@ use Skynet\State\SkynetStatesTrait;
 use Skynet\Database\SkynetDatabase;
 use Skynet\Common\SkynetTypes;
 use Skynet\Common\SkynetHelper;
+use Skynet\Secure\SkynetVerifier;
 
  /**
   * Skynet Clusters Database Operations
@@ -52,6 +53,9 @@ class SkynetClustersRegistry
 
   /** @var SkynetCluster Actual cluster entity */
   private $cluster;
+  
+  /** @var SkynetVerifier Verifier instance */
+  private $verifier;
 
  /**
   * Constructor
@@ -62,6 +66,7 @@ class SkynetClustersRegistry
     $this->db_connected = $dbInstance->isDbConnected();
     $this->db_created = $dbInstance->isDbCreated();
     $this->db = $dbInstance->getDB();
+    $this->verifier = new SkynetVerifier();
   }
 
  /**
@@ -438,6 +443,11 @@ class SkynetClustersRegistry
     
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
+    {
+      return false;
+    }
+    
+    if(!$this->verifier->isAddressCorrect($url))
     {
       return false;
     }
