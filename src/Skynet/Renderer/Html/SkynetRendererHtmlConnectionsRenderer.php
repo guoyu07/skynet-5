@@ -14,6 +14,8 @@
 
 namespace Skynet\Renderer\Html;
 
+use Skynet\Data\SkynetParams;
+
  /**
   * Skynet Renderer HTML Connections Renderer
   */
@@ -22,6 +24,8 @@ class SkynetRendererHtmlConnectionsRenderer
   /** @var SkynetRendererHtmlElements HTML Tags generator */
   private $elements;
   
+  private $params;
+  
 
  /**
   * Constructor
@@ -29,6 +33,7 @@ class SkynetRendererHtmlConnectionsRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererHtmlElements();
+    $this->params = new SkynetParams;
   }   
   
  /**
@@ -82,7 +87,8 @@ class SkynetRendererHtmlConnectionsRenderer
     $rows = [];    
     foreach($fields as $key => $field)
     {
-      $rows[] = $this->elements->addValRow('<b>'.htmlspecialchars($field->getName(), ENT_QUOTES, "UTF-8").'</b>', str_replace(array("<", ">"), array("&lt;", "&gt;"), $field->getValue()));         
+      $paramName = $this->params->translateInternalParam(htmlspecialchars($field->getName(), ENT_QUOTES, "UTF-8"));
+      $rows[] = $this->elements->addValRow('<b>'.$paramName.'</b>', str_replace(array("<", ">"), array("&lt;", "&gt;"), $field->getValue()));         
     }
     
     if(count($rows) > 0)

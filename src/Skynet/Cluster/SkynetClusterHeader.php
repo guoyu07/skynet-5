@@ -71,6 +71,8 @@ class SkynetClusterHeader
 
   /** @var SkynetConnectionInterface Connector instance */
   private $connection;
+  
+  private $ping = 0;
 
  /**
   * Constructor
@@ -231,6 +233,11 @@ class SkynetClusterHeader
     {
       $this->clusters = $this->decrypt($remoteHeader->_skynet_clusters);
     }
+    
+    if(isset($remoteHeader->_skynet_ping)) 
+    {
+      $this->ping = round(microtime(true) * 1000) - $this->decrypt($remoteHeader->_skynet_ping);
+    }
 
     /* For debug, return received data */
     return $adapter;
@@ -279,6 +286,11 @@ class SkynetClusterHeader
     {      
       $this->clusters = $data['_skynet_clusters'];   
     }
+    
+    if(isset($data['_skynet_ping'])) 
+    {      
+      $this->ping = round(microtime(true) * 1000) - $data['_skynet_ping'];   
+    }
   }
 
  /**
@@ -323,6 +335,11 @@ class SkynetClusterHeader
     if(isset($data['_skynet_clusters'])) 
     {
       $this->clusters = $data['_skynet_clusters'];
+    }
+    
+    if(isset($data['_skynet_ping'])) 
+    {      
+      $this->ping = round(microtime(true) * 1000) - $data['_skynet_ping'];   
     }
   }
 
@@ -406,6 +423,14 @@ class SkynetClusterHeader
     return $this->clusterList;
   }
 
+ /**
+  * Gets ping
+  */
+  public function getPing()
+  { 
+    return $this->ping;
+  }
+  
  /**
   * Sets chain value
   *

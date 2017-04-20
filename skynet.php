@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.20 00:14:39 (1492647279) */
+/* Skynet Standalone | version compiled: 2017.04.20 01:44:29 (1492652669) */
 
 namespace Skynet;
 
@@ -1555,6 +1555,7 @@ class SkynetCluster
 
   /** @var SkynetClusterHeader Cluster header */
   private $header;
+  
 
  /**
   * Constructor
@@ -1652,7 +1653,7 @@ class SkynetCluster
     $this->url = $url;
     $this->header->setUrl($url);
   }
-
+  
  /**
   * Sets time of last connection
   *
@@ -1682,7 +1683,7 @@ class SkynetCluster
   {
     $this->ip = $ip;
   }
-
+  
  /**
   * Sets skynet's version
   *
@@ -1870,6 +1871,8 @@ class SkynetClusterHeader
 
   /** @var SkynetConnectionInterface Connector instance */
   private $connection;
+  
+  private $ping = 0;
 
  /**
   * Constructor
@@ -2030,6 +2033,11 @@ class SkynetClusterHeader
     {
       $this->clusters = $this->decrypt($remoteHeader->_skynet_clusters);
     }
+    
+    if(isset($remoteHeader->_skynet_ping)) 
+    {
+      $this->ping = round(microtime(true) * 1000) - $this->decrypt($remoteHeader->_skynet_ping);
+    }
 
     /* For debug, return received data */
     return $adapter;
@@ -2078,6 +2086,11 @@ class SkynetClusterHeader
     {      
       $this->clusters = $data['_skynet_clusters'];   
     }
+    
+    if(isset($data['_skynet_ping'])) 
+    {      
+      $this->ping = round(microtime(true) * 1000) - $data['_skynet_ping'];   
+    }
   }
 
  /**
@@ -2122,6 +2135,11 @@ class SkynetClusterHeader
     if(isset($data['_skynet_clusters'])) 
     {
       $this->clusters = $data['_skynet_clusters'];
+    }
+    
+    if(isset($data['_skynet_ping'])) 
+    {      
+      $this->ping = round(microtime(true) * 1000) - $data['_skynet_ping'];   
     }
   }
 
@@ -2205,6 +2223,14 @@ class SkynetClusterHeader
     return $this->clusterList;
   }
 
+ /**
+  * Gets ping
+  */
+  public function getPing()
+  { 
+    return $this->ping;
+  }
+  
  /**
   * Sets chain value
   *
@@ -5065,6 +5091,7 @@ class Skynet
   public function connect($remote_cluster = null, $chain = null)
   {
     $this->isConnected = false; 
+    $ping = 0;
     
     if($this->verifier->isDatabaseView())
     {
@@ -5130,6 +5157,7 @@ class Skynet
       /* Try to connect and get response */
       $this->launchEventListeners('onRequestLoggers');
       $this->connection->assignRequest($this->request);
+      
       $adapter = $this->connection->connect();
       $this->responseData = $adapter['data'];
 
@@ -5193,7 +5221,8 @@ class Skynet
     /* Generates debug data for every connection */    
     $this->connectionsData[] = [
     'id' => $this->connectId,    
-    'CLUSTER URL' => $this->clusterUrl,   
+    'CLUSTER URL' => $this->clusterUrl, 
+    'Ping' => $cluster->getHeader()->getPing().'ms',    
     'FIELDS' => [
       'request_raw' => $this->request->getFields(),
       'response_decrypted' => $this->response->getFields(),
@@ -5501,7 +5530,10 @@ class Skynet
       
       if(!empty($address) && $address !== null)
       {
-        $this->connect($address);
+        if($this->verifier->isAddressCorrect($address))
+        {
+          $this->connect($address); 
+        } 
       }        
     }
     
@@ -6666,6 +6698,60 @@ class SkynetParams
     if(strpos($params, '$#') === 0) 
     {
       return true;
+    }
+  }
+  
+  public function isInternal($param)
+  {
+    if(strpos($param, '_') == 0)
+    {
+      return true;
+    } elseif(strpos($param, '@_') == 0)
+    {
+      return true;
+    }
+  }
+  
+  public function translateInternalParam($param)
+  {
+    $keys = [];
+    
+    $keys['skynet'] = 'In Skynet';
+    $keys['skynet_chain_new'] = 'New Chain value';
+    $keys['skynet_clusters_chain'] = 'Clusters Chain';
+    $keys['skynet_id'] = 'Skynet Key ID';
+    $keys['skynet_ping'] = 'Ping (microtime)';
+    $keys['skynet_hash'] = 'Hash';
+    $keys['skynet_chain'] = 'Actual Chain value';
+    $keys['skynet_chain_updated_at'] = 'Last update of Chain value';
+    $keys['skynet_version'] = 'Skynet Version';
+    $keys['skynet_cluster_url'] = 'Cluster address';
+    $keys['skynet_cluster_ip'] = 'Cluster IP';
+    $keys['skynet_cluster_time'] = 'Time of sent';
+    $keys['skynet_clusters'] = 'Clusters chain';
+    $keys['skynet_sender_time'] = 'Request sender time';
+    $keys['skynet_sender_url'] = 'Request sender address';
+    $keys['skynet_checksum'] = 'MD5 checksum';
+    
+    $prefix = '';
+    
+    $internal = '_'.$param;
+    $internalEcho = '@_'.$param;
+    
+    if(strpos($param, '_') == 0)
+    {
+      $check = preg_replace('/^_/', '', $param);
+    } elseif(strpos($param, '@_') == 0)
+    {
+      $check = preg_replace('/^@_/', '', $param);
+      $prefix = '@>>';
+    }
+    
+    if(array_key_exists($check, $keys))
+    {
+      return $prefix.$keys[$check];
+    } else {
+      return $param;
     }
   }
 }
@@ -14800,6 +14886,8 @@ class SkynetRendererHtmlConnectionsRenderer
   /** @var SkynetRendererHtmlElements HTML Tags generator */
   private $elements;
   
+  private $params;
+  
 
  /**
   * Constructor
@@ -14807,6 +14895,7 @@ class SkynetRendererHtmlConnectionsRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererHtmlElements();
+    $this->params = new SkynetParams;
   }   
   
  /**
@@ -14860,7 +14949,8 @@ class SkynetRendererHtmlConnectionsRenderer
     $rows = [];    
     foreach($fields as $key => $field)
     {
-      $rows[] = $this->elements->addValRow('<b>'.htmlspecialchars($field->getName(), ENT_QUOTES, "UTF-8").'</b>', str_replace(array("<", ">"), array("&lt;", "&gt;"), $field->getValue()));         
+      $paramName = $this->params->translateInternalParam(htmlspecialchars($field->getName(), ENT_QUOTES, "UTF-8"));
+      $rows[] = $this->elements->addValRow('<b>'.$paramName.'</b>', str_replace(array("<", ">"), array("&lt;", "&gt;"), $field->getValue()));         
     }
     
     if(count($rows) > 0)
@@ -16969,10 +17059,10 @@ class SkynetLauncher
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.0.0-alpha';
+   const VERSION = '1.0.1-alpha';
    
    /** @var string build */
-   const BUILD = '2017.04.19';
+   const BUILD = '2017.04.20';
    
    /** @var string website */
    const WEBSITE = 'https://github.com/szczyglinski/skynet';

@@ -55,6 +55,8 @@ class SkynetCluster
 
   /** @var SkynetClusterHeader Cluster header */
   private $header;
+  
+
 
 
  /**
@@ -153,7 +155,7 @@ class SkynetCluster
     $this->url = $url;
     $this->header->setUrl($url);
   }
-
+  
  /**
   * Sets time of last connection
   *
@@ -183,7 +185,7 @@ class SkynetCluster
   {
     $this->ip = $ip;
   }
-
+  
  /**
   * Sets skynet's version
   *

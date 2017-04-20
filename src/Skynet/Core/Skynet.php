@@ -331,6 +331,7 @@ class Skynet
   public function connect($remote_cluster = null, $chain = null)
   {
     $this->isConnected = false; 
+    $ping = 0;
     
     if($this->verifier->isDatabaseView())
     {
@@ -396,6 +397,7 @@ class Skynet
       /* Try to connect and get response */
       $this->launchEventListeners('onRequestLoggers');
       $this->connection->assignRequest($this->request);
+      
       $adapter = $this->connection->connect();
       $this->responseData = $adapter['data'];
 
@@ -459,7 +461,8 @@ class Skynet
     /* Generates debug data for every connection */    
     $this->connectionsData[] = [
     'id' => $this->connectId,    
-    'CLUSTER URL' => $this->clusterUrl,   
+    'CLUSTER URL' => $this->clusterUrl, 
+    'Ping' => $cluster->getHeader()->getPing().'ms',    
     'FIELDS' => [
       'request_raw' => $this->request->getFields(),
       'response_decrypted' => $this->response->getFields(),

@@ -142,4 +142,58 @@ class SkynetParams
       return true;
     }
   }
+  
+  public function isInternal($param)
+  {
+    if(strpos($param, '_') == 0)
+    {
+      return true;
+    } elseif(strpos($param, '@_') == 0)
+    {
+      return true;
+    }
+  }
+  
+  public function translateInternalParam($param)
+  {
+    $keys = [];
+    
+    $keys['skynet'] = 'In Skynet';
+    $keys['skynet_chain_new'] = 'New Chain value';
+    $keys['skynet_clusters_chain'] = 'Clusters Chain';
+    $keys['skynet_id'] = 'Skynet Key ID';
+    $keys['skynet_ping'] = 'Ping (microtime)';
+    $keys['skynet_hash'] = 'Hash';
+    $keys['skynet_chain'] = 'Actual Chain value';
+    $keys['skynet_chain_updated_at'] = 'Last update of Chain value';
+    $keys['skynet_version'] = 'Skynet Version';
+    $keys['skynet_cluster_url'] = 'Cluster address';
+    $keys['skynet_cluster_ip'] = 'Cluster IP';
+    $keys['skynet_cluster_time'] = 'Time of sent';
+    $keys['skynet_clusters'] = 'Clusters chain';
+    $keys['skynet_sender_time'] = 'Request sender time';
+    $keys['skynet_sender_url'] = 'Request sender address';
+    $keys['skynet_checksum'] = 'MD5 checksum';
+    
+    $prefix = '';
+    
+    $internal = '_'.$param;
+    $internalEcho = '@_'.$param;
+    
+    if(strpos($param, '_') == 0)
+    {
+      $check = preg_replace('/^_/', '', $param);
+    } elseif(strpos($param, '@_') == 0)
+    {
+      $check = preg_replace('/^@_/', '', $param);
+      $prefix = '@>>';
+    }
+    
+    if(array_key_exists($check, $keys))
+    {
+      return $prefix.$keys[$check];
+    } else {
+      return $param;
+    }
+  }
 }
