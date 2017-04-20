@@ -74,7 +74,7 @@ class SkynetRendererHtmlElements
   */  
   public function addSubtitle($title, $class = null)
   {  
-    return $this->addH3('[### '.$title.' ###]', $class);
+    return $this->addH3('[ '.$title.' ]', $class);
   }
   
  /**

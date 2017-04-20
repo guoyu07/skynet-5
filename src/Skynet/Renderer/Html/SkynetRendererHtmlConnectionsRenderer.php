@@ -120,7 +120,7 @@ class SkynetRendererHtmlConnectionsRenderer
     foreach($fields as $key => $value)
     {
       $rows[] = 
-        $this->elements->addHeaderRow($this->elements->addH3('[### '.$names[$key].' ###]')).
+        $this->elements->addHeaderRow($this->elements->addH3('[ '.$names[$key].' ]')).
         $this->parseParamsArray($value);      
     }
     

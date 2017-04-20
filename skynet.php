@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.20 01:44:29 (1492652669) */
+/* Skynet Standalone | version compiled: 2017.04.20 02:03:09 (1492653789) */
 
 namespace Skynet;
 
@@ -14982,7 +14982,7 @@ class SkynetRendererHtmlConnectionsRenderer
     foreach($fields as $key => $value)
     {
       $rows[] = 
-        $this->elements->addHeaderRow($this->elements->addH3('[### '.$names[$key].' ###]')).
+        $this->elements->addHeaderRow($this->elements->addH3('[ '.$names[$key].' ]')).
         $this->parseParamsArray($value);      
     }
     
@@ -15835,7 +15835,7 @@ class SkynetRendererHtmlElements
   */  
   public function addSubtitle($title, $class = null)
   {  
-    return $this->addH3('[### '.$title.' ###]', $class);
+    return $this->addH3('[ '.$title.' ]', $class);
   }
   
  /**
