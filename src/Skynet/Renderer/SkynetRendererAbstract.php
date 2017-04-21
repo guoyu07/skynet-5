@@ -57,6 +57,8 @@ abstract class SkynetRendererAbstract
   protected $clustersData = [];
   
   protected $connectionMode = 0;
+  
+  protected $monits = [];
 
 
  /**
@@ -164,6 +166,26 @@ abstract class SkynetRendererAbstract
   public function addConfigField($key, $value)
   {
     $this->configFields[] = new SkynetField($key, $value);
+  }
+ 
+ /**
+  * Adds monit
+  *
+  * @param string $msg
+  */  
+  public function addMonit($msg)
+  {
+    $this->monits[] = $msg;
+  }
+  
+ /**
+  * Adds monit
+  *
+  * @param string $msg
+  */  
+  public function setMonits($monits)
+  {
+    $this->monits = $monits;
   }
   
  /**

@@ -151,6 +151,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output[] = $this->elements->addSectionClass('tabStates');
     $output[] = '<table class="tblStates">';
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('States ('.count($this->statesFields).')'));
+    $output[] = $this->renderMonits();
     $output[] = $this->debugRenderer->parseStatesFields($this->statesFields);
     $output[] = '</table>';
     $output[] = $this->elements->addSectionEnd(); 
@@ -197,6 +198,25 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   private function renderLogoutLink()
   {
     return $this->elements->addUrl('?_skynetLogout=1', $this->elements->addBold('LOGOUT'), false, 'aLogout');    
+  }
+  
+  private function renderMonits()
+  {
+    $output = [];
+    
+    $c = count($this->monits);
+    if($c > 0)
+    {
+      $output[] = $this->elements->addSectionClass('monits');
+      $output[] = $this->elements->addBold('Information: ');
+      foreach($this->monits as $monit)
+      {
+        $output[] = $monit.$this->elements->getNl();       
+      } 
+      $output[] = $this->elements->addSectionEnd(); 
+    }
+    
+    return implode($output);
   }
   
  /**
@@ -273,8 +293,8 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
          
          // var_dump($cluster->getHeader());         
          $status = '<span class="statusId'.$id.' statusIcon '.$class.'">( )</span>';
-         $url = $this->elements->addUrl($cluster->getUrl());
-         $output[] = $this->elements->addClusterRow($status, $this->elements->addBold($url), $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.\SkynetUser\SkynetConfig::get('core_connection_protocol').$cluster->getUrl().'\');" class="btn">CONNECT</a>');
+         $url = $this->elements->addUrl(\SkynetUser\SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl());
+         $output[] = $this->elements->addClusterRow($status, $url, $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.\SkynetUser\SkynetConfig::get('core_connection_protocol').$cluster->getUrl().'\');" class="btn">CONNECT</a>');
       }      
     } else {
       
@@ -282,7 +302,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
       $info.= $this->elements->getNl();
       $info.= 'Add new cluster with:';
       $info.= $this->elements->getNl();
-      $info.= $this->elements->addBold('@add "cluster address"').' command';
+      $info.= $this->elements->addBold('@add "cluster address"').' or '.$this->elements->addBold('@connect "cluster address"').' command';
       $output[] = $this->elements->addRow($info);
     }
    

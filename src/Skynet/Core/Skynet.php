@@ -28,6 +28,7 @@ use Skynet\Database\SkynetDatabase;
 use Skynet\Database\SkynetGenerator;
 use Skynet\Database\SkynetOptions;
 use Skynet\Filesystem\SkynetCloner;
+use Skynet\Filesystem\SkynetDetector;
 use Skynet\Updater\SkynetUpdater;
 use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Cluster\SkynetCluster;
@@ -155,9 +156,17 @@ class Skynet
   /** @var string[] Array of console outputs */
   private $consoleOutput = [];
   
+  /** @var SkynetCluster[] Array of clusters */
   private $clusters = [];
   
+  /** @var int connection mode */
   private $connMode = 2;  
+  
+  /** @var SkynetDetector Clusters detector */
+  private $clustersDetector;
+ 
+  /** @var string[] Array of monits */ 
+  private $monits = [];
 
 
  /**
@@ -184,10 +193,10 @@ class Skynet
     $this->cli = new SkynetCli();
     $this->console = new SkynetConsole();
     $this->options = new SkynetOptions();
+    $this->detector = new SkynetDetector();
     
-    $this->verifier->assignRequest($this->request);
+    $this->verifier->assignRequest($this->request);    
     
-    $this->clusters = $this->clustersRegistry->getAll();
     $this->modeController();
 
     /* Self-updater of Skynet */
@@ -195,11 +204,15 @@ class Skynet
     {
       $this->updater = new SkynetUpdater(__FILE__);
     }
+    
+    $this->clusters = $this->clustersRegistry->getAll();    
+    
     $this->newChain();
     if($start === true)
     {
       $this->boot();
     }
+    
     return $this;    
   }
 
@@ -228,6 +241,16 @@ class Skynet
         $this->broadcast();
       }
     }
+    
+    /* clusters detector */
+    if(!$this->verifier->isPing())
+    {
+      $detectClusters = $this->detector->check();
+      if($detectClusters !== null)
+      {
+        $this->monits[] = $detectClusters;
+      }
+    }   
     echo $this->renderOutput();   
   }
   
@@ -461,6 +484,9 @@ class Skynet
         $this->launchEventListeners('onResponseLoggers');
       }
 
+      /* refresh clusters data */   
+      $thisCluster = $this->connectId - 1;
+      $this->clusters[$thisCluster] = $cluster;
       $this->successConnections++;
 
     /* If connection errors */
@@ -470,10 +496,6 @@ class Skynet
       $this->addState(SkynetTypes::CONN_ERR, SkynetTypes::CONN_ERR.' : '. $this->connection->getUrl().$this->connection->getParams());
       $this->addError('Connection error: '.$e->getMessage(), $e);
     }
-    
-    /* refresh clusters data */   
-    $thisCluster = key($this->clusters);
-    $this->clusters[$thisCluster] = $cluster;
 
     /* Generates debug data for every connection */    
     $this->connectionsData[] = [
@@ -600,7 +622,17 @@ class Skynet
     {
       return '';
     }
+    
     $chainData = $this->skynetChain->loadChain();   
+    
+    /* assign monits */
+    if(count($this->monits) > 0)
+    {
+      foreach($this->monits as $monit)
+      {
+        $renderer->addMonit($monit);
+      }    
+    }
 
     /* set connection mode to output */
     if($this->isBroadcast)

@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.20 22:59:00 (1492729140) */
+/* Skynet Standalone | version compiled: 2017.04.21 01:36:53 (1492738613) */
 
 namespace Skynet;
 
@@ -748,6 +748,8 @@ abstract class SkynetRendererAbstract
   protected $clustersData = [];
   
   protected $connectionMode = 0;
+  
+  protected $monits = [];
 
  /**
   * Constructor
@@ -854,6 +856,26 @@ abstract class SkynetRendererAbstract
   public function addConfigField($key, $value)
   {
     $this->configFields[] = new SkynetField($key, $value);
+  }
+ 
+ /**
+  * Adds monit
+  *
+  * @param string $msg
+  */  
+  public function addMonit($msg)
+  {
+    $this->monits[] = $msg;
+  }
+  
+ /**
+  * Adds monit
+  *
+  * @param string $msg
+  */  
+  public function setMonits($monits)
+  {
+    $this->monits = $monits;
   }
   
  /**
@@ -2609,6 +2631,17 @@ class SkynetClustersRegistry
       $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
     }
   }
+  
+  
+  public function addressExists($url)
+  {
+    $cluster = new SkynetCluster();
+    $cluster->getHeader()->setUrl($url);
+    if($this->isCluster($cluster))
+    {
+      return true;
+    }    
+  }
 
  /**
   * Checks for cluster exists in database
@@ -2827,12 +2860,7 @@ class SkynetClustersRegistry
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
     {
       return false;
-    }
-    
-    if(!$this->verifier->isAddressCorrect($url))
-    {
-      return false;
-    }
+    }  
     
     try
     {      
@@ -3202,6 +3230,16 @@ class SkynetHelper
    return $_SERVER['PHP_SELF'];
   }
 
+ /**
+  * Returns cluster adress to
+  *
+  * @return string
+  */
+  public static function getMyServer()
+  {
+   return self::getServerAddress().pathinfo($_SERVER['PHP_SELF'], PATHINFO_DIRNAME);
+  }
+  
  /**
   * Returns cluster full address
   *
@@ -4995,9 +5033,17 @@ class Skynet
   /** @var string[] Array of console outputs */
   private $consoleOutput = [];
   
+  /** @var SkynetCluster[] Array of clusters */
   private $clusters = [];
   
+  /** @var int connection mode */
   private $connMode = 2;  
+  
+  /** @var SkynetDetector Clusters detector */
+  private $clustersDetector;
+ 
+  /** @var string[] Array of monits */ 
+  private $monits = [];
 
  /**
   * Constructor
@@ -5023,10 +5069,10 @@ class Skynet
     $this->cli = new SkynetCli();
     $this->console = new SkynetConsole();
     $this->options = new SkynetOptions();
+    $this->detector = new SkynetDetector();
     
-    $this->verifier->assignRequest($this->request);
+    $this->verifier->assignRequest($this->request);    
     
-    $this->clusters = $this->clustersRegistry->getAll();
     $this->modeController();
 
     /* Self-updater of Skynet */
@@ -5034,11 +5080,15 @@ class Skynet
     {
       $this->updater = new SkynetUpdater(__FILE__);
     }
+    
+    $this->clusters = $this->clustersRegistry->getAll();    
+    
     $this->newChain();
     if($start === true)
     {
       $this->boot();
     }
+    
     return $this;    
   }
 
@@ -5067,6 +5117,16 @@ class Skynet
         $this->broadcast();
       }
     }
+    
+    /* clusters detector */
+    if(!$this->verifier->isPing())
+    {
+      $detectClusters = $this->detector->check();
+      if($detectClusters !== null)
+      {
+        $this->monits[] = $detectClusters;
+      }
+    }   
     echo $this->renderOutput();   
   }
   
@@ -5300,6 +5360,9 @@ class Skynet
         $this->launchEventListeners('onResponseLoggers');
       }
 
+      /* refresh clusters data */   
+      $thisCluster = $this->connectId - 1;
+      $this->clusters[$thisCluster] = $cluster;
       $this->successConnections++;
 
     /* If connection errors */
@@ -5309,10 +5372,6 @@ class Skynet
       $this->addState(SkynetTypes::CONN_ERR, SkynetTypes::CONN_ERR.' : '. $this->connection->getUrl().$this->connection->getParams());
       $this->addError('Connection error: '.$e->getMessage(), $e);
     }
-    
-    /* refresh clusters data */   
-    $thisCluster = key($this->clusters);
-    $this->clusters[$thisCluster] = $cluster;
 
     /* Generates debug data for every connection */    
     $this->connectionsData[] = [
@@ -5439,7 +5498,17 @@ class Skynet
     {
       return '';
     }
+    
     $chainData = $this->skynetChain->loadChain();   
+    
+    /* assign monits */
+    if(count($this->monits) > 0)
+    {
+      foreach($this->monits as $monit)
+      {
+        $renderer->addMonit($monit);
+      }    
+    }
 
     /* set connection mode to output */
     if($this->isBroadcast)
@@ -13182,6 +13251,89 @@ class SkynetCloner
 }
 
 /**
+ * Skynet/Filesystem/SkynetDetector.php
+ *
+ * @package Skynet
+ * @version 1.0.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.0.0
+ */
+
+ /**
+  * Skynet Cloner
+  *
+  * Creates another Skynet clusters on-fly
+  */
+class SkynetDetector
+{
+  use SkynetErrorsTrait, SkynetStatesTrait;
+  
+  /** @var SkynetClustersRegistry ClustersRegistry instance */
+  private $clustersRegistry;
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    $this->clustersRegistry = new SkynetClustersRegistry();    
+  }
+
+ /**
+  * Detect clusters in folder
+  *
+  * @return string[] Array of possible clusters
+  */
+  private function checkDir($dir = '')
+  {   
+    $clusters = [];
+    $d = glob($dir.'skynet*.php');
+    foreach($d as $file)
+    {
+      $name = str_replace($d, '', $file);
+      {
+        $address = SkynetHelper::getMyServer().'/'.$file;
+        
+        if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl())
+        {
+          $clusters[] = $address; 
+        }          
+      }      
+    }
+    return $clusters;
+  }  
+  
+ /**
+  * Check for clusters in dir
+  *
+  * @return string monit
+  */  
+  public function check()
+  {
+    $clusters = $this->checkDir();
+    if(count($clusters) > 0)
+    {
+      $monit = 'Clusters detector: Possible Skynet clusters detected in this directory: <br>';
+      
+      foreach($clusters as $cluster)
+      {
+        $monit.= ' - <a href="javascript:skynetControlPanel.insertConnect(\''.SkynetConfig::get('core_connection_protocol').$cluster.'\');"><b>'.$cluster.'</b></a><br>';       
+      }
+      
+      $monit.= 'If you want to try to connect with this address click on address above and send <b>@connect</b> request.';   
+      return $monit;
+      
+    } else {
+      
+      return null;
+    }
+  }  
+}
+
+/**
  * Skynet/Filesystem/SkynetLogFile.php
  *
  * Checking and veryfing access to skynet
@@ -14876,6 +15028,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output[] = $this->elements->addSectionClass('tabStates');
     $output[] = '<table class="tblStates">';
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('States ('.count($this->statesFields).')'));
+    $output[] = $this->renderMonits();
     $output[] = $this->debugRenderer->parseStatesFields($this->statesFields);
     $output[] = '</table>';
     $output[] = $this->elements->addSectionEnd(); 
@@ -14922,6 +15075,25 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   private function renderLogoutLink()
   {
     return $this->elements->addUrl('?_skynetLogout=1', $this->elements->addBold('LOGOUT'), false, 'aLogout');    
+  }
+  
+  private function renderMonits()
+  {
+    $output = [];
+    
+    $c = count($this->monits);
+    if($c > 0)
+    {
+      $output[] = $this->elements->addSectionClass('monits');
+      $output[] = $this->elements->addBold('Information: ');
+      foreach($this->monits as $monit)
+      {
+        $output[] = $monit.$this->elements->getNl();       
+      } 
+      $output[] = $this->elements->addSectionEnd(); 
+    }
+    
+    return implode($output);
   }
   
  /**
@@ -14998,8 +15170,8 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
          
          // var_dump($cluster->getHeader());         
          $status = '<span class="statusId'.$id.' statusIcon '.$class.'">( )</span>';
-         $url = $this->elements->addUrl($cluster->getUrl());
-         $output[] = $this->elements->addClusterRow($status, $this->elements->addBold($url), $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.SkynetConfig::get('core_connection_protocol').$cluster->getUrl().'\');" class="btn">CONNECT</a>');
+         $url = $this->elements->addUrl(SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl());
+         $output[] = $this->elements->addClusterRow($status, $url, $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.SkynetConfig::get('core_connection_protocol').$cluster->getUrl().'\');" class="btn">CONNECT</a>');
       }      
     } else {
       
@@ -15007,7 +15179,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
       $info.= $this->elements->getNl();
       $info.= 'Add new cluster with:';
       $info.= $this->elements->getNl();
-      $info.= $this->elements->addBold('@add "cluster address"').' command';
+      $info.= $this->elements->addBold('@add "cluster address"').' or '.$this->elements->addBold('@connect "cluster address"').' command';
       $output[] = $this->elements->addRow($info);
     }
    
@@ -16774,6 +16946,8 @@ class SkynetRendererHtmlThemes
     #loginSection input[type="password"] { width:400px; }
     #dbTable { table-layout: auto; }
     #authMain { text-align: center; }
+    
+    .monits { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; background:#03312f;}
     
     .hide { display:none; }
     

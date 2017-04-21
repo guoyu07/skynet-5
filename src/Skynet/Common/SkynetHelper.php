@@ -81,6 +81,16 @@ class SkynetHelper
   }
 
  /**
+  * Returns cluster adress to
+  *
+  * @return string
+  */
+  public static function getMyServer()
+  {
+   return self::getServerAddress().pathinfo($_SERVER['PHP_SELF'], PATHINFO_DIRNAME);
+  }
+  
+ /**
   * Returns cluster full address
   *
   * @return string

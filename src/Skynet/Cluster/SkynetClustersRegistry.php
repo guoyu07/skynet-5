@@ -227,6 +227,17 @@ class SkynetClustersRegistry
       $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
     }
   }
+  
+  
+  public function addressExists($url)
+  {
+    $cluster = new SkynetCluster();
+    $cluster->getHeader()->setUrl($url);
+    if($this->isCluster($cluster))
+    {
+      return true;
+    }    
+  }
 
  /**
   * Checks for cluster exists in database
@@ -445,12 +456,7 @@ class SkynetClustersRegistry
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
     {
       return false;
-    }
-    
-    if(!$this->verifier->isAddressCorrect($url))
-    {
-      return false;
-    }
+    }  
     
     try
     {      

@@ -68,6 +68,8 @@ class SkynetRendererHtmlThemes
     #dbTable { table-layout: auto; }
     #authMain { text-align: center; }
     
+    .monits { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; background:#03312f;}
+    
     .hide { display:none; }
     
     .sectionAddresses { width:50%; float:left; height:100%; max-height:100%;}
