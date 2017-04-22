@@ -70,6 +70,12 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
       {
         $url = $connectionsDataArray[$j]['CLUSTER URL'];
       }
+      $url = str_replace(array('http://', 'https://'), '', $url);
+      if(strlen($url) > 20)
+      {
+        $url = substr($url, 0, 20).'...'.basename($url);
+      }      
+      
       $options[] = '<option value="'.$i.'">#'.$i.' ('.$url.')</option>';     
     }   
       

@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.22 23:29:19 (1492903759) */
+/* Skynet Standalone | version compiled: 2017.04.22 23:41:54 (1492904514) */
 
 namespace Skynet;
 
@@ -16629,7 +16629,7 @@ class SkynetRendererHtmlClustersRenderer extends SkynetRendererAbstract
          
          // var_dump($cluster->getHeader());         
          $status = '<span class="statusId'.$id.' statusIcon '.$class.'">( )</span>';
-         $url = $this->elements->addUrl(SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl());
+         $url = $this->elements->addUrl(SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl(), $cluster->getHeader()->getUrl());
          $output[] = $this->elements->addClusterRow($status, $url, $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl().'\');" class="btn">CONNECT</a>');
       }      
     } else {
@@ -16711,6 +16711,12 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
       {
         $url = $connectionsDataArray[$j]['CLUSTER URL'];
       }
+      $url = str_replace(array('http://', 'https://'), '', $url);
+      if(strlen($url) > 20)
+      {
+        $url = substr($url, 0, 20).'...'.basename($url);
+      }      
+      
       $options[] = '<option value="'.$i.'">#'.$i.' ('.$url.')</option>';     
     }   
       
