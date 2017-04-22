@@ -534,6 +534,7 @@ class Skynet
     
     /* Launch CLI commands listeners */
      $this->eventListenersLauncher->launch('onCli');    
+     $this->cliOutput = $this->eventListenersLauncher->getCliOutput();
     
     return $startBroadcast;
   }
@@ -595,6 +596,7 @@ class Skynet
           $params = $command->getParams();        
           if(count($params) > 0)
           {
+            $consoleOutput = [];
             foreach($params as $param)
             {
               if(is_string($param) && $param == 'me')
@@ -603,6 +605,7 @@ class Skynet
                 
                 /* Launch Console commands listeners */
                 $this->eventListenersLauncher->launch('onConsole');
+                $consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();
                 
               } elseif(is_string($param) && $param != 'all')
               {
@@ -612,7 +615,8 @@ class Skynet
                   $this->connect($param); 
                 }  
               }
-            }  
+            }
+            $this->consoleOutput = $consoleOutput;
           }  
         }        
       } 

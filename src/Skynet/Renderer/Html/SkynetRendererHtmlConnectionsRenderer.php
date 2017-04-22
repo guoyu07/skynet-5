@@ -281,7 +281,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addSectionClass('columnConnections'); 
     
     $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
-    $output[] = 'xxxxx';
+    $output[] = '';
     $output[] = $this->elements->addSectionEnd();      
     
     $output[] = $this->elements->addSectionClass('innerConnectionsData'); 

@@ -33,6 +33,8 @@ class SkynetEventListenersLauncher
   private $console;
   private $eventListeners;
   private $eventLoggers;
+  private $cliOutput = [];
+  private $consoleOutput = [];
 
  /**
   * Constructor
@@ -63,14 +65,24 @@ class SkynetEventListenersLauncher
     $this->clusterUrl = $clusterUrl;
   }
   
-  public function assignCli($cil)
+  public function assignCli($cli)
   {
-    $this->cil = $cil;
+    $this->cli = $cli;
   }
   
   public function assignConsole($console)
   {
     $this->console = $console;
+  }
+  
+  public function getCliOutput()
+  {
+    return $this->cliOutput;
+  }
+  
+  public function getConsoleOutput()
+  {
+    return $this->consoleOutput;
   }
   
  /**
