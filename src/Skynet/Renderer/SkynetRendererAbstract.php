@@ -54,10 +54,13 @@ abstract class SkynetRendererAbstract
   /** @var string[] Output from listeners */
   protected $consoleOutput = [];
   
+  /** @var string[] Clusters debug data */
   protected $clustersData = [];
   
+  /** @var int Connection Mode | 0 - idle, 1 - single, 2 - broadcast */
   protected $connectionMode = 0;
-  
+ 
+  /** @var string[] Monits */ 
   protected $monits = [];
 
 
@@ -105,6 +108,16 @@ abstract class SkynetRendererAbstract
   }
  
  /**
+  * Assigns data fields array to renderer
+  *
+  * @param mixed[] $fields
+  */
+  public function setFields($fields)
+  {
+    $this->fields = $fields;
+  }
+  
+ /**
   * Sets num of connections
   *
   * @param int $num
@@ -122,6 +135,17 @@ abstract class SkynetRendererAbstract
   public function addConnectionData($data)
   {
     $this->connectionsData[] = $data;
+  }  
+  
+  
+ /**
+  * Assigns conenctions 
+  *
+  * @param mixed[] $data
+  */
+  public function setConnectionsData($data)
+  {
+    $this->connectionsData = $data;
   }  
   
  /**
@@ -145,6 +169,16 @@ abstract class SkynetRendererAbstract
     $this->statesFields[] = new SkynetField($key, $value);
   }
 
+  /**
+  * Sets state fields
+  *
+  * @param mixed[] 
+  */  
+  public function setStatesFields($fields)
+  {
+    $this->statesFields = $fields;
+  }
+  
  /**
   * Assigns Error debug data field to renderer
   *
@@ -155,6 +189,16 @@ abstract class SkynetRendererAbstract
   public function addErrorField($key, $value, $exception = null)
   {
     $this->errorsFields[] = new SkynetField($key, array($value, $exception));
+  }
+  
+ /**
+  * Sets error fields
+  *
+  * @param mixed[] 
+  */  
+  public function setErrorsFields($fields)
+  {
+    $this->errorsFields = $fields;
   }
 
  /**
@@ -168,6 +212,16 @@ abstract class SkynetRendererAbstract
     $this->configFields[] = new SkynetField($key, $value);
   }
  
+ /**
+  * Sets config fields
+  *
+  * @param mixed[] 
+  */  
+  public function setConfigFields($fields)
+  {
+    $this->configFields = $fields;
+  }
+  
  /**
   * Adds monit
   *

@@ -77,7 +77,10 @@ class SkynetRendererHtmlThemes
     
     .innerAddresses { width:100%; height:90%; max-height:90%; overflow-y:auto; }
     .innerMode { width:100%; height:10%; max-height:10%; overflow-y:auto; }
-    .innerStates { width:100%; height:100%; max-height:100%; overflow-y:auto; }
+    .innerStates { width:100%; height:100%; max-height:100%; overflow-y:auto; }    
+   
+    .innerConnectionsOptions { width:100%; height:5%; max-height:5%; overflow-y:auto; }
+    .innerConnectionsData { width:100%; height:95%; max-height:95%; overflow-y:auto; }
     
     .hdrLogo { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
     .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }

@@ -181,6 +181,33 @@ class SkynetRendererHtmlElements
   }
   
  /**
+  * Adds Table
+  * 
+  * @param string|null $class Optional CSS class
+  *
+  * @return string HTML code
+  */   
+  public function beginTable($class = null)
+  {
+    $cls = '';
+    if(!$class !== null) 
+    {
+      $cls = ' class="'.$class.'"';
+    }
+    return '<table'.$cls.'>';
+  }
+  
+ /**
+  * Ends Table
+  *
+  * @return string HTML code
+  */   
+  public function endTable()
+  {   
+    return '</table>';
+  }
+  
+ /**
   * Adds URL
   * 
   * @param string $link URL
@@ -221,6 +248,19 @@ class SkynetRendererHtmlElements
     return $html;
   }
 
+ /**
+  * Adds Tab btn
+  * 
+  * @param string $title Title
+  * @param string $url URL
+  * @param string $class Class
+  *
+  * @return string HTML code
+  */    
+  public function addTabBtn($title, $url, $class)
+  {
+    return '<a class="'.$class.'" href="'.$url.'">'.$title.'</a> ';
+  }
  
  /**
   * Adds section container
@@ -245,6 +285,7 @@ class SkynetRendererHtmlElements
   {
     return '<div class="'.$class.'">';
   }
+
   
  /**
   * Adds section closing tag
@@ -351,8 +392,8 @@ class SkynetRendererHtmlElements
   */
   public function addFooter()
   {
-    //$html = '<script src="skynet.js"></script>';
-    $html = '<script>'.$this->js->getJavascript().'</script>';
+    $html = '<script src="skynet.js"></script>';
+   // $html = '<script>'.$this->js->getJavascript().'</script>';
     $html.= '</body></html>';
     return $html;
   }

@@ -23,8 +23,8 @@ class SkynetRendererHtmlSummaryRenderer
   /** @var string[] HTML elements of output */
   private $output = [];   
   
-  /** @var SkynetRendererHtmlDebugRenderer Debug Renderer */
-  private $debugRenderer;
+  /** @var SkynetRendererHtmlDebugParser Debug Renderer */
+  private $debugParser;
   
   /** @var SkynetRendererHtmlElements HTML Tags generator */
   private $elements;  
@@ -35,7 +35,7 @@ class SkynetRendererHtmlSummaryRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererHtmlElements();    
-    $this->debugRenderer = new SkynetRendererHtmlDebugRenderer();
+    $this->debugParser = new SkynetRendererHtmlDebugParser();
   }  
   
   public function renderService($fields)

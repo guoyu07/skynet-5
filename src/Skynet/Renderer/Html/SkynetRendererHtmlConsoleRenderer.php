@@ -157,7 +157,7 @@ class SkynetRendererHtmlConsoleRenderer
     }
     
     $input = str_replace("\r\n", "\n", $input);
-    $input =  htmlentities($input);
+    $input = htmlentities($input);
     $input = str_replace("\n", $this->elements->getNl(), $input);
     return $parsedErrors.$parsedStates.$input;
   }

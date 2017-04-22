@@ -15,15 +15,17 @@
 namespace Skynet\Renderer\Html;
 
 use Skynet\Data\SkynetParams;
+use Skynet\Renderer\SkynetRendererAbstract;
 
  /**
   * Skynet Renderer HTML Connections Renderer
   */
-class SkynetRendererHtmlConnectionsRenderer
+class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
 {   
   /** @var SkynetRendererHtmlElements HTML Tags generator */
   private $elements;
   
+  /** @var SkynetParams[] Params */
   private $params;
   
 
@@ -264,6 +266,29 @@ class SkynetRendererHtmlConnectionsRenderer
     {
       $fields[] = '<b>'.$k.'=</b>'.$v;
     }
-    return implode('; ', $fields);
+    return implode(';'.$this->elements->getNl(), $fields);
   }
+  
+ /**
+  * Renders and returns connections view
+  *
+  * @return string HTML code
+  */    
+  public function render()
+  {
+    $output = [];   
+    /* Center Main : Right Column: */
+    $output[] = $this->elements->addSectionClass('columnConnections'); 
+    
+    $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
+    $output[] = 'xxxxx';
+    $output[] = $this->elements->addSectionEnd();      
+    
+    $output[] = $this->elements->addSectionClass('innerConnectionsData'); 
+    $output[] = $this->renderConnections($this->connectionsData);
+    $output[] = $this->elements->addSectionEnd();  
+    
+    $output[] = $this->elements->addSectionEnd();  
+    return implode('', $output);      
+  } 
 }
