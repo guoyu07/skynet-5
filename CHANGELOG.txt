@@ -1,3 +1,11 @@
+1.1.2-alpha (2017.04.22)
+
+- Ajax ControlPanel added
+- connections fix
+- no header mode added
+- console & cli classes splitted
+- some fixed
+
 1.1.0-alpha (2017.04.21)
 
 - improved commands
