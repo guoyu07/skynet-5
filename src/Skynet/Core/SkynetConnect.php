@@ -4,7 +4,7 @@
  * Skynet/Core/SkynetConnect.php
  *
  * @package Skynet
- * @version 1.1.1
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -114,6 +114,7 @@ class SkynetConnect
     $this->connection = SkynetConnectionsFactory::getInstance()->getConnector(\SkynetUser\SkynetConfig::get('core_connection_type'));
     $this->verifier = new SkynetVerifier();
     $this->clustersRegistry = new SkynetClustersRegistry();
+    
   }  
 
  /**

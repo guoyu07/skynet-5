@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlConsoleRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -122,15 +122,19 @@ class SkynetRendererHtmlConsoleRenderer
     $this->console->parseConsoleInput($input);
     $errors = $this->console->getParserErrors();
     $states = $this->console->getParserStates();
-    
+    $outputs = [];
+    $output = '';
+     
     $parsedErrors = '';
     $parsedStates = '';
     $i = 1;
     if(is_array($errors) && count($errors) > 0)
     {
+      $parsedErrors.= $this->elements->addHeaderRow($this->elements->addSubtitle('Parser errors'));
       foreach($errors as $error)
       {
-        $parsedErrors.= $this->elements->addBold('InputParserError #'.$i.': ', 'error').$this->elements->addSpan($error, 'error').$this->elements->getNl();        
+        $parsedErrors.= $this->elements->addValRow('InputParserError #'.$i, $this->elements->addSpan($error, 'error'));   
+        $i++;
       }      
     }
     
@@ -140,26 +144,46 @@ class SkynetRendererHtmlConsoleRenderer
       
       if(is_array($states) && count($states) > 0)
       {
+        $parsedErrors.= $this->elements->addHeaderRow($this->elements->addSubtitle('Parser states'));
         foreach($states as $state)
         {
-          $parsedStates.= $this->elements->addBold('InputParserState #'.$i.': ', 'yes').$this->elements->addSpan($state, 'yes').$this->elements->getNl();        
+          $parsedStates.= $this->elements->addValRow('InputParserState #'.$i, $this->elements->addSpan($state, 'yes')); 
+          $i++;
         }      
       }
     }
-    
+   
     /* Add output from listeners */
     foreach($this->listenersOutput as $listenerOutput)
     {
-      if(!empty($listenerOutput))
+      if(is_string($listenerOutput) && !empty($listenerOutput))
       {
-        $input.= "\n".$listenerOutput;
+        $outputs[] = $listenerOutput;
+      } elseif(is_array($listenerOutput) && count($listenerOutput) > 0)
+      {
+        foreach($listenerOutput as $addressListenerOutput)
+        {
+          $outputs[] = $addressListenerOutput;
+        }
       }
     }
     
     $input = str_replace("\r\n", "\n", $input);
     $input = htmlentities($input);
     $input = str_replace("\n", $this->elements->getNl(), $input);
-    return $parsedErrors.$parsedStates.$input;
+    
+    $input = $this->elements->addHeaderRow($this->elements->addSubtitle('Input query')).$this->elements->addRow($input);
+    
+    if(count($outputs) > 0)
+    {
+      $output = implode("\n", $outputs);
+      $output = str_replace("\r\n", "\n", $output);
+      $output = htmlentities($output);
+      $output = $this->elements->addSectionClass('monits').str_replace("\n", $this->elements->getNl(), $output).$this->elements->addSectionEnd();
+      $output = $this->elements->addHeaderRow($this->elements->addSubtitle('Output')).$this->elements->addRow($output);
+    }
+    
+    return $output.$parsedErrors.$parsedStates.$input;
   }
   
  /**
@@ -183,6 +207,6 @@ class SkynetRendererHtmlConsoleRenderer
   */    
   public function renderConsoleInput()
   {
-    return $this->elements->addBold('Console:').$this->elements->getNl().$this->parseConsoleInputDebug($_REQUEST['_skynetCmdConsoleInput']);    
+    return $this->parseConsoleInputDebug($_REQUEST['_skynetCmdConsoleInput']);    
   }
 }

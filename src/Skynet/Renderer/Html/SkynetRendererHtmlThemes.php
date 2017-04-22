@@ -61,8 +61,7 @@ class SkynetRendererHtmlThemes
     #dbRecords { height: 70%; max-height:70%; overflow:auto; }
     .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
     .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }
-    #console { width: 100%; height: 15%; }
-    #consoleDebug, #consoleDebug h3 { color: #3ffb6e }
+    #console { width: 100%; height: 15%; }    
     #loginSection { text-align:center; margin: auto }
     #loginSection input[type="password"] { width:400px; }
     #dbTable { table-layout: auto; }

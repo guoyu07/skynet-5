@@ -6,7 +6,7 @@
  * Checking and veryfing access to skynet
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -256,11 +256,7 @@ class SkynetVerifier
   */
   public function isAddressCorrect($address)
   {
-    if(
-      !empty($address)
-      && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address)
-      && $address != 'http://'.SkynetHelper::getMyUrl()
-      && $address != 'https://'.SkynetHelper::getMyUrl())
+    if(!empty($address) && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address) && $address != 'http://'.SkynetHelper::getMyUrl() && $address != 'https://'.SkynetHelper::getMyUrl())
     {
       return true;
     }
@@ -273,7 +269,7 @@ class SkynetVerifier
   */
   public function isPing()
   {
-    if(isset($_REQUEST['_skynet_cluster_url']))
+    if(isset($_REQUEST['_skynet_cluster_url']) && isset($_REQUEST['_skynet']))
     {
       return true;
     }

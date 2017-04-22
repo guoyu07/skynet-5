@@ -4,7 +4,7 @@
  * Skynet/Core/SkynetResponder.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -29,14 +29,14 @@ use Skynet\Database\SkynetOptions;
 use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Cluster\SkynetCluster;
 use Skynet\SkynetVersion;
+use Skynet\EventListener\SkynetEventListenersLauncher;
 
  /**
   * Skynet ResponderService Main Launcher
   *
   * Main launcher for Skynet Cluster.
-  * This is the main core of Skynet Cluster and it responds for data sending from Skynet Core.
-  * By creating instance of SkynetCluster class, e.g. $skynetCluster = new SkynetCluster(); you will start SkynetCluster. From that, Skynet Cluster will be listening for incoming connections.
-  * With __toString() (e.g. echo $skynetCluster; ) skynet will show debug data with informations about connections, states, errors, requests, responses, configuration and more.
+  * This is the main core of Skynet Responder and it responds for data sending from Skynet Core.
+  * By creating instance of SkynetResponder class, e.g. $skynetCluster = new SkynetResponder(); you will start responder. From that, Skynet Cluster will be listening for incoming connections.
   *
   * @uses SkynetErrorsTrait
   * @uses SkynetStatesTrait
@@ -81,6 +81,8 @@ class SkynetResponder
   /** @var SkynetOptions Options getter/setter */
   private $options;
   
+  /** @var SkynetEventListenersLauncher Listeners Launcher */
+  private $eventListenersLauncher;  
 
  /**
   * Constructor
@@ -91,21 +93,32 @@ class SkynetResponder
   */
   public function __construct($start = false)
   {
-    $this->assignRequest();
-    $this->assignResponse();
-    $this->verifier = new SkynetVerifier();
     if(isset($_SERVER['REQUEST_URI']))
     {
       $this->requestURI = $_SERVER['REQUEST_URI'];
     }
+    $this->assignRequest();
+    $this->assignResponse();
+    $this->verifier = new SkynetVerifier();    
     $this->clustersRegistry = new SkynetClustersRegistry();
     $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();
-    $this->options = new SkynetOptions();    
+    $this->options = new SkynetOptions();   
+
+    $this->eventListenersLauncher = new SkynetEventListenersLauncher();
+    $this->eventListenersLauncher->setSender(false);
+    $this->eventListenersLauncher->assignConnectId(1);
+    $this->eventListenersLauncher->assignRequest($this->request);
+    $this->eventListenersLauncher->assignResponse($this->response);
     
     if($start)
     {
-      echo $this->launch();
+      $response = $this->launch();
+      if(!empty($response))
+      {
+        header('Content-type:application/json;charset=utf-8');
+        echo $response;
+      }
     }
     return $this;
   }
@@ -151,123 +164,6 @@ class SkynetResponder
   }
 
  /**
-  * Launch Event Listeners
-  *
-  * Method execute all registered in Factory event listeners. Every listener have access to request and response and can manipulate them.
-  * You can create and register your own listeners by added them to registry in {SkynetEventListenersFactory}.
-  * Every event listener must implements {SkynetEventListenerInterface} interface and extends {SkynetEventListenerAbstract} class.
-  * OnEventName() method gets context param {beforeSend|afterReceive} (you can depends actions from that).
-  * Inside event listener you have access to $request and $response objects. See API documentation for more info.
-  *
-  * @param string $event Event name
-  */
-  private function launchEventListeners($event)
-  {
-    switch($event)
-    {
-      /* Launch before sending response */
-      case 'onResponse':
-        foreach($this->eventListeners as $listener)
-        {
-          $listener->setConnId(1);
-          $listener->setSender(false);
-          $this->request->loadRequest();
-          $listener->assignRequest($this->request);
-          $this->response->parseResponse();
-          $requests = $this->request->getRequestsData();
-          $listener->setRequestData($requests);
-          $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
-          {
-            $listener->onResponse('beforeSend');
-            if(isset($requests['@echo'])) 
-            {
-              $listener->onEcho('beforeSend');
-            }
-            if(isset($requests['@broadcast'])) 
-            {
-              $listener->onBroadcast('beforeSend');
-            }
-          }
-        }
-      break;
-
-      /* Launch after receives request */
-      case 'onRequest':
-        foreach($this->eventListeners as $listener)
-        {
-          $listener->setConnId(1);
-          $listener->setSender(false);
-          $this->request->loadRequest();
-          $listener->assignRequest($this->request);
-          $this->response->parseResponse();
-          $requests = $this->request->getRequestsData();
-          $listener->setRequestData($requests);
-          $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
-          {
-            $listener->onRequest('afterReceive');
-          }
-        }
-      break;
-
-      /* Launch after response listeners */
-      case 'onResponseLoggers':
-        foreach($this->eventLoggers as $listener)
-        {
-          $listener->setConnId(1);
-          $listener->setSender(false);
-          $this->request->loadRequest();
-          $listener->assignRequest($this->request);
-          $this->response->parseResponse();
-          $requests = $this->request->getRequestsData();
-          $listener->setRequestData($requests);
-          $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
-          {
-            $listener->onResponse('beforeSend');
-            if(isset($requests['@echo'])) 
-            {
-              $listener->onEcho('beforeSend');
-            }
-            if(isset($requests['@broadcast'])) 
-            {
-              $listener->onBroadcast('beforeSend');
-            }
-          }
-        }
-      break;
-
-      /* Launch after request listeners */
-      case 'onRequestLoggers':
-        foreach($this->eventLoggers as $listener)
-        {
-          $listener->setConnId(1);
-          $listener->setSender(false);
-          $this->request->loadRequest();
-          $listener->assignRequest($this->request);
-          $this->response->parseResponse();
-          $requests = $this->request->getRequestsData();
-          $listener->setRequestData($requests);
-          $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
-          {
-            $listener->onRequest('afterReceive');
-          }
-        }
-      break;
-    }
-  }
-
- /**
   * Returns request object
   *
   * @return SkynetRequest Object with request data and request manipulation methods
@@ -305,10 +201,11 @@ class SkynetResponder
     $this->request->loadRequest();
     $this->request->prepareRequests();
 
-    $this->launchEventListeners('onRequest');
-    $this->launchEventListeners('onRequestLoggers');
+    $this->prepareListeners();
+    $this->eventListenersLauncher->launch('onRequest');
+    $this->eventListenersLauncher->launch('onRequestLoggers');
     
-    if($this->options->getOptionsValue('sleep') == 1)
+    if($this->isSleeped())
     {
       return false;
     }
@@ -318,15 +215,67 @@ class SkynetResponder
     $this->clustersRegistry->add($cluster);
 
     $this->response->assignRequest($this->request);
-    $this->launchEventListeners('onResponse');
-    if(!isset($_REQUEST['@echo']) || (isset($_REQUEST['@echo']) && isset($_REQUEST['@broadcast'])))
+    $this->prepareListeners();
+    $this->eventListenersLauncher->launch('onResponse');    
+   
+    if(!$this->isEcho() || ($this->isEcho() && $this->isBroadcast()))
     {
       $response = $this->response->generateResponse();
-      $this->launchEventListeners('onResponseLoggers');      
+      $this->prepareListeners();
+      $this->eventListenersLauncher->launch('onResponseLoggers');
       return $response;
     }
   }
 
+ /**
+  * Assigns data to listeners
+  */ 
+  private function prepareListeners()
+  {
+    $this->eventListenersLauncher->assignRequest($this->request);
+    $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignConnectId(1);
+  }  
+  
+ /**
+  * Returns true if is sleeped
+  *
+  * @return bool True if sleep
+  */
+  private function isSleeped()
+  {
+    if($this->options->getOptionsValue('sleep') == 1)
+    {
+      return true;
+    }
+  }
+  
+ /**
+  * Returns true if is echo equest
+  *
+  * @return bool True if echo
+  */
+  private function isEcho()
+  {
+    if(isset($_REQUEST['@echo']))
+    {
+      return true;
+    }
+  }
+  
+ /**
+  * Returns true if is broadcast equest
+  *
+  * @return bool True if broadcast
+  */
+  private function isBroadcast()
+  {
+    if(isset($_REQUEST['@broadcast']))
+    {
+      return true;
+    }
+  }
+  
  /**
   * __toString
   *

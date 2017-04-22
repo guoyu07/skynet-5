@@ -419,6 +419,18 @@ class SkynetConsole
  } 
  
  /**
+  * Removes last ; char
+  *
+  * @param string $input
+  *
+  * @return string
+  */  
+ private function removeLastSemicolon($input)
+ {
+   return rtrim($input, ';');   
+ }
+ 
+ /**
   * Parses and returns params from params string
   *
   * @param string $paramsStr String with params
@@ -428,6 +440,7 @@ class SkynetConsole
   private function parseCmdParams($paramsStr)
   {
     $params = [];
+    $paramsStr = $this->removeLastSemicolon($paramsStr);
    
     if(empty($paramsStr))
     {

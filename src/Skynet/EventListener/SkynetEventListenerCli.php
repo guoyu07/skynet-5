@@ -215,8 +215,7 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
   * Access to Console: $this->console
   */   
   public function onConsole()
-  {    
-     
+  {        
   }   
   
  /**

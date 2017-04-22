@@ -4,12 +4,12 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlDebugParser.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
 namespace Skynet\Renderer\Html;

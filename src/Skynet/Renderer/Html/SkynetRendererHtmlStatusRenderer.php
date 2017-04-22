@@ -4,12 +4,12 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlStatusRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
 namespace Skynet\Renderer\Html;
@@ -95,7 +95,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addTabBtn('States ('.count($this->statesFields).')', 'javascript:skynetControlPanel.switchTab(\'tabStates\');', 'tabStatesBtn active');
     $output[] = $this->elements->addTabBtn('Errors ('.count($this->errorsFields).')', 'javascript:skynetControlPanel.switchTab(\'tabErrors\');', 'tabErrorsBtn errors');
     $output[] = $this->elements->addTabBtn('Config ('.count($this->configFields).')', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
-    $output[] = $this->elements->addTabBtn('Console', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
+    $output[] = $this->elements->addTabBtn('Console ('.count($this->consoleOutput).')', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
@@ -174,14 +174,16 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   private function renderConsoleDebug()
   {
     $output = [];
+    $this->consoleRenderer->setListenersOutput($this->consoleOutput);
     
      /* If console input */
     $output[] = $this->elements->addSectionClass('tabConsole');
     if(isset($_REQUEST['_skynetCmdConsoleInput'])) 
     {
        $output[] = $this->elements->addSectionId('consoleDebug');  
-       $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Console Input'));       
-       $output[] = $this->elements->addRow($this->consoleRenderer->renderConsoleInput());
+       $output[] = $this->elements->beginTable('tblConfig');        
+       $output[] = $this->consoleRenderer->renderConsoleInput();
+       $output[] = $this->elements->endTable();
        $output[] = $this->elements->addSectionEnd(); 
     }
     $output[] = $this->elements->addSectionEnd();     
