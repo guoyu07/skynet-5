@@ -138,6 +138,7 @@ class SkynetDatabase
   {
     $this->dbTables = [];    
     $this->dbTables['skynet_clusters'] = 'Clusters';
+    $this->dbTables['skynet_clusters_blocked'] = 'Clusters (corrupted/blocked)';
     $this->dbTables['skynet_registry'] = 'Registry';
     $this->dbTables['skynet_options'] = 'Options';
     $this->dbTables['skynet_chain'] = 'Chain';
@@ -161,6 +162,16 @@ class SkynetDatabase
   public function getTablesFields()
   {
     $this->tablesFields['skynet_clusters'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'url' => 'URL Address',
+    'ip' => 'IP Address',
+    'version' => 'Skynet version',
+    'last_connect' => 'Last connection',
+    'registrator' => 'Added by'
+    ];
+    
+    $this->tablesFields['skynet_clusters_blocked'] = [
     'id' => '#ID',
     'skynet_id' => 'SkynetID',
     'url' => 'URL Address',
@@ -414,6 +425,7 @@ class SkynetDatabase
     $queries = [];
 
     $queries['skynet_clusters'] = 'CREATE TABLE skynet_clusters (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
+    $queries['skynet_clusters_blocked'] = 'CREATE TABLE skynet_clusters_blocked (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
     $queries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
     $queries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
     $queries['skynet_chain'] = ['CREATE TABLE skynet_chain (id INTEGER PRIMARY KEY AUTOINCREMENT, chain BIGINT, updated_at INTEGER)', 'INSERT INTO skynet_chain (id, chain, updated_at) VALUES(1, 0, 0)'];

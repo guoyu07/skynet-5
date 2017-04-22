@@ -157,7 +157,11 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
       if($responseData !== null && !empty($responseData))
       {      
         $this->addState(SkynetTypes::CURL,'[OK] RESPONSE DATA RECEIVED: '.$this->url.' (CHARSET: '.$charset.')');
-        $result = true;
+        $preResponse = json_decode($responseData);
+        if($preResponse !== null && isset($preResponse->_skynet))
+        {        
+          $result = true;
+        }
       }
 
       curl_close($ch);

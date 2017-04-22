@@ -165,7 +165,7 @@ class SkynetConnect
     }
     
     $this->saveConnectionData();    
-    return $result;
+    return $this->isConnected;
   }
  
  /**
@@ -248,13 +248,17 @@ class SkynetConnect
   */ 
   private function sendRequest()
   {
+    $this->isConnected = false;
     $this->connection->assignRequest($this->request);      
     $this->adapter = $this->connection->connect();
     $this->responseData = $this->adapter['data'];
     if($this->adapter['result'] === true)
     {
       $this->isConnected = true;        
-    } 
+    } else {
+      $this->clustersRegistry->addBlocked($this->cluster);
+      $this->cluster->getHeader()->setResult(-1);
+    }
     return $this->responseData;
   }
 

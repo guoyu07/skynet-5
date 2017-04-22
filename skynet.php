@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.22 03:06:36 (1492830396) */
+/* Skynet Standalone | version compiled: 2017.04.22 20:12:32 (1492891952) */
 
 namespace Skynet;
 
@@ -700,7 +700,7 @@ abstract class SkynetEventListenerAbstract
  * Skynet/Renderer/SkynetRendererAbstract.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -2596,14 +2596,36 @@ class SkynetClustersRegistry
     {
       $this->updateFromHeader($cluster);
     }  
-
-    if($this->isCluster($cluster))
+    if(!$this->isClusterBlocked($cluster))
     {
-      return $this->update($cluster);
-    } else {
-      return $this->insert($cluster);
+      if($this->isCluster($cluster))
+      {
+        return $this->update($cluster);
+      } else {
+        return $this->insert($cluster);
+      }
     }
-  }   
+  }  
+
+ /**
+  * Adds cluster into database
+  *
+  * @param SkynetCluster $cluster
+  *
+  * @return bool
+  */  
+  public function addBlocked(SkynetCluster $cluster = null)
+  {
+    /* Update from remote list from header */
+    if($cluster === null)
+    {
+      return false;
+    }   
+    if(!$this->isClusterBlocked($cluster))
+    {     
+      return $this->insertBlocked($cluster);
+    }
+  }    
   
  /**
   * Returns number of clusters in database
@@ -2748,6 +2770,56 @@ class SkynetClustersRegistry
   }
 
  /**
+  * Checks for cluster exists in database
+  *
+  * @param SkynetCluster $cluster Cluster entity to check
+  *
+  * @return bool
+  */
+  private function isClusterBlocked(SkynetCluster $cluster = null)
+  {   
+    if($cluster === null)
+    {
+      return false;
+    }    
+  
+    if(!empty($cluster->getHeader()->getUrl()))
+    {
+      $url = $cluster->getHeader()->getUrl();
+      
+    } elseif(!empty($cluster->getUrl()))
+    {
+      $url = $cluster->getUrl();
+      
+    } else {
+      
+      return false;        
+    }    
+    
+    $url = str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);   
+    
+    try
+    {
+      $stmt = $this->db->prepare(
+      'SELECT count(*) as c FROM skynet_clusters_blocked WHERE url = :url');
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      $stmt->execute();
+      $result = $stmt->fetch();
+
+      $stmt->closeCursor();
+      if($result['c'] > 0)
+      {
+        return true;
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  }
+  
+ /**
   * Updates cluster in database
   *
   * @param SkynetCluster $cluster Cluster entity to update
@@ -2834,6 +2906,8 @@ class SkynetClustersRegistry
   {
     try
     {
+      $this->removeAllBlocked($url);
+      
       $stmt = $this->db->prepare(
       'DELETE FROM skynet_clusters WHERE url != :url');
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
@@ -2848,6 +2922,32 @@ class SkynetClustersRegistry
       $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
     }
   }  
+  
+ /**
+  * Removes cluster from blocked database
+  *
+  * @param string $url Not remove
+  *
+  * @return bool True if success
+  */
+  public function removeAllBlocked($url = null)
+  {
+    try
+    {
+      $stmt = $this->db->prepare(
+      'DELETE FROM skynet_clusters_blocked WHERE url != :url');
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      if($stmt->execute()) 
+      {
+        return true;
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  } 
   
  /**
   * Removes cluster from database
@@ -2959,6 +3059,85 @@ class SkynetClustersRegistry
       $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
     }
   }  
+ 
+ /**
+  * Inserts cluster into blocked list
+  *
+  * @param SkynetCluster $cluster Cluster entity to update
+  *
+  * @return bool True if success
+  */
+  private function insertBlocked(SkynetCluster $cluster = null)
+  {
+    if($cluster === null)
+    {
+      return false;
+    }    
+  
+    if(!empty($cluster->getHeader()->getUrl()))
+    {
+      $url = $cluster->getHeader()->getUrl();
+      
+    } elseif(!empty($cluster->getUrl()))
+    {
+      $url = $cluster->getUrl();
+      
+    } else {
+      
+      return false;        
+    }
+    
+    $url = str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+    
+    /* dont do anything when only file name in url */
+    if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
+    {
+      return false;
+    }  
+    
+    try
+    {      
+      $stmt = $this->db->prepare(
+      'INSERT INTO skynet_clusters_blocked (skynet_id, url, ip, version, last_connect, registrator)
+      VALUES(:skynet_id, :url,  :ip, :version, :last_connect, :registrator)'
+      );
+
+      $last_connect = time();
+      
+      $id = '';
+      $ip = '';
+      $version = '';
+      $registrator = '';
+      
+      if($cluster->getHeader() !== null)
+      {
+        $id = $cluster->getHeader()->getId();
+        $ip = $cluster->getHeader()->getIp();
+        $version = $cluster->getHeader()->getVersion();
+        $registrator = $cluster->getHeader()->getUrl();
+      } 
+
+      $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      $stmt->bindParam(':ip', $ip, \PDO::PARAM_STR);
+      $stmt->bindParam(':version', $version, \PDO::PARAM_STR);
+      $stmt->bindParam(':last_connect', $last_connect, \PDO::PARAM_INT);
+      $stmt->bindParam(':registrator', $registrator, \PDO::PARAM_STR);
+
+      if($stmt->execute())
+      {
+        $this->addState(SkynetTypes::CLUSTERS_DB, 'CLUSTER ['.$url.'] ADDED TO DB');
+        return true;
+      } else {
+        $this->addState(SkynetTypes::CLUSTERS_DB, 'CLUSTER ['.$url.'] NOT ADDED TO DB');
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  } 
   
  /**
   * Updates clusters in database broadcasted by Skynet
@@ -2989,11 +3168,14 @@ class SkynetClustersRegistry
     /* Insert or update */
     foreach($newClusters as $cluster)
     {
-      if($this->isCluster($cluster))
+      if(!$this->isClusterBlocked($cluster))
       {
-        return $this->update($cluster);
-      } else {
-        return $this->insert($cluster);
+        if($this->isCluster($cluster))
+        {
+          return $this->update($cluster);
+        } else {
+          return $this->insert($cluster);
+        }
       }
     }
   }
@@ -3568,7 +3750,11 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
       if($responseData !== null && !empty($responseData))
       {      
         $this->addState(SkynetTypes::CURL,'[OK] RESPONSE DATA RECEIVED: '.$this->url.' (CHARSET: '.$charset.')');
-        $result = true;
+        $preResponse = json_decode($responseData);
+        if($preResponse !== null && isset($preResponse->_skynet))
+        {        
+          $result = true;
+        }
       }
 
       curl_close($ch);
@@ -3680,8 +3866,13 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
       {
         $result = false;
         throw new SkynetException('DATA IS NULL');
-      }          
-      $result = true;
+      }    
+      
+      $preResponse = json_decode($data);
+      if($preResponse !== null && isset($preResponse->_skynet))
+      {        
+        $result = true;
+      }     
       
     } catch(SkynetException $e)
     {
@@ -4105,6 +4296,214 @@ class SkynetCli
   {
     return $this->commandsData;
   }  
+}
+
+/**
+ * Skynet/Console/SkynetCliInput.php
+ *
+ * @package Skynet
+ * @version 1.1.2
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.1.2
+ */
+
+ /**
+  * Skynet Console Input
+  *
+  * Parses user commands from webconsole
+  */
+class SkynetCliInput
+{ 
+  /** @var SkynetRequest Assigned request */
+  private $request;
+  
+  /** @var SkynetResponse Assigned response */
+  private $response; 
+  
+  /** @var bool Broadcast controller */
+  private $startBroadcast;
+  
+  /** @var SkynetVerifier Verifier instance */
+  private $verifier;
+  
+  /** @var SkynetAuth Authentication */
+  private $auth;
+  
+  /** @var SkynetClustersRegistry ClustersRegistry instance */
+  private $clustersRegistry;
+  
+  /** @var SkynetEventListenersLauncher Listeners Launcher */
+  private $eventListenersLauncher;
+  
+  /** @var SkynetCli CLI Console */
+  private $cli;
+  
+  /** @var SkynetConsole HTML Console */
+  private $console;
+  
+  /** @var string[] Output from console */
+  private $cliOutput = [];
+  
+  /** @var string[] Addresses to connect */
+  private $addresses = [];
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {    
+    $this->verifier = new SkynetVerifier();
+    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->auth = new SkynetAuth();
+    $this->cli = new SkynetCli();
+    $this->console = new SkynetConsole();
+    $this->request = new SkynetRequest();
+    $this->response = new SkynetResponse();
+    
+    $this->eventListenersLauncher = new SkynetEventListenersLauncher();
+    $this->eventListenersLauncher->assignRequest($this->request);
+    $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignCli($this->cli);
+    $this->eventListenersLauncher->assignConsole($this->console);
+  }
+
+ /**
+  * Launchs console controller
+  *
+  * @return bool Start Broadcast or not
+  */
+  public function launch()
+  {
+    $this->startBroadcast = false;
+    $this->prepareListeners();
+    
+    /* if CLI mode */
+    if($this->cli->isCommand('b') || $this->cli->isCommand('broadcast'))
+    {
+      /* Launch broadcast */
+      $this->startBroadcast = true;
+      
+    } else {
+      
+      /* If single connection */
+      $address = null;
+      if($this->cli->isCommand('connect'))
+      {
+        $address = $this->cli->getParam('connect');          
+      } elseif($this->cli->isCommand('c'))
+      {
+        $address = $this->cli->getParam('c');          
+      }
+      
+      if(!empty($address) && $address !== null)
+      {
+        if($this->verifier->isAddressCorrect($address))
+        {
+          $this->addresses[] = $address; 
+        } 
+      }        
+    }
+    
+    /* Launch CLI commands listeners */
+     $this->eventListenersLauncher->launch('onCli');    
+     $this->cliOutput = $this->eventListenersLauncher->getCliOutput();
+    
+    return $this->startBroadcast;
+  }
+ 
+ /**
+  * Returns addresses to connect
+  *
+  * @return string[] addresses list
+  */  
+  public function getAddresses()
+  {
+   return $this->addresses;   
+  }
+
+ /**
+  * Returns signal to start broadcast
+  *
+  * @return bool True if start broadcast
+  */  
+  public function getStartBroadcast()
+  {
+    return $this->startBroadcast;
+  } 
+
+ /**
+  * Returns CLI object
+  *
+  * @return SkynetCli CLI
+  */  
+  public function getCli()
+  {
+    return $this->cli;
+  } 
+
+ /**
+  * Returns output from listeners
+  *
+  * @return string[] Output from console
+  */  
+  public function getCliOutput()
+  {
+    return $this->cliOutput;
+  }
+  
+ /**
+  * Assigns data to listeners
+  */ 
+  private function prepareListeners()
+  {
+    $this->eventListenersLauncher->assignRequest($this->request);
+    $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignConnectId($this->connectId);
+    $this->eventListenersLauncher->assignClusterUrl($this->clusterUrl);   
+  }
+  
+ /**
+  * Assigns Request
+  *
+  * @param SkynetRequest $request
+  */   
+  public function assignRequest($request)
+  {
+    $this->request = $request;
+  }
+
+ /**
+  * Assigns Response
+  *
+  * @param SkynetResponse $response
+  */   
+  public function assignResponse($response)
+  {
+    $this->response = $response;
+  }
+  
+ /**
+  * Assigns CLI
+  *
+  * @param SkynetCli $cli
+  */     
+  public function assignCli($cil)
+  {
+    $this->cil = $cil;
+  }
+  
+ /**
+  * Assigns Console
+  *
+  * @param SkynetConsole $console
+  */ 
+  public function assignConsole($console)
+  {
+    $this->console = $console;
+  }
 }
 
 /**
@@ -4622,6 +5021,18 @@ class SkynetConsole
  } 
  
  /**
+  * Removes last ; char
+  *
+  * @param string $input
+  *
+  * @return string
+  */  
+ private function removeLastSemicolon($input)
+ {
+   return rtrim($input, ';');   
+ }
+ 
+ /**
   * Parses and returns params from params string
   *
   * @param string $paramsStr String with params
@@ -4631,6 +5042,7 @@ class SkynetConsole
   private function parseCmdParams($paramsStr)
   {
     $params = [];
+    $paramsStr = $this->removeLastSemicolon($paramsStr);
    
     if(empty($paramsStr))
     {
@@ -4959,10 +5371,268 @@ class SkynetConsole
 }
 
 /**
+ * Skynet/Console/SkynetConsoleInput.php
+ *
+ * @package Skynet
+ * @version 1.1.2
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.1.2
+ */
+
+ /**
+  * Skynet Console Input
+  *
+  * Parses user commands from webconsole
+  */
+class SkynetConsoleInput
+{ 
+  /** @var SkynetRequest Assigned request */
+  private $request;
+  
+  /** @var SkynetResponse Assigned response */
+  private $response; 
+  
+  /** @var bool Broadcast controller */
+  private $startBroadcast;
+  
+  /** @var SkynetVerifier Verifier instance */
+  private $verifier;
+  
+  /** @var SkynetAuth Authentication */
+  private $auth;
+  
+  /** @var SkynetClustersRegistry ClustersRegistry instance */
+  private $clustersRegistry;
+  
+  /** @var SkynetEventListenersLauncher Listeners Launcher */
+  private $eventListenersLauncher;
+  
+  /** @var SkynetCli CLI Console */
+  private $cli;
+  
+  /** @var SkynetConsole HTML Console */
+  private $console;
+  
+  /** @var string[] Output from console */
+  private $consoleOutput = [];
+  
+  /** @var string[] Addresses to connect */
+  private $addresses = [];
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {    
+    $this->verifier = new SkynetVerifier();
+    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->auth = new SkynetAuth();
+    $this->cli = new SkynetCli();
+    $this->console = new SkynetConsole();
+    $this->request = new SkynetRequest();
+    $this->response = new SkynetResponse();
+    
+    $this->eventListenersLauncher = new SkynetEventListenersLauncher();
+    
+    $this->eventListenersLauncher->assignRequest($this->request);
+    $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignCli($this->cli);
+    $this->eventListenersLauncher->assignConsole($this->console);
+  }
+
+ /**
+  * Launchs CLI controller
+  *
+  * @return bool Start Broadcast or not
+  */
+  public function launch()
+  {
+    $this->startBroadcast = true;
+    $this->prepareListeners();
+    
+    /* @connect command */
+    if($this->auth->isAuthorized() && $this->console->isInput())
+    {
+      $this->console->parseConsoleInput($_REQUEST['_skynetCmdConsoleInput']);
+      if($this->console->isConsoleCommand('connect'))
+      {
+        $this->startBroadcast = false;
+        $connectData = $this->console->getConsoleCommand('connect');
+        $connectParams = $connectData->getParams();
+       
+        if(count($connectParams) > 0)
+        {
+          foreach($connectParams as $param)
+          {            
+            if($this->verifier->isAddressCorrect($param))
+            {              
+              $this->addresses[] = $param;
+            }              
+          }
+        }
+        return false;
+      }
+      
+      /* @add command */
+      if($this->console->isConsoleCommand('add'))
+      {
+        $params = $this->console->getConsoleCommand('add')->getParams();
+        if(count($params) > 0)
+        {
+          foreach($params as $param)
+          {
+            $cluster = new SkynetCluster();
+            $cluster->setUrl($param);
+            $cluster->getHeader()->setUrl($param);
+            $this->clustersRegistry->add($cluster);             
+          }
+        }
+      }
+      
+      /* Other listeners Commands */
+      $toAll = false;
+      if($this->console->isAnyConsoleCommand())
+      {
+        $consoleCommands = $this->console->getConsoleCommands();
+        foreach($consoleCommands as $command)
+        {         
+          $params = $command->getParams();        
+          if(count($params) > 0)
+          {           
+            foreach($params as $param)
+            {
+              if(is_string($param) && $param == 'me')
+              {
+                $this->console->clear();
+                
+                /* Launch Console commands listeners */
+                $this->eventListenersLauncher->launch('onConsole');
+                $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                
+                
+              } elseif(is_string($param) && $param != 'all')
+              {
+                $this->startBroadcast = false;
+                if($this->verifier->isAddressCorrect($param))
+                {                 
+                  $this->addresses[] = $param;
+                }  
+              } elseif(is_string($param) && $param == 'all')
+              {
+                $toAll = true;
+              }
+            }           
+          }  
+        }        
+      } 
+      if($toAll)
+      {
+        $this->startBroadcast = true;
+      }
+    } 
+    
+    return $this->startBroadcast;
+  }
+ 
+ /**
+  * Returns addresses to connect
+  *
+  * @return string[] addresses list
+  */  
+  public function getAddresses()
+  {
+   return $this->addresses;   
+  }
+
+ /**
+  * Returns signal to start broadcast
+  *
+  * @return bool True if start broadcast
+  */  
+  public function getStartBroadcast()
+  {
+    return $this->startBroadcast;
+  } 
+
+ /**
+  * Returns console object
+  *
+  * @return SkynetConsole Console
+  */  
+  public function getConsole()
+  {
+    return $this->console;
+  } 
+
+ /**
+  * Returns output from listeners
+  *
+  * @return string[] Output from console
+  */  
+  public function getConsoleOutput()
+  {
+    return $this->consoleOutput;
+  }
+  
+ /**
+  * Assigns data to listeners
+  */ 
+  private function prepareListeners()
+  {
+    $this->eventListenersLauncher->assignRequest($this->request);
+    $this->eventListenersLauncher->assignResponse($this->response);
+    //$this->eventListenersLauncher->assignConnectId($this->connectId);
+    //$this->eventListenersLauncher->assignClusterUrl($this->clusterUrl);   
+  }
+  
+ /**
+  * Assigns Request
+  *
+  * @param SkynetRequest $request
+  */   
+  public function assignRequest($request)
+  {
+    $this->request = $request;
+  }
+
+ /**
+  * Assigns Response
+  *
+  * @param SkynetResponse $response
+  */   
+  public function assignResponse($response)
+  {
+    $this->response = $response;
+  }
+  
+ /**
+  * Assigns CLI
+  *
+  * @param SkynetCli $cli
+  */     
+  public function assignCli($cil)
+  {
+    $this->cil = $cil;
+  }
+  
+ /**
+  * Assigns Console
+  *
+  * @param SkynetConsole $console
+  */ 
+  public function assignConsole($console)
+  {
+    $this->console = $console;
+  }
+}
+
+/**
  * Skynet/Core/Skynet.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -5011,7 +5681,7 @@ class Skynet
 
   /** @var SkynetRequest Assigned request */
   private $request;
-  
+
   /** @var PDO Connection */
   private $db;
 
@@ -5026,19 +5696,19 @@ class Skynet
 
   /** @var SkynetChain SkynetChain instance */
   private $skynetChain;
-  
+
   /** @var SkynetCloner Clusters cloner */
   private $cloner;
 
   /** @var SkynetVerifier Verifier instance */
   private $verifier;
-  
+
   /** @var SkynetGenerator TXT Reports Generator instance */
   private $generator;
 
   /** @var SkynetUpdater Updater instance */
   private $updater;
-  
+
   /** @var SkynetAuth Authentication */
   private $auth;
 
@@ -5050,48 +5720,51 @@ class Skynet
 
   /** @var SkynetClustersRegistry ClustersRegistry instance */
   private $clustersRegistry;
-  
+
   /** @var SkynetOptions Options getter/setter */
   private $options;
-  
+
   /** @var SkynetEventListenersLauncher Listeners Launcher */
   private $eventListenersLauncher;
 
   /** @var bool Controller for break connections if specified receiver set */
   private $breakConnections = false;
-  
+
   /** @var string[] Array with connections debug */
   private $connectionsData = [];
-  
+
   /** @var SkynetCli CLI Console */
   private $cli;
-  
+
   /** @var SkynetConsole HTML Console */
   private $console;
-  
+
   /** @var string[] Array of cli outputs */
   private $cliOutput = [];
-  
+
   /** @var string[] Array of console outputs */
   private $consoleOutput = [];
-  
+
   /** @var SkynetCluster Actual cluster */
   private $cluster = null;
-  
+
   /** @var SkynetCluster[] Array of clusters */
   private $clusters = [];
-  
+
   /** @var int connection mode */
-  private $connMode = 2;  
-  
+  private $connMode = 2;
+
   /** @var SkynetDetector Clusters detector */
   private $clustersDetector;
- 
-  /** @var string[] Array of monits */ 
+
+  /** @var string[] Array of monits */
   private $monits = [];
-  
+
   /** @var SkynetConnect Connect object */
   private $skynetConnect;
+  
+  /** @var bool If true checks header before connect */
+  private $checkHeader = false;
 
  /**
   * Constructor
@@ -5110,21 +5783,21 @@ class Skynet
     $this->verifier = new SkynetVerifier();
     $this->generator = new SkynetGenerator();
     $this->cloner = new SkynetCloner();
-    $this->clustersRegistry = new SkynetClustersRegistry();   
+    $this->clustersRegistry = new SkynetClustersRegistry();
     $this->cli = new SkynetCli();
     $this->console = new SkynetConsole();
     $this->options = new SkynetOptions();
     $this->detector = new SkynetDetector();
-    $this->skynetConnect = new SkynetConnect();   
-    
+    $this->skynetConnect = new SkynetConnect();
+
     $this->eventListenersLauncher = new SkynetEventListenersLauncher();
+    $this->eventListenersLauncher->setSender(true);
     $this->eventListenersLauncher->assignRequest($this->request);
     $this->eventListenersLauncher->assignResponse($this->response);
     $this->eventListenersLauncher->assignCli($this->cli);
     $this->eventListenersLauncher->assignConsole($this->console);
-    
-    $this->verifier->assignRequest($this->request);    
-    
+
+    $this->verifier->assignRequest($this->request);
     $this->modeController();
 
     /* Self-updater of Skynet */
@@ -5132,16 +5805,16 @@ class Skynet
     {
       $this->updater = new SkynetUpdater(__FILE__);
     }
-    
-    $this->clusters = $this->clustersRegistry->getAll();    
-    
+
+    $this->clusters = $this->clustersRegistry->getAll();
+
     $this->newChain();
     if($start === true)
     {
       $this->boot();
     }
-    
-    return $this;    
+
+    return $this;
   }
 
  /**
@@ -5152,24 +5825,24 @@ class Skynet
   public function boot()
   {
     $startBroadcast = false;
-    
+
     /* Check for console and CLI args */
     if($this->cli->isCli())
-    {      
-      $startBroadcast = $this->cliController();        
-    } else {      
-      $startBroadcast = $this->consoleController();  
+    {
+      $startBroadcast = $this->cliController();
+    } else {
+      $startBroadcast = $this->consoleController();
     }
 
     /* Start broadcasting clusters */
-    if($startBroadcast === true) 
+    if($startBroadcast === true)
     {
       if($this->connMode == 2)
       {
         $this->broadcast();
       }
     }
-    
+
     /* clusters detector */
     if(!$this->verifier->isPing())
     {
@@ -5178,10 +5851,10 @@ class Skynet
       {
         $this->monits[] = $detectClusters;
       }
-    }   
-    echo $this->renderOutput();   
+    }
+    echo $this->renderOutput();
   }
-  
+
  /**
   * Connects to all clusters from cluster's list saved in database ["skynet_clusters" table]
   *
@@ -5193,42 +5866,47 @@ class Skynet
   public function broadcast()
   {
     /* Disable broadcast when cluster is sleeped */
-    if($this->options->getOptionsValue('sleep') == 1 || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']))
+    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']))
     {
       return false;
-    }   
-    
+    }
+
     $this->isBroadcast = true;
     $this->loadChain();
 
-    /* Get clusters saved in db */   
+    /* Get clusters saved in db */
     if($this->areClusters())
     {
+      $clustersNum = 0;
       foreach($this->clusters as $cluster)
       {
-        $this->cluster = $cluster;        
-        $this->assignConnId();        
-        $this->getRemoteHeader();
+        $clustersNum++;
+        $this->cluster = $cluster;
+        $this->assignConnId();
+        if($this->checkHeader)
+        {
+          $this->getRemoteHeader();
+        }
 
         /* Prepare address */
         $address = SkynetConfig::get('core_connection_protocol').$this->cluster->getUrl();
-        $this->clusterUrl = $address;       
+        $this->clusterUrl = $address;
 
         /* If Key ID is verified and remote shows chain and we are not under other connection */
-        if(!$this->verifier->isPing() && $this->cluster->getHeader()->getChain() !== null && $this->verifier->isAddressCorrect($address))
-        {         
-          if($this->isDifferentChain())
+        if(!$this->verifier->isPing() && ($this->cluster->getHeader()->getChain() !== null || !$this->checkHeader) && $this->verifier->isAddressCorrect($address))
+        {
+          if(!$this->checkHeader || $this->isDifferentChain())
           {
             $this->connect($address, $this->skynetChain->getChain());
           }
           $this->storeCluster();
-          
+
         } else {
-          $this->clusters[$this->connectId]->getHeader()->setResult(-1);
+          $this->clusters[$clustersNum - 1]->getHeader()->setResult(-1);
           $this->addState(SkynetTypes::HEADER,'[[[[ERROR]]]: PROBLEM WITH RECEIVING HEADER: '.$address.'. IGNORING THIS CLUSTER...');
         }
-        
-        if($this->breakConnections) 
+
+        if($this->breakConnections)
         {
           break;
         }
@@ -5242,60 +5920,159 @@ class Skynet
   * Connects to single skynet cluster via URL
   *
   * Method connects to cluster, sends request, gets response and puts cluster URL into database (if not exists yet).
-  * 
+  *
   * @param string|SkynetCluster $remote_cluster URL to remote skynet cluster, e.g. http://server.com/skynet.php, default: NULL
   * @param integer $chain Forces new connection chain value, default: NULL
   *
   * @return Skynet $this Instance of this
   */
   public function connect($remote_cluster = null, $chain = null)
-  {    
+  {
     $this->isConnected = false;
     $this->connectId++;
     $this->setStateId($this->connectId);
-    
+
     $connect = new SkynetConnect();
     $connect->assignRequest($this->request);
     $connect->assignResponse($this->response);
     $connect->assignConnectId($this->connectId);
-    $connect->setIsBroadcast($this->isBroadcast);    
-    
+    $connect->setIsBroadcast($this->isBroadcast);
+
     if($this->verifier->isDatabaseView())
     {
       return false;
     }
-    
+
     try
     {
       if($connect->connect($remote_cluster, $chain))
       {
-        $this->successConnections++;  
-        $this->clusters[$this->connectId - 1] = $connect->getCluster();         
+        $this->successConnections++;
+        $this->clusters[$this->connectId - 1] = $connect->getCluster();
         $this->isConnected = true;
-      }
-    
+      } else {
+        $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
+      }      
+
     } catch(SkynetException $e)
     {
       $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
       $this->addState(SkynetTypes::CONN_ERR, SkynetTypes::CONN_ERR.' : '. $connect->getConnection()->getUrl().$connect->getConnection()->getParams());
-      $this->addError('Connection error: '.$e->getMessage(), $e);   
+      $this->addError('Connection error: '.$e->getMessage(), $e);
     }
-    
+
     $this->breakConnections = $connect->getBreakConnections();
-    
+
     $data = $connect->getConnectionData();
     $data['SENDED HEADER PARAMS (broadcast)'] = $this->sendedHeaderDataParams;
     $data['RECEIVED RAW HEADER (broadcast)'] = $this->responseHeaderData;
     $this->connectionsData[] = $data;
-    
+
     return $this;
-  } 
- 
+  }
+
+ /**
+  * Returns rendered output
+  *
+  * @return string Output
+  */
+  public function renderOutput()
+  {
+    $output = new SkynetOutput();
+    $output->setConnectId($this->connectId);
+    $output->setMonits($this->monits);
+    $output->setClusters($this->clusters);
+    $output->setIsBroadcast($this->isBroadcast);
+    $output->setIsConnected($this->isConnected);
+    $output->setConnectionData($this->connectionsData);
+    $output->setBroadcastNum($this->broadcastNum);
+    $output->setSuccessConnections($this->successConnections);
+    $output->setConsoleOutput($this->consoleOutput);
+    $output->setCliOutput($this->cliOutput);
+    return $output;
+  }
+
+ /**
+  * set Mode
+  *
+  * @return string Debug data
+  */
+  private function modeController()
+  {
+    if(isset($_REQUEST['_skynetSetConnMode']))
+    {
+      if(!isset($_SESSION))
+      {
+        session_start();
+      }
+      $_SESSION['_skynetConnMode'] = $_REQUEST['_skynetSetConnMode'];
+    }
+
+    if(isset($_SESSION['_skynetConnMode']))
+    {
+      $this->connMode = $_SESSION['_skynetConnMode'];
+    }
+  }
+
+ /**
+  * Listener for Cli Commands
+  *
+  * @return bool If true then start broadcast
+  */
+  private function cliController()
+  {
+    $cliInput = new SkynetCliInput();
+    $cliInput->assignRequest($this->request);
+    $cliInput->assignResponse($this->response);
+    $cliInput->assignConsole($this->console);
+    $cliInput->assignCli($this->cli);
+
+    $startBroadcast =  $cliInput->launch();
+    $addresses = $cliInput->getAddresses();
+    $this->cliOutput = $cliInput->getCliOutput();
+
+    if(count($addresses) > 0)
+    {
+      foreach($addresses as $address)
+      {
+        $this->connect($address);
+      }
+    }
+    return $startBroadcast;
+  }
+
+ /**
+  * Listener for Console Commands
+  *
+  * @return bool If true then start broadcast
+  */
+  private function consoleController()
+  {
+    $consoleInput = new SkynetConsoleInput();
+    $consoleInput->assignRequest($this->request);
+    $consoleInput->assignResponse($this->response);
+    $consoleInput->assignConsole($this->console);
+    $consoleInput->assignCli($this->cli);
+
+    $startBroadcast =  $consoleInput->launch();
+    $addresses = $consoleInput->getAddresses();
+    $this->consoleOutput = $consoleInput->getConsoleOutput();    
+
+    if(count($addresses) > 0)
+    {
+      foreach($addresses as $address)
+      {
+        $this->connect($address);
+      }
+    }
+    return $startBroadcast;
+  }
+
  /**
   * Checks if remote cluster has different chain
   *
   * @return bool True if different
-  */ 
+  */
   private function isDifferentChain()
   {
     $remoteChainValue = $this->cluster->getHeader()->getChain();
@@ -5308,25 +6085,25 @@ class Skynet
 
  /**
   * Assigns connection ID to cluster
-  */   
+  */
   private function assignConnId()
   {
-  /* First, request for header with correct ID and get remote chain value */        
-    $stateId = $this->connectId;        
-    if($this->connectId == 0) 
+  /* First, request for header with correct ID and get remote chain value */
+    $stateId = $this->connectId;
+    if($this->connectId == 0)
     {
       $stateId = 1;
     }
-    $this->cluster->setStateId($stateId); 
+    $this->cluster->setStateId($stateId);
   }
- 
+
  /**
   * Saves cluster in DB
-  */  
+  */
   private function storeCluster()
   {
     /* Save remote cluster address in database if not exists yet */
-    $this->clustersRegistry->setStateId($this->connectId);          
+    $this->clustersRegistry->setStateId($this->connectId);
     if($this->isConnected)
     {
       $this->clustersRegistry->add($this->cluster);
@@ -5337,18 +6114,18 @@ class Skynet
   * Checks for clusters in DB
   *
   * @return bool True if are clusters
-  */   
+  */
   private function areClusters()
   {
     if(is_array($this->clusters) && count($this->clusters) > 0)
     {
       return true;
-    }    
+    }
   }
 
  /**
   * Gets remote header
-  */   
+  */
   private function getRemoteHeader()
   {
     $this->responseHeaderData = null;
@@ -5356,17 +6133,17 @@ class Skynet
     $this->responseHeaderData = $header['data'];
     $this->sendedHeaderDataParams = $header['params'];
   }
- 
+
  /**
   * Loads chain from DB
-  */ 
+  */
   private function loadChain()
   {
     /* Check Chain value */
     if(!$this->skynetChain->isChain())
     {
       $this->skynetChain->createChain();
-      $this->addError(SkynetTypes::CHAIN, 'NO CHAINDATA IN DATABASE');     
+      $this->addError(SkynetTypes::CHAIN, 'NO CHAINDATA IN DATABASE');
     }
 
     /* Load actual chain value from db */
@@ -5374,187 +6151,18 @@ class Skynet
   }
 
  /**
-  * Returns rendered output
+  * Returns true if is sleeped
   *
-  * @return string Output
+  * @return bool True if sleep
   */
-  public function renderOutput()
+  private function isSleeped()
   {
-    $output = new SkynetOutput();     
-    $output->setConnectId($this->connectId);
-    $output->setMonits($this->monits);
-    $output->setClusters($this->clusters);
-    $output->setIsBroadcast($this->isBroadcast);
-    $output->setIsConnected($this->isConnected);
-    $output->setConnectionData($this->connectionsData);
-    $output->setBroadcastNum($this->broadcastNum);
-    $output->setSuccessConnections($this->successConnections);
-    $output->setConsoleOutput($this->consoleOutput);
-    $output->setCliOutput($this->cliOutput);    
-    return $output; 
-  }  
-  
- /**
-  * __toString
-  *
-  * @return string Debug data
-  */
-  public function __toString()
-  {   
-    return $this->renderOutput();
-  }
- 
- /**
-  * set Mode
-  *
-  * @return string Debug data
-  */
-  private function modeController()
-  {   
-    if(isset($_REQUEST['_skynetSetConnMode']))
+    if($this->options->getOptionsValue('sleep') == 1)
     {
-      if(!isset($_SESSION))
-      {
-        session_start();
-      }
-      $_SESSION['_skynetConnMode'] = $_REQUEST['_skynetSetConnMode'];      
-    }
-    
-    if(isset($_SESSION['_skynetConnMode']))
-    {
-      $this->connMode = $_SESSION['_skynetConnMode'];
+      return true;
     }
   }
-  
- /**
-  * Listener for Cli Commands
-  *
-  * @return bool If true then start broadcast
-  */ 
-  private function cliController()
-  {
-    $startBroadcast = false;
-    
-    /* if CLI mode */
-    if($this->cli->isCommand('b') || $this->cli->isCommand('broadcast'))
-    {
-      /* Launch broadcast */
-      $startBroadcast = true;
-      
-    } else {
-      
-      /* If single connection */
-      $address = null;
-      if($this->cli->isCommand('connect'))
-      {
-        $address = $this->cli->getParam('connect');          
-      } elseif($this->cli->isCommand('c'))
-      {
-        $address = $this->cli->getParam('c');          
-      }
-      
-      if(!empty($address) && $address !== null)
-      {
-        if($this->verifier->isAddressCorrect($address))
-        {
-          $this->connect($address); 
-        } 
-      }        
-    }
-    
-    /* Launch CLI commands listeners */
-     $this->eventListenersLauncher->launch('onCli');    
-     $this->cliOutput = $this->eventListenersLauncher->getCliOutput();
-    
-    return $startBroadcast;
-  }
- 
- /**
-  * Listener for Console Commands
-  *
-  * @return bool If true then start broadcast
-  */  
-  private function consoleController()
-  {
-    $startBroadcast = true;
-    
-    /* @connect command */
-    if($this->auth->isAuthorized() && $this->console->isInput())
-    {
-      $this->console->parseConsoleInput($_REQUEST['_skynetCmdConsoleInput']);
-      if($this->console->isConsoleCommand('connect'))
-      {
-        $startBroadcast = false;
-        $connectData = $this->console->getConsoleCommand('connect');
-        $connectParams = $connectData->getParams();
-       
-        if(count($connectParams) > 0)
-        {
-          foreach($connectParams as $param)
-          {            
-            if($this->verifier->isAddressCorrect($param))
-            {
-              $this->connect($param); 
-            }              
-          }
-        }
-        return false;
-      }
-      
-      /* @add command */
-      if($this->console->isConsoleCommand('add'))
-      {
-        $params = $this->console->getConsoleCommand('add')->getParams();
-        if(count($params) > 0)
-        {
-          foreach($params as $param)
-          {
-            $cluster = new SkynetCluster();
-            $cluster->setUrl($param);
-            $cluster->getHeader()->setUrl($param);
-            $this->clustersRegistry->add($cluster);             
-          }
-        }
-      }
-      
-      /* Other listeners Commands */
-      if($this->console->isAnyConsoleCommand())
-      {
-        $consoleCommands = $this->console->getConsoleCommands();
-        foreach($consoleCommands as $command)
-        {         
-          $params = $command->getParams();        
-          if(count($params) > 0)
-          {
-            $consoleOutput = [];
-            foreach($params as $param)
-            {
-              if(is_string($param) && $param == 'me')
-              {
-                $this->console->clear();
-                
-                /* Launch Console commands listeners */
-                $this->eventListenersLauncher->launch('onConsole');
-                $consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();
-                
-              } elseif(is_string($param) && $param != 'all')
-              {
-                $startBroadcast = false;
-                if($this->verifier->isAddressCorrect($param))
-                {
-                  $this->connect($param); 
-                }  
-              }
-            }
-            $this->consoleOutput = $consoleOutput;
-          }  
-        }        
-      } 
-    } 
-    
-    return $startBroadcast;
-  }
-  
+
  /**
   * Returns true if is response
   *
@@ -5626,6 +6234,16 @@ class Skynet
   public function setClusterUrl($url)
   {
     $this->clusterUrl = $url;
+  }
+
+ /**
+  * __toString
+  *
+  * @return string Debug data
+  */
+  public function __toString()
+  {
+    return $this->renderOutput();
   }
 }
 
@@ -6005,7 +6623,7 @@ class SkynetChain
  * Skynet/Core/SkynetConnect.php
  *
  * @package Skynet
- * @version 1.1.1
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -6098,6 +6716,7 @@ class SkynetConnect
     $this->connection = SkynetConnectionsFactory::getInstance()->getConnector(SkynetConfig::get('core_connection_type'));
     $this->verifier = new SkynetVerifier();
     $this->clustersRegistry = new SkynetClustersRegistry();
+    
   }  
 
  /**
@@ -6148,7 +6767,7 @@ class SkynetConnect
     }
     
     $this->saveConnectionData();    
-    return $result;
+    return $this->isConnected;
   }
  
  /**
@@ -6231,13 +6850,17 @@ class SkynetConnect
   */ 
   private function sendRequest()
   {
+    $this->isConnected = false;
     $this->connection->assignRequest($this->request);      
     $this->adapter = $this->connection->connect();
     $this->responseData = $this->adapter['data'];
     if($this->adapter['result'] === true)
     {
       $this->isConnected = true;        
-    } 
+    } else {
+      $this->clustersRegistry->addBlocked($this->cluster);
+      $this->cluster->getHeader()->setResult(-1);
+    }
     return $this->responseData;
   }
 
@@ -6840,7 +7463,7 @@ class SkynetPeer
  * Skynet/Core/SkynetResponder.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -6852,9 +7475,8 @@ class SkynetPeer
   * Skynet ResponderService Main Launcher
   *
   * Main launcher for Skynet Cluster.
-  * This is the main core of Skynet Cluster and it responds for data sending from Skynet Core.
-  * By creating instance of SkynetCluster class, e.g. $skynetCluster = new SkynetCluster(); you will start SkynetCluster. From that, Skynet Cluster will be listening for incoming connections.
-  * With __toString() (e.g. echo $skynetCluster; ) skynet will show debug data with informations about connections, states, errors, requests, responses, configuration and more.
+  * This is the main core of Skynet Responder and it responds for data sending from Skynet Core.
+  * By creating instance of SkynetResponder class, e.g. $skynetCluster = new SkynetResponder(); you will start responder. From that, Skynet Cluster will be listening for incoming connections.
   *
   * @uses SkynetErrorsTrait
   * @uses SkynetStatesTrait
@@ -6899,6 +7521,8 @@ class SkynetResponder
   /** @var SkynetOptions Options getter/setter */
   private $options;
   
+  /** @var SkynetEventListenersLauncher Listeners Launcher */
+  private $eventListenersLauncher;  
 
  /**
   * Constructor
@@ -6909,21 +7533,32 @@ class SkynetResponder
   */
   public function __construct($start = false)
   {
-    $this->assignRequest();
-    $this->assignResponse();
-    $this->verifier = new SkynetVerifier();
     if(isset($_SERVER['REQUEST_URI']))
     {
       $this->requestURI = $_SERVER['REQUEST_URI'];
     }
+    $this->assignRequest();
+    $this->assignResponse();
+    $this->verifier = new SkynetVerifier();    
     $this->clustersRegistry = new SkynetClustersRegistry();
     $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();
-    $this->options = new SkynetOptions();    
+    $this->options = new SkynetOptions();   
+
+    $this->eventListenersLauncher = new SkynetEventListenersLauncher();
+    $this->eventListenersLauncher->setSender(false);
+    $this->eventListenersLauncher->assignConnectId(1);
+    $this->eventListenersLauncher->assignRequest($this->request);
+    $this->eventListenersLauncher->assignResponse($this->response);
     
     if($start)
     {
-      echo $this->launch();
+      $response = $this->launch();
+      if(!empty($response))
+      {
+        header('Content-type:application/json;charset=utf-8');
+        echo $response;
+      }
     }
     return $this;
   }
@@ -6969,123 +7604,6 @@ class SkynetResponder
   }
 
  /**
-  * Launch Event Listeners
-  *
-  * Method execute all registered in Factory event listeners. Every listener have access to request and response and can manipulate them.
-  * You can create and register your own listeners by added them to registry in {SkynetEventListenersFactory}.
-  * Every event listener must implements {SkynetEventListenerInterface} interface and extends {SkynetEventListenerAbstract} class.
-  * OnEventName() method gets context param {beforeSend|afterReceive} (you can depends actions from that).
-  * Inside event listener you have access to $request and $response objects. See API documentation for more info.
-  *
-  * @param string $event Event name
-  */
-  private function launchEventListeners($event)
-  {
-    switch($event)
-    {
-      /* Launch before sending response */
-      case 'onResponse':
-        foreach($this->eventListeners as $listener)
-        {
-          $listener->setConnId(1);
-          $listener->setSender(false);
-          $this->request->loadRequest();
-          $listener->assignRequest($this->request);
-          $this->response->parseResponse();
-          $requests = $this->request->getRequestsData();
-          $listener->setRequestData($requests);
-          $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
-          {
-            $listener->onResponse('beforeSend');
-            if(isset($requests['@echo'])) 
-            {
-              $listener->onEcho('beforeSend');
-            }
-            if(isset($requests['@broadcast'])) 
-            {
-              $listener->onBroadcast('beforeSend');
-            }
-          }
-        }
-      break;
-
-      /* Launch after receives request */
-      case 'onRequest':
-        foreach($this->eventListeners as $listener)
-        {
-          $listener->setConnId(1);
-          $listener->setSender(false);
-          $this->request->loadRequest();
-          $listener->assignRequest($this->request);
-          $this->response->parseResponse();
-          $requests = $this->request->getRequestsData();
-          $listener->setRequestData($requests);
-          $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
-          {
-            $listener->onRequest('afterReceive');
-          }
-        }
-      break;
-
-      /* Launch after response listeners */
-      case 'onResponseLoggers':
-        foreach($this->eventLoggers as $listener)
-        {
-          $listener->setConnId(1);
-          $listener->setSender(false);
-          $this->request->loadRequest();
-          $listener->assignRequest($this->request);
-          $this->response->parseResponse();
-          $requests = $this->request->getRequestsData();
-          $listener->setRequestData($requests);
-          $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
-          {
-            $listener->onResponse('beforeSend');
-            if(isset($requests['@echo'])) 
-            {
-              $listener->onEcho('beforeSend');
-            }
-            if(isset($requests['@broadcast'])) 
-            {
-              $listener->onBroadcast('beforeSend');
-            }
-          }
-        }
-      break;
-
-      /* Launch after request listeners */
-      case 'onRequestLoggers':
-        foreach($this->eventLoggers as $listener)
-        {
-          $listener->setConnId(1);
-          $listener->setSender(false);
-          $this->request->loadRequest();
-          $listener->assignRequest($this->request);
-          $this->response->parseResponse();
-          $requests = $this->request->getRequestsData();
-          $listener->setRequestData($requests);
-          $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
-          {
-            $listener->onRequest('afterReceive');
-          }
-        }
-      break;
-    }
-  }
-
- /**
   * Returns request object
   *
   * @return SkynetRequest Object with request data and request manipulation methods
@@ -7123,10 +7641,11 @@ class SkynetResponder
     $this->request->loadRequest();
     $this->request->prepareRequests();
 
-    $this->launchEventListeners('onRequest');
-    $this->launchEventListeners('onRequestLoggers');
+    $this->prepareListeners();
+    $this->eventListenersLauncher->launch('onRequest');
+    $this->eventListenersLauncher->launch('onRequestLoggers');
     
-    if($this->options->getOptionsValue('sleep') == 1)
+    if($this->isSleeped())
     {
       return false;
     }
@@ -7136,15 +7655,67 @@ class SkynetResponder
     $this->clustersRegistry->add($cluster);
 
     $this->response->assignRequest($this->request);
-    $this->launchEventListeners('onResponse');
-    if(!isset($_REQUEST['@echo']) || (isset($_REQUEST['@echo']) && isset($_REQUEST['@broadcast'])))
+    $this->prepareListeners();
+    $this->eventListenersLauncher->launch('onResponse');    
+   
+    if(!$this->isEcho() || ($this->isEcho() && $this->isBroadcast()))
     {
       $response = $this->response->generateResponse();
-      $this->launchEventListeners('onResponseLoggers');      
+      $this->prepareListeners();
+      $this->eventListenersLauncher->launch('onResponseLoggers');
       return $response;
     }
   }
 
+ /**
+  * Assigns data to listeners
+  */ 
+  private function prepareListeners()
+  {
+    $this->eventListenersLauncher->assignRequest($this->request);
+    $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignConnectId(1);
+  }  
+  
+ /**
+  * Returns true if is sleeped
+  *
+  * @return bool True if sleep
+  */
+  private function isSleeped()
+  {
+    if($this->options->getOptionsValue('sleep') == 1)
+    {
+      return true;
+    }
+  }
+  
+ /**
+  * Returns true if is echo equest
+  *
+  * @return bool True if echo
+  */
+  private function isEcho()
+  {
+    if(isset($_REQUEST['@echo']))
+    {
+      return true;
+    }
+  }
+  
+ /**
+  * Returns true if is broadcast equest
+  *
+  * @return bool True if broadcast
+  */
+  private function isBroadcast()
+  {
+    if(isset($_REQUEST['@broadcast']))
+    {
+      return true;
+    }
+  }
+  
  /**
   * __toString
   *
@@ -8317,6 +8888,7 @@ class SkynetDatabase
   {
     $this->dbTables = [];    
     $this->dbTables['skynet_clusters'] = 'Clusters';
+    $this->dbTables['skynet_clusters_blocked'] = 'Clusters (corrupted/blocked)';
     $this->dbTables['skynet_registry'] = 'Registry';
     $this->dbTables['skynet_options'] = 'Options';
     $this->dbTables['skynet_chain'] = 'Chain';
@@ -8339,6 +8911,16 @@ class SkynetDatabase
   public function getTablesFields()
   {
     $this->tablesFields['skynet_clusters'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'url' => 'URL Address',
+    'ip' => 'IP Address',
+    'version' => 'Skynet version',
+    'last_connect' => 'Last connection',
+    'registrator' => 'Added by'
+    ];
+    
+    $this->tablesFields['skynet_clusters_blocked'] = [
     'id' => '#ID',
     'skynet_id' => 'SkynetID',
     'url' => 'URL Address',
@@ -8592,6 +9174,7 @@ class SkynetDatabase
     $queries = [];
 
     $queries['skynet_clusters'] = 'CREATE TABLE skynet_clusters (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
+    $queries['skynet_clusters_blocked'] = 'CREATE TABLE skynet_clusters_blocked (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
     $queries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
     $queries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
     $queries['skynet_chain'] = ['CREATE TABLE skynet_chain (id INTEGER PRIMARY KEY AUTOINCREMENT, chain BIGINT, updated_at INTEGER)', 'INSERT INTO skynet_chain (id, chain, updated_at) VALUES(1, 0, 0)'];
@@ -9851,8 +10434,7 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
   * Access to Console: $this->console
   */   
   public function onConsole()
-  {    
-     
+  {        
   }   
   
  /**
@@ -11704,7 +12286,7 @@ class SkynetEventListenersFactory
  * Skynet/EventListener/SkynetEventListenersLauncher.php
  *
  * @package Skynet
- * @version 1.1.1
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -11721,7 +12303,7 @@ class SkynetEventListenersLauncher
   /** @var string[] HTML elements of output */
   private $request;
   private $response; 
-  private $connectId; 
+  private $connectId = 1; 
   private $clusterUrl;
   private $cli;
   private $console;
@@ -11729,6 +12311,7 @@ class SkynetEventListenersLauncher
   private $eventLoggers;
   private $cliOutput = [];
   private $consoleOutput = [];
+  private $sender = true;
 
  /**
   * Constructor
@@ -11779,6 +12362,11 @@ class SkynetEventListenersLauncher
     return $this->consoleOutput;
   }
   
+  public function setSender($sender)
+  {
+    $this->sender = $sender;
+  }
+  
  /**
   * Launch Event Listeners
   *
@@ -11792,6 +12380,31 @@ class SkynetEventListenersLauncher
   */
   public function launch($event)
   {
+    switch($this->sender)
+    {
+      case true:
+        $this->launchSenderListeners($event);
+      break;
+      
+      case false:
+        $this->launchResponderListeners($event);
+      break;      
+    }
+  } 
+
+ /**
+  * Launch Event Listeners
+  *
+  * Method execute all registered in Factory event listeners. Every listener have access to request and response and can manipulate them.
+  * You can create and register your own listeners by added them to registry in {SkynetEventListenersFactory}.
+  * Every event listener must implements {SkynetEventListenerInterface} interface and extends {SkynetEventListenerAbstract} class.
+  * OnEventName() method gets context param {beforeSend|afterReceive} (you can depends actions from that).
+  * Inside event listener you have access to $request and $response objects. See API documentation for more info.
+  *
+  * @param string $event Event name
+  */  
+  private function launchSenderListeners($event)
+  {
     switch($event)
     {
       /* Launch when response received */
@@ -11799,7 +12412,7 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->setConnId($this->connectId);
-          $listener->setSender(true);
+          $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
           $listener->onResponse('afterReceive');
@@ -11820,7 +12433,7 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->setConnId($this->connectId);
-          $listener->setSender(true);
+          $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
           $listener->setReceiverClusterUrl($this->clusterUrl);
@@ -11841,7 +12454,7 @@ class SkynetEventListenersLauncher
         foreach($this->eventLoggers as $listener)
         {
           $listener->setConnId($this->connectId);
-          $listener->setSender(true);
+          $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
           $listener->onResponse('afterReceive');
@@ -11862,7 +12475,7 @@ class SkynetEventListenersLauncher
         foreach($this->eventLoggers as $listener)
         {
           $listener->setConnId($this->connectId);
-          $listener->setSender(true);
+          $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
           $listener->setReceiverClusterUrl($this->clusterUrl);
@@ -11876,7 +12489,11 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->assignCli($this->cli);
-          $this->cliOutput[] = $listener->onCli();
+          $output = $listener->onCli();
+          if($output !== null)
+          {
+            $this->cliOutput[] = $output;
+          }
         }
       break;
       
@@ -11885,11 +12502,132 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->assignConsole($this->console);
-          $this->consoleOutput[] = $listener->onConsole();
+          $output = $listener->onConsole();
+          if($output !== null)
+          {
+            $this->consoleOutput[] = $output;
+          }
         }
       break;
     }
-  } 
+  }
+  
+ /**
+  * Launch Event Listeners
+  *
+  * Method execute all registered in Factory event listeners. Every listener have access to request and response and can manipulate them.
+  * You can create and register your own listeners by added them to registry in {SkynetEventListenersFactory}.
+  * Every event listener must implements {SkynetEventListenerInterface} interface and extends {SkynetEventListenerAbstract} class.
+  * OnEventName() method gets context param {beforeSend|afterReceive} (you can depends actions from that).
+  * Inside event listener you have access to $request and $response objects. See API documentation for more info.
+  *
+  * @param string $event Event name
+  */
+  private function launchResponderListeners($event)
+  {
+    switch($event)
+    {
+      /* Launch before sending response */
+      case 'onResponse':
+        foreach($this->eventListeners as $listener)
+        {
+          $listener->setConnId($this->connectId);
+          $listener->setSender($this->sender);
+          $this->request->loadRequest();
+          $listener->assignRequest($this->request);
+          $this->response->parseResponse();
+          $requests = $this->request->getRequestsData();
+          $listener->setRequestData($requests);
+          $listener->assignResponse($this->response);
+          if(isset($requests['_skynet']) 
+            && isset($requests['_skynet_sender_url']) 
+            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          {
+            $listener->onResponse('beforeSend');
+            if(isset($requests['@echo'])) 
+            {
+              $listener->onEcho('beforeSend');
+            }
+            if(isset($requests['@broadcast'])) 
+            {
+              $listener->onBroadcast('beforeSend');
+            }
+          }
+        }
+      break;
+
+      /* Launch after receives request */
+      case 'onRequest':
+        foreach($this->eventListeners as $listener)
+        {
+          $listener->setConnId($this->connectId);
+          $listener->setSender($this->sender);
+          $this->request->loadRequest();
+          $listener->assignRequest($this->request);
+          $this->response->parseResponse();
+          $requests = $this->request->getRequestsData();
+          $listener->setRequestData($requests);
+          $listener->assignResponse($this->response);
+          if(isset($requests['_skynet']) 
+            && isset($requests['_skynet_sender_url']) 
+            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          {
+            $listener->onRequest('afterReceive');
+          }
+        }
+      break;
+
+      /* Launch after response listeners */
+      case 'onResponseLoggers':
+        foreach($this->eventLoggers as $listener)
+        {
+          $listener->setConnId($this->connectId);
+          $listener->setSender($this->sender);
+          $this->request->loadRequest();
+          $listener->assignRequest($this->request);
+          $this->response->parseResponse();
+          $requests = $this->request->getRequestsData();
+          $listener->setRequestData($requests);
+          $listener->assignResponse($this->response);
+          if(isset($requests['_skynet']) 
+            && isset($requests['_skynet_sender_url']) 
+            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          {
+            $listener->onResponse('beforeSend');
+            if(isset($requests['@echo'])) 
+            {
+              $listener->onEcho('beforeSend');
+            }
+            if(isset($requests['@broadcast'])) 
+            {
+              $listener->onBroadcast('beforeSend');
+            }
+          }
+        }
+      break;
+
+      /* Launch after request listeners */
+      case 'onRequestLoggers':
+        foreach($this->eventLoggers as $listener)
+        {
+          $listener->setConnId($this->connectId);
+          $listener->setSender($this->sender);
+          $this->request->loadRequest();
+          $listener->assignRequest($this->request);
+          $this->response->parseResponse();
+          $requests = $this->request->getRequestsData();
+          $listener->setRequestData($requests);
+          $listener->assignResponse($this->response);
+          if(isset($requests['_skynet']) 
+            && isset($requests['_skynet_sender_url']) 
+            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          {
+            $listener->onRequest('afterReceive');
+          }
+        }
+      break;
+    }
+  }
 }
 
 /**
@@ -14417,7 +15155,7 @@ class SkynetLogFile
  * Skynet/Renderer/Cli/SkynetRendererCli.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -14459,13 +15197,12 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
   */
   public function __construct()
   {
-    parent::__construct();       
-     
+    parent::__construct(); 
+    
     $this->elements = new SkynetRendererCliElements();    
     $this->debugRenderer = new SkynetRendererCliDebugRenderer();
     $this->databaseRenderer = new  SkynetRendererCliDatabaseRenderer();
     $this->connectionsRenderer = new  SkynetRendererCliConnectionsRenderer();  
-
     $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();    
   }
@@ -14650,8 +15387,7 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
     $str.= $this->elements->getNl().$this->elements->getNl().$tables.$this->elements->getNl();
     
     return $str;
-  }
-  
+  }  
   
  /**
   * Renders ad commands
@@ -15643,7 +16379,7 @@ class SkynetRendererCliElements
  * Skynet/Renderer/Html/SkynetRendererHtml.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -15760,12 +16496,12 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
  * Skynet/Renderer/Html//SkynetRendererHtmlClustersRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
  /**
@@ -15805,7 +16541,7 @@ class SkynetRendererHtmlClustersRenderer extends SkynetRendererAbstract
       {
          $class = '';
          $result = $cluster->getHeader()->getResult();
-        
+                 
          switch($result)
          {
            case -1:
@@ -16134,7 +16870,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
  * Skynet/Renderer/Html//SkynetRendererHtmlConsoleRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -16247,15 +16983,19 @@ class SkynetRendererHtmlConsoleRenderer
     $this->console->parseConsoleInput($input);
     $errors = $this->console->getParserErrors();
     $states = $this->console->getParserStates();
-    
+    $outputs = [];
+    $output = '';
+     
     $parsedErrors = '';
     $parsedStates = '';
     $i = 1;
     if(is_array($errors) && count($errors) > 0)
     {
+      $parsedErrors.= $this->elements->addHeaderRow($this->elements->addSubtitle('Parser errors'));
       foreach($errors as $error)
       {
-        $parsedErrors.= $this->elements->addBold('InputParserError #'.$i.': ', 'error').$this->elements->addSpan($error, 'error').$this->elements->getNl();        
+        $parsedErrors.= $this->elements->addValRow('InputParserError #'.$i, $this->elements->addSpan($error, 'error'));   
+        $i++;
       }      
     }
     
@@ -16265,26 +17005,46 @@ class SkynetRendererHtmlConsoleRenderer
       
       if(is_array($states) && count($states) > 0)
       {
+        $parsedErrors.= $this->elements->addHeaderRow($this->elements->addSubtitle('Parser states'));
         foreach($states as $state)
         {
-          $parsedStates.= $this->elements->addBold('InputParserState #'.$i.': ', 'yes').$this->elements->addSpan($state, 'yes').$this->elements->getNl();        
+          $parsedStates.= $this->elements->addValRow('InputParserState #'.$i, $this->elements->addSpan($state, 'yes')); 
+          $i++;
         }      
       }
     }
-    
+   
     /* Add output from listeners */
     foreach($this->listenersOutput as $listenerOutput)
     {
-      if(!empty($listenerOutput))
+      if(is_string($listenerOutput) && !empty($listenerOutput))
       {
-        $input.= "\n".$listenerOutput;
+        $outputs[] = $listenerOutput;
+      } elseif(is_array($listenerOutput) && count($listenerOutput) > 0)
+      {
+        foreach($listenerOutput as $addressListenerOutput)
+        {
+          $outputs[] = $addressListenerOutput;
+        }
       }
     }
     
     $input = str_replace("\r\n", "\n", $input);
     $input = htmlentities($input);
     $input = str_replace("\n", $this->elements->getNl(), $input);
-    return $parsedErrors.$parsedStates.$input;
+    
+    $input = $this->elements->addHeaderRow($this->elements->addSubtitle('Input query')).$this->elements->addRow($input);
+    
+    if(count($outputs) > 0)
+    {
+      $output = implode("\n", $outputs);
+      $output = str_replace("\r\n", "\n", $output);
+      $output = htmlentities($output);
+      $output = $this->elements->addSectionClass('monits').str_replace("\n", $this->elements->getNl(), $output).$this->elements->addSectionEnd();
+      $output = $this->elements->addHeaderRow($this->elements->addSubtitle('Output')).$this->elements->addRow($output);
+    }
+    
+    return $output.$parsedErrors.$parsedStates.$input;
   }
   
  /**
@@ -16308,7 +17068,7 @@ class SkynetRendererHtmlConsoleRenderer
   */    
   public function renderConsoleInput()
   {
-    return $this->elements->addBold('Console:').$this->elements->getNl().$this->parseConsoleInputDebug($_REQUEST['_skynetCmdConsoleInput']);    
+    return $this->parseConsoleInputDebug($_REQUEST['_skynetCmdConsoleInput']);    
   }
 }
 
@@ -16639,12 +17399,12 @@ class SkynetRendererHtmlDatabaseRenderer
  * Skynet/Renderer/Html//SkynetRendererHtmlDebugParser.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
  /**
@@ -17237,12 +17997,12 @@ class SkynetRendererHtmlElements
  * Skynet/Renderer/Html//SkynetRendererHtmlHeaderRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
  /**
@@ -17360,12 +18120,12 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
  * Skynet/Renderer/Html//SkynetRendererHtmlJavascript.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
  /**
@@ -17499,12 +18259,12 @@ class SkynetRendererHtmlJavascript
  * Skynet/Renderer/Html//SkynetRendererHtmlModeRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
  /**
@@ -17569,12 +18329,12 @@ class SkynetRendererHtmlModeRenderer extends SkynetRendererAbstract
  * Skynet/Renderer/Html//SkynetRendererHtmlStatusRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
  /**
@@ -17656,7 +18416,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addTabBtn('States ('.count($this->statesFields).')', 'javascript:skynetControlPanel.switchTab(\'tabStates\');', 'tabStatesBtn active');
     $output[] = $this->elements->addTabBtn('Errors ('.count($this->errorsFields).')', 'javascript:skynetControlPanel.switchTab(\'tabErrors\');', 'tabErrorsBtn errors');
     $output[] = $this->elements->addTabBtn('Config ('.count($this->configFields).')', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
-    $output[] = $this->elements->addTabBtn('Console', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
+    $output[] = $this->elements->addTabBtn('Console ('.count($this->consoleOutput).')', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
@@ -17735,14 +18495,16 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   private function renderConsoleDebug()
   {
     $output = [];
+    $this->consoleRenderer->setListenersOutput($this->consoleOutput);
     
      /* If console input */
     $output[] = $this->elements->addSectionClass('tabConsole');
     if(isset($_REQUEST['_skynetCmdConsoleInput'])) 
     {
        $output[] = $this->elements->addSectionId('consoleDebug');  
-       $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Console Input'));       
-       $output[] = $this->elements->addRow($this->consoleRenderer->renderConsoleInput());
+       $output[] = $this->elements->beginTable('tblConfig');        
+       $output[] = $this->consoleRenderer->renderConsoleInput();
+       $output[] = $this->elements->endTable();
        $output[] = $this->elements->addSectionEnd(); 
     }
     $output[] = $this->elements->addSectionEnd();     
@@ -18015,8 +18777,7 @@ class SkynetRendererHtmlThemes
     #dbRecords { height: 70%; max-height:70%; overflow:auto; }
     .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
     .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }
-    #console { width: 100%; height: 15%; }
-    #consoleDebug, #consoleDebug h3 { color: #3ffb6e }
+    #console { width: 100%; height: 15%; }    
     #loginSection { text-align:center; margin: auto }
     #loginSection input[type="password"] { width:400px; }
     #dbTable { table-layout: auto; }
@@ -18402,7 +19163,7 @@ class SkynetAuth
  * Checking and veryfing access to skynet
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -18642,11 +19403,7 @@ class SkynetVerifier
   */
   public function isAddressCorrect($address)
   {
-    if(
-      !empty($address)
-      && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address)
-      && $address != 'http://'.SkynetHelper::getMyUrl()
-      && $address != 'https://'.SkynetHelper::getMyUrl())
+    if(!empty($address) && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address) && $address != 'http://'.SkynetHelper::getMyUrl() && $address != 'https://'.SkynetHelper::getMyUrl())
     {
       return true;
     }
@@ -18659,7 +19416,7 @@ class SkynetVerifier
   */
   public function isPing()
   {
-    if(isset($_REQUEST['_skynet_cluster_url']))
+    if(isset($_REQUEST['_skynet_cluster_url']) && isset($_REQUEST['_skynet']))
     {
       return true;
     }

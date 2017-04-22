@@ -138,14 +138,36 @@ class SkynetClustersRegistry
     {
       $this->updateFromHeader($cluster);
     }  
-
-    if($this->isCluster($cluster))
+    if(!$this->isClusterBlocked($cluster))
     {
-      return $this->update($cluster);
-    } else {
-      return $this->insert($cluster);
+      if($this->isCluster($cluster))
+      {
+        return $this->update($cluster);
+      } else {
+        return $this->insert($cluster);
+      }
     }
-  }   
+  }  
+
+ /**
+  * Adds cluster into database
+  *
+  * @param SkynetCluster $cluster
+  *
+  * @return bool
+  */  
+  public function addBlocked(SkynetCluster $cluster = null)
+  {
+    /* Update from remote list from header */
+    if($cluster === null)
+    {
+      return false;
+    }   
+    if(!$this->isClusterBlocked($cluster))
+    {     
+      return $this->insertBlocked($cluster);
+    }
+  }    
   
  /**
   * Returns number of clusters in database
@@ -290,6 +312,56 @@ class SkynetClustersRegistry
   }
 
  /**
+  * Checks for cluster exists in database
+  *
+  * @param SkynetCluster $cluster Cluster entity to check
+  *
+  * @return bool
+  */
+  private function isClusterBlocked(SkynetCluster $cluster = null)
+  {   
+    if($cluster === null)
+    {
+      return false;
+    }    
+  
+    if(!empty($cluster->getHeader()->getUrl()))
+    {
+      $url = $cluster->getHeader()->getUrl();
+      
+    } elseif(!empty($cluster->getUrl()))
+    {
+      $url = $cluster->getUrl();
+      
+    } else {
+      
+      return false;        
+    }    
+    
+    $url = str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);   
+    
+    try
+    {
+      $stmt = $this->db->prepare(
+      'SELECT count(*) as c FROM skynet_clusters_blocked WHERE url = :url');
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      $stmt->execute();
+      $result = $stmt->fetch();
+
+      $stmt->closeCursor();
+      if($result['c'] > 0)
+      {
+        return true;
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  }
+  
+ /**
   * Updates cluster in database
   *
   * @param SkynetCluster $cluster Cluster entity to update
@@ -376,6 +448,8 @@ class SkynetClustersRegistry
   {
     try
     {
+      $this->removeAllBlocked($url);
+      
       $stmt = $this->db->prepare(
       'DELETE FROM skynet_clusters WHERE url != :url');
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
@@ -390,6 +464,32 @@ class SkynetClustersRegistry
       $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
     }
   }  
+  
+ /**
+  * Removes cluster from blocked database
+  *
+  * @param string $url Not remove
+  *
+  * @return bool True if success
+  */
+  public function removeAllBlocked($url = null)
+  {
+    try
+    {
+      $stmt = $this->db->prepare(
+      'DELETE FROM skynet_clusters_blocked WHERE url != :url');
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      if($stmt->execute()) 
+      {
+        return true;
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  } 
   
  /**
   * Removes cluster from database
@@ -501,6 +601,85 @@ class SkynetClustersRegistry
       $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
     }
   }  
+ 
+ /**
+  * Inserts cluster into blocked list
+  *
+  * @param SkynetCluster $cluster Cluster entity to update
+  *
+  * @return bool True if success
+  */
+  private function insertBlocked(SkynetCluster $cluster = null)
+  {
+    if($cluster === null)
+    {
+      return false;
+    }    
+  
+    if(!empty($cluster->getHeader()->getUrl()))
+    {
+      $url = $cluster->getHeader()->getUrl();
+      
+    } elseif(!empty($cluster->getUrl()))
+    {
+      $url = $cluster->getUrl();
+      
+    } else {
+      
+      return false;        
+    }
+    
+    $url = str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+    
+    /* dont do anything when only file name in url */
+    if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
+    {
+      return false;
+    }  
+    
+    try
+    {      
+      $stmt = $this->db->prepare(
+      'INSERT INTO skynet_clusters_blocked (skynet_id, url, ip, version, last_connect, registrator)
+      VALUES(:skynet_id, :url,  :ip, :version, :last_connect, :registrator)'
+      );
+
+      $last_connect = time();
+      
+      $id = '';
+      $ip = '';
+      $version = '';
+      $registrator = '';
+      
+      if($cluster->getHeader() !== null)
+      {
+        $id = $cluster->getHeader()->getId();
+        $ip = $cluster->getHeader()->getIp();
+        $version = $cluster->getHeader()->getVersion();
+        $registrator = $cluster->getHeader()->getUrl();
+      } 
+
+      $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      $stmt->bindParam(':ip', $ip, \PDO::PARAM_STR);
+      $stmt->bindParam(':version', $version, \PDO::PARAM_STR);
+      $stmt->bindParam(':last_connect', $last_connect, \PDO::PARAM_INT);
+      $stmt->bindParam(':registrator', $registrator, \PDO::PARAM_STR);
+
+      if($stmt->execute())
+      {
+        $this->addState(SkynetTypes::CLUSTERS_DB, 'CLUSTER ['.$url.'] ADDED TO DB');
+        return true;
+      } else {
+        $this->addState(SkynetTypes::CLUSTERS_DB, 'CLUSTER ['.$url.'] NOT ADDED TO DB');
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  } 
   
  /**
   * Updates clusters in database broadcasted by Skynet
@@ -531,11 +710,14 @@ class SkynetClustersRegistry
     /* Insert or update */
     foreach($newClusters as $cluster)
     {
-      if($this->isCluster($cluster))
+      if(!$this->isClusterBlocked($cluster))
       {
-        return $this->update($cluster);
-      } else {
-        return $this->insert($cluster);
+        if($this->isCluster($cluster))
+        {
+          return $this->update($cluster);
+        } else {
+          return $this->insert($cluster);
+        }
       }
     }
   }

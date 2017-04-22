@@ -162,6 +162,9 @@ class Skynet
 
   /** @var SkynetConnect Connect object */
   private $skynetConnect;
+  
+  /** @var bool If true checks header before connect */
+  private $checkHeader = false;
 
  /**
   * Constructor
@@ -280,16 +283,19 @@ class Skynet
         $clustersNum++;
         $this->cluster = $cluster;
         $this->assignConnId();
-        $this->getRemoteHeader();
+        if($this->checkHeader)
+        {
+          $this->getRemoteHeader();
+        }
 
         /* Prepare address */
         $address = \SkynetUser\SkynetConfig::get('core_connection_protocol').$this->cluster->getUrl();
         $this->clusterUrl = $address;
 
         /* If Key ID is verified and remote shows chain and we are not under other connection */
-        if(!$this->verifier->isPing() && $this->cluster->getHeader()->getChain() !== null && $this->verifier->isAddressCorrect($address))
+        if(!$this->verifier->isPing() && ($this->cluster->getHeader()->getChain() !== null || !$this->checkHeader) && $this->verifier->isAddressCorrect($address))
         {
-          if($this->isDifferentChain())
+          if(!$this->checkHeader || $this->isDifferentChain())
           {
             $this->connect($address, $this->skynetChain->getChain());
           }
@@ -344,7 +350,9 @@ class Skynet
         $this->successConnections++;
         $this->clusters[$this->connectId - 1] = $connect->getCluster();
         $this->isConnected = true;
-      }
+      } else {
+        $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
+      }      
 
     } catch(SkynetException $e)
     {

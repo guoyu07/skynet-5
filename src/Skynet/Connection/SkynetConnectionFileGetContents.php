@@ -70,8 +70,13 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
       {
         $result = false;
         throw new SkynetException('DATA IS NULL');
-      }          
-      $result = true;
+      }    
+      
+      $preResponse = json_decode($data);
+      if($preResponse !== null && isset($preResponse->_skynet))
+      {        
+        $result = true;
+      }     
       
     } catch(SkynetException $e)
     {
