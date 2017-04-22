@@ -193,8 +193,17 @@ class SkynetRendererHtmlConsoleRenderer
   */   
   public function renderConsole()
   {
+    $ajaxSupport = true;
+    
+    $onsubmit = '';
+    $submit = '<input type="submit" title="Send request commands from console" value="Send request" class="sendBtn" />';
+    if($ajaxSupport)
+    {     
+      $submit = '<input type="button" onclick="skynetControlPanel.load(1, true, \''.basename($_SERVER['PHP_SELF']).'\');" title="Send request commands from console" value="Send request" class="sendBtn" />';
+    }
+    
     return '<form method="post" action="#console'.md5(time()).'" name="_skynetCmdConsole">
-    <input type="submit" title="Send request commands from console" value="Send request" class="sendBtn" />'.$this->renderConsoleHelpers().' See '.$this->elements->addUrl(SkynetVersion::WEBSITE, 'documentation').' for information about console usage 
+    '.$submit.$this->renderConsoleHelpers().' See '.$this->elements->addUrl(SkynetVersion::WEBSITE, 'documentation').' for information about console usage 
     <textarea autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
     <input type="hidden" name="_skynetCmdCommandSend" value="1" />
     </form>';
@@ -207,6 +216,11 @@ class SkynetRendererHtmlConsoleRenderer
   */    
   public function renderConsoleInput()
   {
-    return $this->parseConsoleInputDebug($_REQUEST['_skynetCmdConsoleInput']);    
+    if(isset($_REQUEST['_skynetCmdConsoleInput'])) 
+    {
+      return $this->parseConsoleInputDebug($_REQUEST['_skynetCmdConsoleInput']); 
+    } else {
+      return $this->elements->addHeaderRow($this->elements->addSubtitle('Console')).$this->elements->addRow('-- no input --');
+    }    
   }
 }

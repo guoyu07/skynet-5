@@ -19,7 +19,6 @@ use Skynet\State\SkynetStatesTrait;
 use Skynet\Renderer\SkynetRendererAbstract;
 use Skynet\Renderer\SkynetRendererInterface;
 
-
  /**
   * Skynet Html Output Renderer 
   */
@@ -61,13 +60,46 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $this->statusRenderer = new  SkynetRendererHtmlStatusRenderer(); 
   }
 
+  
+  public function renderAjaxOutput()
+  {
+    $output = [];    
+   
+    $output['test'] = 'xxxxx';
+    $output['addresses'] = $this->statusRenderer->renderClusters(true);  
+    $output['connectionData'] = $this->connectionsRenderer->render(true);  
+    $output['gotoConnection'] = $this->connectionsRenderer->renderGoToConnection($this->connectionsData);
+    
+    $output['tabStates'] = $this->statusRenderer->renderStates(true);
+    $output['tabErrors'] = $this->statusRenderer->renderErrors(true);
+    $output['tabConfig'] = $this->statusRenderer->renderConfig(true);
+    $output['tabConsole'] = $this->statusRenderer->renderConsoleDebug(true);
+    
+    $output['numStates'] = count($this->statesFields);
+    $output['numErrors'] = count($this->errorsFields);
+    $output['numConfig'] = count($this->configFields);
+    $output['numConsole'] = count($this->consoleOutput);
+    
+    $output['numConnections'] = $this->connectionsCounter;
+    
+    $output['sumBroadcasted'] = $this->fields['Broadcasting Clusters']->getValue();
+    $output['sumClusters'] = $this->fields['Clusters in DB']->getValue();
+    $output['sumAttempts'] = $this->fields['Connection attempts']->getValue();
+    $output['sumSuccess'] = $this->fields['Succesful connections']->getValue();
+    
+    $output['sumChain'] = $this->fields['Chain']->getValue();
+    $output['sumSleeped'] = $this->fields['Sleeped']->getValue();
+    
+    return json_encode($output);
+  }
+  
  /**
   * Renders and returns HTML output
   *
   * @return string HTML code
   */
   public function render()
-  {     
+  {  
     $this->headerRenderer->setConnectionsCounter($this->connectionsCounter);
     $this->headerRenderer->setFields($this->fields);
     $this->headerRenderer->addConnectionData($this->connectionsData);
@@ -82,7 +114,11 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $this->statusRenderer->setMonits($this->monits);
     
     $this->connectionsRenderer->setConnectionsData($this->connectionsData);
-
+    
+    if($this->inAjax)
+    {
+      return $this->renderAjaxOutput();
+    }
     
     $this->output[] = $this->elements->addHeader();
     

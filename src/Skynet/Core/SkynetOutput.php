@@ -100,6 +100,9 @@ class SkynetOutput
   
   /** @var string[] Array of cli outputs */
   private $cliOutput;
+  
+  /** @var bool If true then ajax output */ 
+  private $inAjax = false;
 
  /**
   * Constructor
@@ -170,6 +173,7 @@ class SkynetOutput
       $renderer->setConnectionMode(0);
     }
     
+    $renderer->setInAjax($this->inAjax);
     $renderer->setClustersData($this->clusters);
     $renderer->setConnectionsCounter($this->successConnections);
     $renderer->addField('My address', SkynetHelper::getMyUrl());
@@ -225,6 +229,16 @@ class SkynetOutput
     $this->connectId = $connectId;
   }
  
+ /**
+  * Sets in ajax
+  *
+  * @param bool $ajax
+  */  
+  public function setInAjax($ajax)
+  {
+    $this->inAjax = $ajax;
+  }
+  
  /**
   * Sets clusters
   *

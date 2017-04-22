@@ -379,6 +379,10 @@ class Skynet
   public function renderOutput()
   {
     $output = new SkynetOutput();
+    if(isset($_REQUEST['_skynetAjax']))
+    {
+      $output->setInAjax(true);
+    }
     $output->setConnectId($this->connectId);
     $output->setMonits($this->monits);
     $output->setClusters($this->clusters);

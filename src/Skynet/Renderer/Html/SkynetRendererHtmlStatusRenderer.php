@@ -92,10 +92,10 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   {     
     $output = [];
     $output[] = $this->elements->addSectionClass('tabsHeader');
-    $output[] = $this->elements->addTabBtn('States ('.count($this->statesFields).')', 'javascript:skynetControlPanel.switchTab(\'tabStates\');', 'tabStatesBtn active');
-    $output[] = $this->elements->addTabBtn('Errors ('.count($this->errorsFields).')', 'javascript:skynetControlPanel.switchTab(\'tabErrors\');', 'tabErrorsBtn errors');
-    $output[] = $this->elements->addTabBtn('Config ('.count($this->configFields).')', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
-    $output[] = $this->elements->addTabBtn('Console ('.count($this->consoleOutput).')', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
+    $output[] = $this->elements->addTabBtn('States (<span class="numStates">'.count($this->statesFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabStates\');', 'tabStatesBtn active');
+    $output[] = $this->elements->addTabBtn('Errors (<span class="numErrors">'.count($this->errorsFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabErrors\');', 'tabErrorsBtn errors');
+    $output[] = $this->elements->addTabBtn('Config (<span class="numConfig">'.count($this->configFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
+    $output[] = $this->elements->addTabBtn('Console (<span class="numConsole">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
@@ -105,7 +105,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   *
   * @return string HTML code
   */    
-  private function renderErrors()
+  public function renderErrors($ajax = false)
   {
     /* Center Main : Left Column: errors */   
     $errors_class = null;
@@ -115,12 +115,18 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     }  
     
     $output = [];
-    $output[] = $this->elements->addSectionClass('tabErrors');
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionClass('tabErrors');
+    }
     $output[] = $this->elements->beginTable('tblErrors');
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Errors ('.count($this->errorsFields).')', $errors_class));
     $output[] = $this->debugParser->parseErrorsFields($this->errorsFields);
     $output[] = $this->elements->endTable();
-    $output[] = $this->elements->addSectionEnd(); 
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionEnd(); 
+    }
     
     return implode($output);   
   }  
@@ -130,18 +136,24 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   *
   * @return string HTML code
   */    
-  private function renderStates()
+  public function renderStates($ajax = false)
   {
-    $output = [];
+    $output = [];   
     
     /* Center Main : Left Column: states */
-    $output[] = $this->elements->addSectionClass('tabStates');
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionClass('tabStates');
+    }
     $output[] = $this->elements->beginTable('tblStates');
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('States ('.count($this->statesFields).')'));
     $output[] = $this->renderMonits();
     $output[] = $this->debugParser->parseStatesFields($this->statesFields);
     $output[] = $this->elements->endTable();
-    $output[] = $this->elements->addSectionEnd();  
+    if(!$ajax)
+    {      
+      $output[] = $this->elements->addSectionEnd();  
+    }
     
     return implode($output);   
   }
@@ -151,17 +163,23 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   *
   * @return string HTML code
   */    
-  private function renderConfig()
+  public function renderConfig($ajax = false)
   {
     $output = [];
     
     /* Center Main : Left Column: Config */
-    $output[] = $this->elements->addSectionClass('tabConfig');
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionClass('tabConfig');
+    }
     $output[] = $this->elements->beginTable('tblConfig');
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Config ('.count($this->configFields).')'));
     $output[] = $this->debugParser->parseConfigFields($this->configFields);
     $output[] = $this->elements->endTable();
-    $output[] = $this->elements->addSectionEnd(); 
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionEnd(); 
+    }
     
     return implode($output);   
   }   
@@ -171,22 +189,27 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   *
   * @return string HTML code
   */    
-  private function renderConsoleDebug()
+  public function renderConsoleDebug($ajax = false)
   {
     $output = [];
     $this->consoleRenderer->setListenersOutput($this->consoleOutput);
     
      /* If console input */
-    $output[] = $this->elements->addSectionClass('tabConsole');
-    if(isset($_REQUEST['_skynetCmdConsoleInput'])) 
+    if(!$ajax)
     {
-       $output[] = $this->elements->addSectionId('consoleDebug');  
-       $output[] = $this->elements->beginTable('tblConfig');        
-       $output[] = $this->consoleRenderer->renderConsoleInput();
-       $output[] = $this->elements->endTable();
-       $output[] = $this->elements->addSectionEnd(); 
+      $output[] = $this->elements->addSectionClass('tabConsole');
     }
-    $output[] = $this->elements->addSectionEnd();     
+    
+    $output[] = $this->elements->addSectionId('consoleDebug');  
+    $output[] = $this->elements->beginTable('tblConfig');        
+    $output[] = $this->consoleRenderer->renderConsoleInput();
+    $output[] = $this->elements->endTable();
+    $output[] = $this->elements->addSectionEnd(); 
+   
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionEnd();   
+    }     
     
     return implode($output);   
   }
@@ -196,7 +219,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   *
   * @return string HTML code
   */    
-  private function renderWarnings()
+  public function renderWarnings($ajax = false)
   {
     $output = [];
     
@@ -238,15 +261,22 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   *
   * @return string HTML code
   */    
-  private function renderClusters()
+  public function renderClusters($ajax = false)
   {
+    $this->clustersRenderer->setClustersData($this->clustersData);
     $output = [];
     
-    $output[] = $this->elements->addSectionClass('innerAddresses');    
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionClass('innerAddresses');  
+    }      
     $output[] = $this->elements->beginTable('tblClusters');
     $output[] = $this->clustersRenderer->render();    
     $output[] = $this->elements->endTable();   
-    $output[] = $this->elements->addSectionEnd();   
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionEnd(); 
+    }      
     
     return implode($output);   
   }

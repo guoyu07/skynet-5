@@ -274,14 +274,19 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
   *
   * @return string HTML code
   */    
-  public function render()
+  public function render($ajax = false)
   {
+    if($ajax)
+    {
+      return $this->renderConnections($this->connectionsData);
+    }
+    
     $output = [];   
     /* Center Main : Right Column: */
     $output[] = $this->elements->addSectionClass('columnConnections'); 
     
     $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
-    $output[] = '';
+    $output[] = '<div id="test"></div>';
     $output[] = $this->elements->addSectionEnd();      
     
     $output[] = $this->elements->addSectionClass('innerConnectionsData'); 

@@ -62,6 +62,9 @@ abstract class SkynetRendererAbstract
  
   /** @var string[] Monits */ 
   protected $monits = [];
+  
+  /** @var bool If true then ajax output */ 
+  protected $inAjax = false;
 
 
  /**
@@ -220,6 +223,16 @@ abstract class SkynetRendererAbstract
   public function setConfigFields($fields)
   {
     $this->configFields = $fields;
+  }
+ 
+ /**
+  * Sets in ajax
+  *
+  * @param bool $ajax
+  */  
+  public function setInAjax($ajax)
+  {
+    $this->inAjax = $ajax;
   }
   
  /**

@@ -43,6 +43,8 @@ class SkynetRendererHtmlModeRenderer extends SkynetRendererAbstract
   */  
   public function render()
   {
+    $ajaxSupport = true;
+    
     $output = [];
     $status = $this->connectionMode;
     
@@ -67,9 +69,19 @@ class SkynetRendererHtmlModeRenderer extends SkynetRendererAbstract
     }   
     
     $output[] = '<b>SKYNET MODE:</b> ';
-    $output[] = '<a href="?_skynetSetConnMode=0"><span class="statusIdle'.$classes['idle'].'">Idle</span></a> ';
-    $output[] = '<a href="?_skynetSetConnMode=1"><span class="statusSingle'.$classes['single'].'">Single</span></a> ';
-    $output[] = '<a href="?_skynetSetConnMode=2"><span class="statusBroadcast'.$classes['broadcast'].'">Broadcast</span></a>';    
+    
+    if($ajaxSupport)
+    {
+      $output[] = '<a href="javascript:skynetControlPanel.load(0, false, \''.basename($_SERVER['PHP_SELF']).'\');"><span class="statusIdle'.$classes['idle'].'">Idle</span></a> ';
+      $output[] = '<a href="javascript:skynetControlPanel.load(1, false, \''.basename($_SERVER['PHP_SELF']).'\');"><span class="statusSingle'.$classes['single'].'">Single</span></a> ';
+      $output[] = '<a href="javascript:skynetControlPanel.load(2, false, \''.basename($_SERVER['PHP_SELF']).'\');"><span class="statusBroadcast'.$classes['broadcast'].'">Broadcast</span></a>'; 
+      
+    } else {
+      $output[] = '<a href="?_skynetSetConnMode=0"><span class="statusIdle'.$classes['idle'].'">Idle</span></a> ';
+      $output[] = '<a href="?_skynetSetConnMode=1"><span class="statusSingle'.$classes['single'].'">Single</span></a> ';
+      $output[] = '<a href="?_skynetSetConnMode=2"><span class="statusBroadcast'.$classes['broadcast'].'">Broadcast</span></a>';  
+    }
+    
     return implode($output);
   }
 }

@@ -392,8 +392,8 @@ class SkynetRendererHtmlElements
   */
   public function addFooter()
   {
-    //$html = '<script src="skynet.js"></script>';
-    $html = '<script>'.$this->js->getJavascript().'</script>';
+    $html = '<script src="skynet.js"></script>';
+    //$html = '<script>'.$this->js->getJavascript().'</script>';
     $html.= '</body></html>';
     return $html;
   }

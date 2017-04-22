@@ -52,7 +52,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
   private function renderViewSwitcher()
   {    
     $modes = [];
-    $modes['connections'] = 'CONNECTIONS ('.$this->connectionsCounter.')';
+    $modes['connections'] = 'CONNECTIONS (<span class="numConnections">'.$this->connectionsCounter.'</span>)';
     $modes['database'] = 'DATABASE';   
     
     $links = [];
@@ -63,7 +63,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
       {
         $name = $this->elements->addBold($v, 'viewActive');
       }
-      $links[] = ' <a class="aSwitch" href="?_skynetView='.$k.'" title="Switch to view: '.$v.'">'.$name.'</a> ';     
+      $links[] = ' <a class="aSwitch" href="?_skynetView='.$k.'" title="Switch to view: '.htmlentities($v).'">'.$name.'</a> ';     
     }    
     return implode(' ', $links);
   } 
@@ -103,7 +103,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     
     if($this->mode == 'connections')
     {
-      $output[] = $this->connectionsRenderer->renderGoToConnection($this->connectionsData[0]);
+      $output[] = '<div class="innerGotoConnection">'.$this->connectionsRenderer->renderGoToConnection($this->connectionsData[0]).'</div>';
     }
     $output[] = $this->elements->addSectionEnd();
 
