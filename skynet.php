@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.22 23:41:54 (1492904514) */
+/* Skynet Standalone | version compiled: 2017.04.22 23:53:10 (1492905190) */
 
 namespace Skynet;
 
@@ -18025,8 +18025,8 @@ class SkynetRendererHtmlElements
   */
   public function addFooter()
   {
-    $html = '<script src="skynet.js"></script>';
-    //$html = '<script>'.$this->js->getJavascript().'</script>';
+    //$html = '<script src="skynet.js"></script>';
+    $html = '<script>'.$this->js->getJavascript().'</script>';
     $html.= '</body></html>';
     return $html;
   }
@@ -18245,11 +18245,13 @@ class SkynetRendererHtmlJavascript
   public function getJavascript()
   {
     $js = "
-    var skynetControlPanel = {
+    var skynetControlPanel = 
+{
   
   status: null,
   
-  switchTab: function(e) {
+  switchTab: function(e) 
+  {
     
     var tabStates = document.getElementsByClassName('tabStates');
     var tabErrors = document.getElementsByClassName('tabErrors');
@@ -18271,7 +18273,8 @@ class SkynetRendererHtmlJavascript
     document.getElementsByClassName(e)[0].style.display = 'block';
   },
   
-  switchConnTab: function(e, id) {
+  switchConnTab: function(e, id) 
+  {
     
     var tabConnPlain = document.getElementsByClassName('tabConnPlain'+id);
     var tabConnEncrypted = document.getElementsByClassName('tabConnEncrypted'+id);
@@ -18290,7 +18293,8 @@ class SkynetRendererHtmlJavascript
     document.getElementsByClassName(e + id)[0].style.display = 'block';
   },
   
-  insertCommand: function() {
+  insertCommand: function() 
+  {
     
     var cmdsList = document.getElementById('cmdsList');
     if(cmdsList.options[cmdsList.selectedIndex].value != '0') 
@@ -18306,7 +18310,8 @@ class SkynetRendererHtmlJavascript
     }
   },
   
-  insertConnect: function(url) {    
+  insertConnect: function(url) 
+  {    
     
     var cmd = '@connect ' + url;
     
@@ -18320,10 +18325,12 @@ class SkynetRendererHtmlJavascript
     }    
   },
     
-  gotoConnection() {
+  gotoConnection() 
+  {
     
     var connectList = document.getElementById('connectList');
-    if(connectList.options[connectList.selectedIndex].value > 0) {       
+    if(connectList.options[connectList.selectedIndex].value > 0) 
+    {       
       window.location.assign(window.location.href.replace(location.hash, '') + '#_connection' + connectList.options[connectList.selectedIndex].value); 
     }
   },
@@ -18340,6 +18347,106 @@ class SkynetRendererHtmlJavascript
     
     var toActive = 'status' + e;
     document.getElementsByClassName(toActive)[0].className += ' active';
+  },
+
+  load(connMode, cmd = false, skynetCluster)
+  {
+    if(cmd == false)
+    {
+      switch(connMode)
+      {
+        case 0:
+          this.switchStatus('Idle');
+        break;
+        
+        case 1:
+          this.switchStatus('Single');
+        break;
+        
+        case 2:
+          this.switchStatus('Broadcast');
+        break;      
+      }  
+    }      
+    
+    var divConnectionData = document.getElementsByClassName('innerConnectionsData')[0];
+    var divAddresses = document.getElementsByClassName('innerAddresses')[0];
+    var divGoto = document.getElementsByClassName('innerGotoConnection')[0];
+    
+    var divTabStates = document.getElementsByClassName('tabStates')[0];
+    var divTabErrors = document.getElementsByClassName('tabErrors')[0];
+    var divTabConfig = document.getElementsByClassName('tabConfig')[0];
+    var divTabConsole = document.getElementsByClassName('tabConsole')[0];
+    
+    var divNumStates = document.getElementsByClassName('numStates')[0];
+    var divNumErrors = document.getElementsByClassName('numErrors')[0];
+    var divNumConfig = document.getElementsByClassName('numConfig')[0];
+    var divNumConsole = document.getElementsByClassName('numConsole')[0];
+    
+    var divNumConnections = document.getElementsByClassName('numConnections')[0];
+    
+    var divSumBroadcasted = document.getElementsByClassName('sumBroadcasted')[0];
+    var divSumClusters = document.getElementsByClassName('sumClusters')[0];
+    var divSumAttempts = document.getElementsByClassName('sumAttempts')[0];
+    var divSumSuccess = document.getElementsByClassName('sumSuccess')[0];
+    
+    var divSumChain = document.getElementsByClassName('sumChain')[0];
+    var divSumSleeped = document.getElementsByClassName('sumSleeped')[0];
+    
+    divConnectionData.innerHTML = 'Connecting...Please wait...';   
+    
+    var xhttp;
+    if(window.XMLHttpRequest) 
+    {
+      xhttp = new XMLHttpRequest();
+      } else {        
+      xhttp = new ActiveXObject('Microsoft.XMLHTTP');
+    }
+    xhttp.onreadystatechange = function() 
+    {
+      if(this.readyState == 4 && this.status == 200) 
+      {       
+       var response = JSON.parse(this.responseText);
+       
+       divConnectionData.innerHTML = response.connectionData;
+       divAddresses.innerHTML = response.addresses;
+       
+       divGoto.innerHTML = response.gotoConnection;
+       
+       divTabStates.innerHTML = response.tabStates;
+       divTabErrors.innerHTML = response.tabErrors;
+       divTabConfig.innerHTML = response.tabConfig;
+       divTabConsole.innerHTML = response.tabConsole;
+       
+       divNumStates.innerHTML = response.numStates;
+       divNumErrors.innerHTML = response.numErrors;
+       divNumConfig.innerHTML = response.numConfig;
+       divNumConsole.innerHTML = response.numConsole;
+       
+       divNumConnections.innerHTML = response.numConnections;
+       
+       divSumBroadcasted.innerHTML = response.sumBroadcasted;
+       divSumClusters.innerHTML = response.sumClusters;
+       divSumAttempts.innerHTML = response.sumAttempts;
+       divSumSuccess.innerHTML = response.sumSuccess;
+       
+       divSumChain.innerHTML = response.sumChain;
+       divSumSleeped.innerHTML = response.sumSleeped;
+      }
+    }
+    
+    var params = '_skynetAjax=1';
+    if(cmd == true)
+    {
+      params+= '&_skynetCmdCommandSend=1&_skynetCmdConsoleInput='+document.getElementById('_skynetCmdConsoleInput').value;
+    } else {
+      params+= '&_skynetSetConnMode=' + connMode;
+    }
+    
+    xhttp.open('POST', skynetCluster, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.send(params);
+    return false;    
   }  
 }
 ";
