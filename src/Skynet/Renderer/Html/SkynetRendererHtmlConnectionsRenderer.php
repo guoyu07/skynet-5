@@ -56,7 +56,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
   * @return string HTML code
   */   
   public function renderGoToConnection($connectionsDataArray)
-  {
+  {   
     $options = [];
     $options[] = '<option value="0"> --- choose from list --- </option>';
     $conns = count($connectionsDataArray);

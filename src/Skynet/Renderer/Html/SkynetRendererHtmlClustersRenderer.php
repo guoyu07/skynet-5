@@ -52,7 +52,9 @@ class SkynetRendererHtmlClustersRenderer extends SkynetRendererAbstract
       foreach($this->clustersData as $cluster)
       {
          $class = '';
-         switch($cluster->getHeader()->getResult())
+         $result = $cluster->getHeader()->getResult();
+        
+         switch($result)
          {
            case -1:
             $class = 'statusError';
@@ -72,7 +74,7 @@ class SkynetRendererHtmlClustersRenderer extends SkynetRendererAbstract
          // var_dump($cluster->getHeader());         
          $status = '<span class="statusId'.$id.' statusIcon '.$class.'">( )</span>';
          $url = $this->elements->addUrl(\SkynetUser\SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl());
-         $output[] = $this->elements->addClusterRow($status, $url, $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.\SkynetUser\SkynetConfig::get('core_connection_protocol').$cluster->getUrl().'\');" class="btn">CONNECT</a>');
+         $output[] = $this->elements->addClusterRow($status, $url, $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.\SkynetUser\SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl().'\');" class="btn">CONNECT</a>');
       }      
     } else {
       

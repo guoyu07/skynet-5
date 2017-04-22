@@ -294,6 +294,7 @@ class Skynet
           $this->storeCluster();
           
         } else {
+          $this->clusters[$this->connectId]->getHeader()->setResult(-1);
           $this->addState(SkynetTypes::HEADER,'[[[[ERROR]]]: PROBLEM WITH RECEIVING HEADER: '.$address.'. IGNORING THIS CLUSTER...');
         }
         
@@ -338,13 +339,14 @@ class Skynet
     {
       if($connect->connect($remote_cluster, $chain))
       {
-        $this->successConnections++;       
-        $this->clusters[$this->connectId - 1] = $connect->getCluster();   
+        $this->successConnections++;  
+        $this->clusters[$this->connectId - 1] = $connect->getCluster();         
         $this->isConnected = true;
       }
     
     } catch(SkynetException $e)
-    {     
+    {
+      $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
       $this->addState(SkynetTypes::CONN_ERR, SkynetTypes::CONN_ERR.' : '. $connect->getConnection()->getUrl().$connect->getConnection()->getParams());
       $this->addError('Connection error: '.$e->getMessage(), $e);   
     }

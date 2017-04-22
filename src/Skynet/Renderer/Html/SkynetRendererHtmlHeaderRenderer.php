@@ -103,7 +103,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     
     if($this->mode == 'connections')
     {
-      $output[] = $this->connectionsRenderer->renderGoToConnection($this->connectionsData);
+      $output[] = $this->connectionsRenderer->renderGoToConnection($this->connectionsData[0]);
     }
     $output[] = $this->elements->addSectionEnd();
 
