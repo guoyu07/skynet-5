@@ -224,34 +224,41 @@ class SkynetRendererHtmlJavascript
     {
       if(this.readyState == 4 && this.status == 200) 
       {       
-       var response = JSON.parse(this.responseText);       
-       successed = parseInt(response.sumSuccess);
        
-       divConnectionData.innerHTML = response.connectionData;
-       divAddresses.innerHTML = response.addresses;       
-       divGoto.innerHTML = response.gotoConnection;       
-       divTabStates.innerHTML = response.tabStates;
-       divTabErrors.innerHTML = response.tabErrors;
-       divTabConfig.innerHTML = response.tabConfig;
-       divTabConsole.innerHTML = response.tabConsole;       
-       divNumStates.innerHTML = response.numStates;
-       divNumErrors.innerHTML = response.numErrors;
-       divNumConfig.innerHTML = response.numConfig;
-       divNumConsole.innerHTML = response.numConsole;       
-       divNumConnections.innerHTML = response.numConnections;       
-       divSumBroadcasted.innerHTML = response.sumBroadcasted;
-       divSumClusters.innerHTML = response.sumClusters;
-       divSumAttempts.innerHTML = response.sumAttempts;
-       divSumSuccess.innerHTML = response.sumSuccess;       
-       divSumChain.innerHTML = response.sumChain;
-       divSumSleeped.innerHTML = response.sumSleeped;           
-       if(successed > 0)
+       try
        {
-         skynetControlPanel.setFavIcon(1);
-       } else {
-         skynetControlPanel.setFavIcon(0);
+         var response = JSON.parse(this.responseText);       
+         successed = parseInt(response.sumSuccess);
+         
+         divConnectionData.innerHTML = response.connectionData;
+         divAddresses.innerHTML = response.addresses;       
+         divGoto.innerHTML = response.gotoConnection;       
+         divTabStates.innerHTML = response.tabStates;
+         divTabErrors.innerHTML = response.tabErrors;
+         divTabConfig.innerHTML = response.tabConfig;
+         divTabConsole.innerHTML = response.tabConsole;       
+         divNumStates.innerHTML = response.numStates;
+         divNumErrors.innerHTML = response.numErrors;
+         divNumConfig.innerHTML = response.numConfig;
+         divNumConsole.innerHTML = response.numConsole;       
+         divNumConnections.innerHTML = response.numConnections;       
+         divSumBroadcasted.innerHTML = response.sumBroadcasted;
+         divSumClusters.innerHTML = response.sumClusters;
+         divSumAttempts.innerHTML = response.sumAttempts;
+         divSumSuccess.innerHTML = response.sumSuccess;       
+         divSumChain.innerHTML = response.sumChain;
+         divSumSleeped.innerHTML = response.sumSleeped;           
+         if(successed > 0)
+         {
+           skynetControlPanel.setFavIcon(1);
+         } else {
+           skynetControlPanel.setFavIcon(0);
+         }       
+         skynetControlPanel.switchMode(parseInt(response.connectionMode));
+       } catch(e)
+       {
+         divConnectionData.innerHTML = this.responseText;
        }       
-       skynetControlPanel.switchMode(parseInt(response.connectionMode));
       }
     }
     
