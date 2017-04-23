@@ -38,7 +38,7 @@ class SkynetRendererHtmlJavascript
   public function getJavascript()
   {
     $js = "
-    var skynetControlPanel = 
+   var skynetControlPanel = 
 {
   
   status: null,
@@ -55,16 +55,19 @@ class SkynetRendererHtmlJavascript
     var tabErrors = document.getElementsByClassName('tabErrors');
     var tabConfig = document.getElementsByClassName('tabConfig');
     var tabConsole = document.getElementsByClassName('tabConsole');
+    var tabDebug = document.getElementsByClassName('tabDebug');
     
     tabStates[0].style.display = 'none';
     tabErrors[0].style.display = 'none';
     tabConfig[0].style.display = 'none';
     tabConsole[0].style.display = 'none';
+    tabDebug[0].style.display = 'none';
     
     document.getElementsByClassName('tabStatesBtn')[0].className = document.getElementsByClassName('tabStatesBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabErrorsBtn')[0].className = document.getElementsByClassName('tabErrorsBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabConfigBtn')[0].className = document.getElementsByClassName('tabConfigBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabConsoleBtn')[0].className = document.getElementsByClassName('tabConsoleBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabDebugBtn')[0].className = document.getElementsByClassName('tabDebugBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     
     var btnToActive = e + 'Btn';
     document.getElementsByClassName(btnToActive)[0].className += ' active';
@@ -218,11 +221,13 @@ class SkynetRendererHtmlJavascript
     var divTabStates = document.getElementsByClassName('tabStates')[0];
     var divTabErrors = document.getElementsByClassName('tabErrors')[0];
     var divTabConfig = document.getElementsByClassName('tabConfig')[0];
-    var divTabConsole = document.getElementsByClassName('tabConsole')[0];    
+    var divTabConsole = document.getElementsByClassName('tabConsole')[0];  
+    var divTabDebug = document.getElementsByClassName('tabDebug')[0];    
     var divNumStates = document.getElementsByClassName('numStates')[0];
     var divNumErrors = document.getElementsByClassName('numErrors')[0];
     var divNumConfig = document.getElementsByClassName('numConfig')[0];
-    var divNumConsole = document.getElementsByClassName('numConsole')[0];    
+    var divNumConsole = document.getElementsByClassName('numConsole')[0]; 
+    var divNumDebug = document.getElementsByClassName('numDebug')[0];
     var divNumConnections = document.getElementsByClassName('numConnections')[0];    
     var divSumBroadcasted = document.getElementsByClassName('sumBroadcasted')[0];
     var divSumClusters = document.getElementsByClassName('sumClusters')[0];
@@ -243,8 +248,7 @@ class SkynetRendererHtmlJavascript
     xhttp.onreadystatechange = function() 
     {
       if(this.readyState == 4 && this.status == 200) 
-      {       
-       
+      {  
        try
        {
          var response = JSON.parse(this.responseText);       
@@ -256,11 +260,13 @@ class SkynetRendererHtmlJavascript
          divTabStates.innerHTML = response.tabStates;
          divTabErrors.innerHTML = response.tabErrors;
          divTabConfig.innerHTML = response.tabConfig;
-         divTabConsole.innerHTML = response.tabConsole;       
+         divTabConsole.innerHTML = response.tabConsole; 
+         divTabDebug.innerHTML = response.tabDebug;           
          divNumStates.innerHTML = response.numStates;
          divNumErrors.innerHTML = response.numErrors;
          divNumConfig.innerHTML = response.numConfig;
-         divNumConsole.innerHTML = response.numConsole;       
+         divNumConsole.innerHTML = response.numConsole;   
+         divNumDebug.innerHTML = response.numDebug;          
          divNumConnections.innerHTML = response.numConnections;       
          divSumBroadcasted.innerHTML = response.sumBroadcasted;
          divSumClusters.innerHTML = response.sumClusters;

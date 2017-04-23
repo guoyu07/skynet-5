@@ -96,6 +96,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addTabBtn('Errors (<span class="numErrors">'.count($this->errorsFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabErrors\');', 'tabErrorsBtn errors');
     $output[] = $this->elements->addTabBtn('Config (<span class="numConfig">'.count($this->configFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
     $output[] = $this->elements->addTabBtn('Console (<span class="numConsole">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
+    $output[] = $this->elements->addTabBtn('Debug (<span class="numDebug">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabDebug\');', 'tabDebugBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
@@ -147,6 +148,35 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     }
     $output[] = $this->elements->beginTable('tblStates');
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('States ('.count($this->statesFields).')'));
+    $output[] = $this->renderMonits();
+    $output[] = $this->elements->addHeaderRow2('Sender', 'State');
+    $output[] = $this->debugParser->parseStatesFields($this->statesFields);
+    $output[] = $this->elements->endTable();
+    if(!$ajax)
+    {      
+      $output[] = $this->elements->addSectionEnd();  
+    }
+    
+    return implode($output);   
+  }
+  
+  
+ /**
+  * Renders debug
+  *
+  * @return string HTML code
+  */    
+  public function renderDebug($ajax = false)
+  {
+    $output = [];   
+    
+    /* Center Main : Left Column: states */
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionClass('tabDebug');
+    }
+    $output[] = $this->elements->beginTable('tblStates');
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Debugger ('.count($this->statesFields).')'));
     $output[] = $this->renderMonits();
     $output[] = $this->elements->addHeaderRow2('Sender', 'State');
     $output[] = $this->debugParser->parseStatesFields($this->statesFields);
@@ -330,7 +360,8 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
           $output[] = $this->renderErrors();
           $output[] = $this->renderConsoleDebug();
           $output[] = $this->renderStates();
-          $output[] = $this->renderConfig();    
+          $output[] = $this->renderConfig(); 
+          $output[] = $this->renderDebug();          
           $output[] = $this->elements->addSectionEnd();     
           
         /* end sectionStates */

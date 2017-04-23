@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 21:27:42 (1492982862) */
+/* Skynet Standalone | version compiled: 2017.04.23 21:59:50 (1492984790) */
 
 namespace Skynet;
 
@@ -434,7 +434,7 @@ abstract class SkynetConnectionAbstract
  * Skynet/EventListener/SkynetEventListenerAbstract.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -1104,7 +1104,7 @@ interface SkynetEncryptorInterface
  * Skynet/EventListener/SkynetEventListenerInterface.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -1205,6 +1205,17 @@ interface SkynetEventListenerInterface
   * @return array[] commands
   */   
   public function registerCommands();
+  
+ /**
+  * Registers commands
+  * 
+  * Must returns: 
+  * ['cli'] - array with cli commands [command, description]
+  * ['console'] - array with console commands [command, description]
+  *
+  * @return array[] commands
+  */   
+  public function registerDatabase();
 }
 
 /**
@@ -10200,6 +10211,37 @@ class SkynetRegistry
 }
 
 /**
+ * Skynet/Core/SkynetDebug.php
+ *
+ * @package Skynet
+ * @version 1.1.3
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.1.3
+ */
+
+ /**
+  * Skynet Event Listeners Launcher
+  *
+  */
+class SkynetDebug
+{     
+  use SkynetErrorsTrait, SkynetStatesTrait; 
+  
+  
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+        
+  }  
+}
+
+/**
  * Skynet/Encryptor/SkynetEncryptorBase64.php
  *
  * @package Skynet
@@ -10593,7 +10635,7 @@ class SkynetException extends \Exception
  * Skynet/EventListener/SkynetEventListenerCli.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -10855,7 +10897,7 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
  * Skynet/EventListener/SkynetEventListenerCloner.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -11087,7 +11129,7 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
  * Skynet/EventListener/SkynetEventListenerClusters.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -11342,7 +11384,7 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
  * Skynet/EventListener/SkynetEventListenerEcho.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -11669,7 +11711,7 @@ class SkynetEventListenerEcho extends SkynetEventListenerAbstract implements Sky
  * Skynet/EventListener/SkynetEventListenerExec.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -11940,7 +11982,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
  * Skynet/EventListener/SkynetEventListenerFiles.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -12243,7 +12285,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
  * Skynet/EventListener/SkynetEventListenerOptions.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -12489,7 +12531,7 @@ class SkynetEventListenerOptions extends SkynetEventListenerAbstract implements 
  * Skynet/EventListener/SkynetEventListenerRegistry.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -12731,7 +12773,7 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
  * Skynet/EventListener/SkynetEventListenersFactory.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -12844,7 +12886,7 @@ class SkynetEventListenersFactory
  * Skynet/EventListener/SkynetEventListenersLauncher.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -13193,7 +13235,7 @@ class SkynetEventListenersLauncher
  * Skynet/EventListener/SkynetEventListenerSleeper.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -13442,7 +13484,7 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
  * Skynet/EventListener/SkynetEventListenerEcho.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -13807,7 +13849,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
  * Skynet/EventLogger/SkynetEventListenerEmailer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -14205,7 +14247,7 @@ class SkynetEventListenerEmailer extends SkynetEventListenerAbstract implements 
  * Skynet/EventLogger/SkynetEventListenerLoggerDatabase.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -14786,7 +14828,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
  * Skynet/EventLogger/SkynetEventListenerLoggerFiles.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -17190,11 +17232,13 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['tabStates'] = $this->statusRenderer->renderStates(true);
     $output['tabErrors'] = $this->statusRenderer->renderErrors(true);
     $output['tabConfig'] = $this->statusRenderer->renderConfig(true);
+    $output['tabDebug'] = $this->statusRenderer->renderDebug(true);
     $output['tabConsole'] = $this->statusRenderer->renderConsoleDebug(true);
     
     $output['numStates'] = count($this->statesFields);
     $output['numErrors'] = count($this->errorsFields);
     $output['numConfig'] = count($this->configFields);
+    $output['numDebug'] = count($this->statesFields);
     $output['numConsole'] = count($this->consoleOutput);
     
     $output['numConnections'] = $this->connectionsCounter;
@@ -19427,7 +19471,7 @@ class SkynetRendererHtmlJavascript
   public function getJavascript()
   {
     $js = "
-    var skynetControlPanel = 
+   var skynetControlPanel = 
 {
   
   status: null,
@@ -19444,16 +19488,19 @@ class SkynetRendererHtmlJavascript
     var tabErrors = document.getElementsByClassName('tabErrors');
     var tabConfig = document.getElementsByClassName('tabConfig');
     var tabConsole = document.getElementsByClassName('tabConsole');
+    var tabDebug = document.getElementsByClassName('tabDebug');
     
     tabStates[0].style.display = 'none';
     tabErrors[0].style.display = 'none';
     tabConfig[0].style.display = 'none';
     tabConsole[0].style.display = 'none';
+    tabDebug[0].style.display = 'none';
     
     document.getElementsByClassName('tabStatesBtn')[0].className = document.getElementsByClassName('tabStatesBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabErrorsBtn')[0].className = document.getElementsByClassName('tabErrorsBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabConfigBtn')[0].className = document.getElementsByClassName('tabConfigBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabConsoleBtn')[0].className = document.getElementsByClassName('tabConsoleBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabDebugBtn')[0].className = document.getElementsByClassName('tabDebugBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     
     var btnToActive = e + 'Btn';
     document.getElementsByClassName(btnToActive)[0].className += ' active';
@@ -19607,11 +19654,13 @@ class SkynetRendererHtmlJavascript
     var divTabStates = document.getElementsByClassName('tabStates')[0];
     var divTabErrors = document.getElementsByClassName('tabErrors')[0];
     var divTabConfig = document.getElementsByClassName('tabConfig')[0];
-    var divTabConsole = document.getElementsByClassName('tabConsole')[0];    
+    var divTabConsole = document.getElementsByClassName('tabConsole')[0];  
+    var divTabDebug = document.getElementsByClassName('tabDebug')[0];    
     var divNumStates = document.getElementsByClassName('numStates')[0];
     var divNumErrors = document.getElementsByClassName('numErrors')[0];
     var divNumConfig = document.getElementsByClassName('numConfig')[0];
-    var divNumConsole = document.getElementsByClassName('numConsole')[0];    
+    var divNumConsole = document.getElementsByClassName('numConsole')[0]; 
+    var divNumDebug = document.getElementsByClassName('numDebug')[0];
     var divNumConnections = document.getElementsByClassName('numConnections')[0];    
     var divSumBroadcasted = document.getElementsByClassName('sumBroadcasted')[0];
     var divSumClusters = document.getElementsByClassName('sumClusters')[0];
@@ -19632,8 +19681,7 @@ class SkynetRendererHtmlJavascript
     xhttp.onreadystatechange = function() 
     {
       if(this.readyState == 4 && this.status == 200) 
-      {       
-       
+      {  
        try
        {
          var response = JSON.parse(this.responseText);       
@@ -19645,11 +19693,13 @@ class SkynetRendererHtmlJavascript
          divTabStates.innerHTML = response.tabStates;
          divTabErrors.innerHTML = response.tabErrors;
          divTabConfig.innerHTML = response.tabConfig;
-         divTabConsole.innerHTML = response.tabConsole;       
+         divTabConsole.innerHTML = response.tabConsole; 
+         divTabDebug.innerHTML = response.tabDebug;           
          divNumStates.innerHTML = response.numStates;
          divNumErrors.innerHTML = response.numErrors;
          divNumConfig.innerHTML = response.numConfig;
-         divNumConsole.innerHTML = response.numConsole;       
+         divNumConsole.innerHTML = response.numConsole;   
+         divNumDebug.innerHTML = response.numDebug;          
          divNumConnections.innerHTML = response.numConnections;       
          divSumBroadcasted.innerHTML = response.sumBroadcasted;
          divSumClusters.innerHTML = response.sumClusters;
@@ -19943,6 +19993,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addTabBtn('Errors (<span class="numErrors">'.count($this->errorsFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabErrors\');', 'tabErrorsBtn errors');
     $output[] = $this->elements->addTabBtn('Config (<span class="numConfig">'.count($this->configFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
     $output[] = $this->elements->addTabBtn('Console (<span class="numConsole">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
+    $output[] = $this->elements->addTabBtn('Debug (<span class="numDebug">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabDebug\');', 'tabDebugBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
@@ -19994,6 +20045,35 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     }
     $output[] = $this->elements->beginTable('tblStates');
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('States ('.count($this->statesFields).')'));
+    $output[] = $this->renderMonits();
+    $output[] = $this->elements->addHeaderRow2('Sender', 'State');
+    $output[] = $this->debugParser->parseStatesFields($this->statesFields);
+    $output[] = $this->elements->endTable();
+    if(!$ajax)
+    {      
+      $output[] = $this->elements->addSectionEnd();  
+    }
+    
+    return implode($output);   
+  }
+  
+  
+ /**
+  * Renders debug
+  *
+  * @return string HTML code
+  */    
+  public function renderDebug($ajax = false)
+  {
+    $output = [];   
+    
+    /* Center Main : Left Column: states */
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionClass('tabDebug');
+    }
+    $output[] = $this->elements->beginTable('tblStates');
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Debugger ('.count($this->statesFields).')'));
     $output[] = $this->renderMonits();
     $output[] = $this->elements->addHeaderRow2('Sender', 'State');
     $output[] = $this->debugParser->parseStatesFields($this->statesFields);
@@ -20177,7 +20257,8 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
           $output[] = $this->renderErrors();
           $output[] = $this->renderConsoleDebug();
           $output[] = $this->renderStates();
-          $output[] = $this->renderConfig();    
+          $output[] = $this->renderConfig(); 
+          $output[] = $this->renderDebug();          
           $output[] = $this->elements->addSectionEnd();     
           
         /* end sectionStates */

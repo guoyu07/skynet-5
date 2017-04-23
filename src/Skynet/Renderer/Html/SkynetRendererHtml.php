@@ -77,11 +77,13 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['tabStates'] = $this->statusRenderer->renderStates(true);
     $output['tabErrors'] = $this->statusRenderer->renderErrors(true);
     $output['tabConfig'] = $this->statusRenderer->renderConfig(true);
+    $output['tabDebug'] = $this->statusRenderer->renderDebug(true);
     $output['tabConsole'] = $this->statusRenderer->renderConsoleDebug(true);
     
     $output['numStates'] = count($this->statesFields);
     $output['numErrors'] = count($this->errorsFields);
     $output['numConfig'] = count($this->configFields);
+    $output['numDebug'] = count($this->statesFields);
     $output['numConsole'] = count($this->consoleOutput);
     
     $output['numConnections'] = $this->connectionsCounter;
