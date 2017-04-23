@@ -51,6 +51,10 @@ class SkynetConfig
     /* core_cloner -> bool:[true|false]
     If TRUE - cloner will be enabled and listening for clone command */
     'core_cloner' => false,
+    
+    /* core_check_new_versions -> bool:[true|false]
+    If TRUE - information about new version is given from GitHub */
+    'core_check_new_versions' => true,
 
 
     /* core_encryptor -> string:[base64|...]

@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.22 23:53:10 (1492905190) */
+/* Skynet Standalone | version compiled: 2017.04.23 00:18:19 (1492906699) */
 
 namespace Skynet;
 
@@ -54,6 +54,10 @@ class SkynetConfig
     /* core_cloner -> bool:[true|false]
     If TRUE - cloner will be enabled and listening for clone command */
     'core_cloner' => false,
+    
+    /* core_check_new_versions -> bool:[true|false]
+    If TRUE - information about new version is given from GitHub */
+    'core_check_new_versions' => true,
 
     /* core_encryptor -> string:[base64|...]
     Name of registered class used for encrypting data */
@@ -17700,6 +17704,27 @@ class SkynetRendererHtmlElements
     $this->css = $styles;    
   }
   
+    
+ /**
+  * Checks for new version on GitHub
+  *
+  * @return string Version
+  */ 
+  private function checkNewestVersion()
+  {
+    if(!SkynetConfig::get('core_check_new_versions'))
+    {
+      return null;
+    }
+    
+    $url = 'https://raw.githubusercontent.com/szczyglinski/skynet/master/VERSION';
+    $version = @file_get_contents($url);
+    if($version !== null)
+    {
+      return ' ('.$version.')';
+    }   
+  }
+  
  /**
   * Adds subtitle
   * 
@@ -18040,7 +18065,7 @@ class SkynetRendererHtmlElements
   {
     $header = $this->addH1('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAaCAYAAAD1wA/qAAAALHRFWHRDcmVhdGlvbiBUaW1lAMWaciAxOSBrd2kgMjAxNyAwMjo1Njo0NSArMDEwMBachLcAAAAHdElNRQfhBBMAORXFuVVnAAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAx9JREFUeNrtl19IU1Ecx+/+Ovtjioj5oEEPPS0J6inaW4EPBjXooVgPJfbQg+0hmBAoY7FUamwPU/eyDWszaq5oC5kVW8m0Qool+rIYDPawQpq49sf97XfmOTW16Zlt3oK+8OVc7j1/fp97zu/ccxnmv7aWUCgslCqViq/X6xvQtUgkYjus8sTj8QqlRCJhgsHg3Wg06pHL5XXFz/56kUA7OjqYUCikzWPFYrHp3t7e+n8Chs/nF0qpVMqEw2FDfoOSyeR7pVLZhOpwuVy2w90aQiaTMUtLS2P5EkqlUr7BwcFDqC6Hw2E77N9DdHd3cyORiDW/jTKZzH2dTsd22OtF1ntPT49wZWXFvh0E6C24OZfLMQaDge3w10MoFIpaSOZJCohZcAOYAXPBd8xm8zFWIUiy9vf31yUSCTcFhBdcjyGQzfh+aHx8XMwKBEnSgYGBRkjeWQqIafABDMABP9jwPGy324+zAqPVag9C0n6ggHgN3l+0nB6WqPcNYE7u6kyMjIy0ZbPZBQoItOT2YQge+PFWlWEDWB4dHZVUFYIk9tDQ0GEY8zMFxCvwXgwhAD+haIP03WQynakKBEnsvr6+I5DYAYpgXoD3YIga8DNKCKKk1Wo9W1EIspzUavXR1dXVEEUQLnAthhCBn5cJQZSamJg4X1EYjUZzIp1Of6UYfBIHz+AZce0QgijrdDovVgRieHj4FCR2hGJQ9OZrMATKjZd/CPFTU1NTVzeukLJkNBpPQz9RirEcYCGGQFutu1IQRB6P59qOYCwWSye0T1CM8TS/tishCPTRe1NpCKKZmZkbZcHYbLYL0C5N0be9CAKdobzVgiCam5tTkDg3/dMU0zkcjktQP0fRpw3MxxCN4HfVhiDy+Xy3NsEUU7lcriuUfT3Kr32pEUQTelG7BUG0uLh4u7W1tRC3QCD4NStut/s6ZR/orMTFEM3gj7sNQeT3+++1t7evAbS0tDBer/cmZVt0auVgiDbwJ7YgiAKBgK6rq0vImZ+fPycWi1XAhP5XMyXyHx20voA7wTF8Tw2+DF4uf2OvmFBeCOLx+NgP1c7Cc+35//8AAAAASUVORK5CYII=
 "/> SKYNET v.'.SkynetVersion::VERSION, 'logo');
-    $header.= '(c) 2017 Marcin Szczyglinski<br>Updates: '.$this->addUrl(SkynetVersion::WEBSITE).'<br>Website: '.$this->addUrl(SkynetVersion::BLOG);
+    $header.= '(c) 2017 Marcin Szczyglinski<br>Updates: '.$this->addUrl(SkynetVersion::WEBSITE).$this->checkNewestVersion().'<br>Website: '.$this->addUrl(SkynetVersion::BLOG);
     $header.= $this->getNl();      
     return $header;
   }
