@@ -200,6 +200,11 @@ class SkynetConnect
     /* Add cluster to database if not exists */
     if($this->isConnected)
     {
+      if($this->clustersRegistry->isClusterBlocked($this->cluster))
+      {
+        $this->clustersRegistry->removeBlocked($this->cluster);
+      }
+      
       $this->clustersRegistry->add($this->cluster);
       $this->cluster->getHeader()->setResult(1);
     }

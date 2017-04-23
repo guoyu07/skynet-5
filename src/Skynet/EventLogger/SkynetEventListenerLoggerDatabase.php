@@ -168,7 +168,112 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
     
     return array('cli' => $cli, 'console' => $console);    
   }
-
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];    
+    
+    $queries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
+    $queries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';    
+    $queries['skynet_logs_echo'] = 'CREATE TABLE skynet_logs_echo (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
+    $queries['skynet_logs_broadcast'] = 'CREATE TABLE skynet_logs_broadcast (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
+    $queries['skynet_errors'] = 'CREATE TABLE skynet_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, remote_ip VARCHAR (15))';
+    $queries['skynet_access_errors'] = 'CREATE TABLE skynet_access_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, remote_cluster TEXT, request_uri TEXT, remote_host TEXT, remote_ip VARCHAR (15))';   
+    $queries['skynet_logs_selfupdate'] = 'CREATE TABLE skynet_logs_selfupdate (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, sender_url TEXT, source  TEXT, status TEXT, from_version VARCHAR (15), to_version VARCHAR (15))';    
+   
+    $tables['skynet_logs_responses'] = 'Logs: Responses';
+    $tables['skynet_logs_requests'] = 'Logs: Requests';
+    $tables['skynet_logs_echo'] = 'Logs: Echo';
+    $tables['skynet_logs_broadcast'] = 'Logs: Broadcasts';
+    $tables['skynet_errors'] = 'Logs: Errors';
+    $tables['skynet_access_errors'] = 'Logs: Access Errors';
+    $tables['skynet_logs_selfupdate'] = 'Logs: Self-updates';  
+    
+    
+    $fields['skynet_logs_responses'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'content' => 'Full Response',
+    'sender_url' => 'Response Sender',
+    'receiver_url' => 'Response Receiver'
+    ];
+    
+    $fields['skynet_logs_requests'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'content' => 'Full Request',
+    'sender_url' => 'Request Sender',
+    'receiver_url' => 'Request Receiver'
+    ];
+    
+    $fields['skynet_logs_echo'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'request' => 'Echo Full Request',    
+    'ping_from' => '@Echo received from',
+    'ping_to' => '@Echo resended to',
+    'urls_chain' => 'URLs Chain'
+    ];
+    
+    $fields['skynet_logs_broadcast'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'request' => 'Echo Full Request',    
+    'ping_from' => '@Broadcast received from',
+    'ping_to' => '@Broadcast resended to',
+    'urls_chain' => 'URLs Chain'
+    ];
+    
+    $fields['skynet_errors'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Created At',
+    'content' => 'Error log',    
+    'remote_ip' => 'IP Address'
+    ];
+    
+    $fields['skynet_access_errors'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Created At',
+    'request' => 'Full Request',
+    'remote_cluster' => 'Remote Cluster Address',
+    'request_uri' => 'Request URI',
+    'remote_host' => 'Remote Host',
+    'remote_ip' => 'Remote IP Address'
+    ];
+    
+    $fields['skynet_logs_selfupdate'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Created At',
+    'request' => 'Full Request',
+    'sender_url' => 'Update command Sender',
+    'source' => 'Update remote Source Code',
+    'status' => 'Update Status',
+    'from_version' => 'From version (before)',
+    'to_version' => 'To version (after)'
+    ];
+    
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
+  
  /**
   * Saves response data in database
   *

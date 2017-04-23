@@ -4,7 +4,7 @@
  * Skynet/Cluster/SkynetClustersRegistry.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -138,15 +138,17 @@ class SkynetClustersRegistry
     {
       $this->updateFromHeader($cluster);
     }  
-    if(!$this->isClusterBlocked($cluster))
+    
+    if($this->isCluster($cluster))
     {
-      if($this->isCluster($cluster))
+      return $this->update($cluster);
+      
+    } else {
+      if(!$this->isClusterBlocked($cluster))
       {
-        return $this->update($cluster);
-      } else {
         return $this->insert($cluster);
       }
-    }
+    }    
   }  
 
  /**
@@ -250,7 +252,13 @@ class SkynetClustersRegistry
     }
   }
   
-  
+ /**
+  * Checks for address exists
+  *
+  * @param string $url
+  *
+  * @return bool
+  */ 
   public function addressExists($url)
   {
     $cluster = new SkynetCluster();
@@ -268,7 +276,7 @@ class SkynetClustersRegistry
   *
   * @return bool
   */
-  private function isCluster(SkynetCluster $cluster = null)
+  public function isCluster(SkynetCluster $cluster = null)
   {   
     if($cluster === null)
     {
@@ -288,7 +296,7 @@ class SkynetClustersRegistry
       return false;        
     }    
     
-    $url = str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);   
+    $url = SkynetHelper::cleanUrl($url);  
     
     try
     {
@@ -318,7 +326,7 @@ class SkynetClustersRegistry
   *
   * @return bool
   */
-  private function isClusterBlocked(SkynetCluster $cluster = null)
+  public function isClusterBlocked(SkynetCluster $cluster = null)
   {   
     if($cluster === null)
     {
@@ -338,7 +346,7 @@ class SkynetClustersRegistry
       return false;        
     }    
     
-    $url = str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);   
+    $url = SkynetHelper::cleanUrl($url);
     
     try
     {
@@ -368,7 +376,7 @@ class SkynetClustersRegistry
   *
   * @return bool True if success
   */
-  private function update(SkynetCluster $cluster = null)
+  public function update(SkynetCluster $cluster = null)
   {
     if($cluster === null)
     {
@@ -388,7 +396,7 @@ class SkynetClustersRegistry
       return false;        
     }
 
-    $url = str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+    $url = SkynetHelper::cleanUrl($url);
     
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyself() || strpos($url, '/') === false)
@@ -448,6 +456,8 @@ class SkynetClustersRegistry
   {
     try
     {
+      $url = SkynetHelper::cleanUrl($url);
+      
       $this->removeAllBlocked($url);
       
       $stmt = $this->db->prepare(
@@ -476,6 +486,8 @@ class SkynetClustersRegistry
   {
     try
     {
+      $url = SkynetHelper::cleanUrl($url);
+      
       $stmt = $this->db->prepare(
       'DELETE FROM skynet_clusters_blocked WHERE url != :url');
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
@@ -498,18 +510,52 @@ class SkynetClustersRegistry
   *
   * @return bool True if success
   */
-  private function remove(SkynetCluster $cluster = null)
+  public function remove(SkynetCluster $cluster = null)
   {
     //$url = $this->cluster->getHeader()->getUrl();
     if($cluster !== null) 
     {
       $url = $cluster->getUrl();
+      $url = SkynetHelper::cleanUrl($url);
     }   
 
     try
     {
       $stmt = $this->db->prepare(
       'DELETE FROM skynet_clusters WHERE url = :url');
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      if($stmt->execute()) 
+      {
+        return true;
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  }
+  
+ /**
+  * Removes cluster from blocked in database
+  *
+  * @param SkynetCluster $cluster Cluster entity to update
+  *
+  * @return bool True if success
+  */
+  public function removeBlocked(SkynetCluster $cluster = null)
+  {    
+    if($cluster !== null) 
+    {
+      $url = $cluster->getUrl();
+      $url = SkynetHelper::cleanUrl($url);
+      var_dump($url);
+    }   
+
+    try
+    {
+      $stmt = $this->db->prepare(
+      'DELETE FROM skynet_clusters_blocked WHERE url = :url');
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
@@ -530,7 +576,7 @@ class SkynetClustersRegistry
   *
   * @return bool True if success
   */
-  private function insert(SkynetCluster $cluster = null)
+  public function insert(SkynetCluster $cluster = null)
   {
     if($cluster === null)
     {
@@ -550,7 +596,7 @@ class SkynetClustersRegistry
       return false;        
     }
     
-    $url = str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+   $url = SkynetHelper::cleanUrl($url);
     
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
@@ -609,7 +655,7 @@ class SkynetClustersRegistry
   *
   * @return bool True if success
   */
-  private function insertBlocked(SkynetCluster $cluster = null)
+  public function insertBlocked(SkynetCluster $cluster = null)
   {
     if($cluster === null)
     {
@@ -629,7 +675,7 @@ class SkynetClustersRegistry
       return false;        
     }
     
-    $url = str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+    $url = SkynetHelper::cleanUrl($url);
     
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
@@ -700,7 +746,7 @@ class SkynetClustersRegistry
       $clusterUrlDecoded = base64_decode($clusterUrlRaw);
       if(strcmp($clusterUrlDecoded, SkynetHelper::getMyUrl()) != 0)
       {
-        $url = str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $clusterUrlDecoded);
+        $url = SkynetHelper::cleanUrl($clusterUrlDecoded);
         $newCluster = new SkynetCluster();
         $newCluster->setUrl($url);
         $newClusters[] = $newCluster;

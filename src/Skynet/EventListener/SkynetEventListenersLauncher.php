@@ -36,6 +36,7 @@ class SkynetEventListenersLauncher
   private $cliOutput = [];
   private $consoleOutput = [];
   private $sender = true;
+  private $dbTables = [];
 
  /**
   * Constructor

@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 19:42:28 (1492976548) */
+/* Skynet Standalone | version compiled: 2017.04.23 21:27:42 (1492982862) */
 
 namespace Skynet;
 
@@ -1650,6 +1650,24 @@ class SkynetEventListenerMyListener extends SkynetEventListenerAbstract implemen
     $console = []; 
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+      
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }
 
@@ -2506,7 +2524,7 @@ class SkynetClusterHeader
  * Skynet/Cluster/SkynetClustersRegistry.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -2631,15 +2649,17 @@ class SkynetClustersRegistry
     {
       $this->updateFromHeader($cluster);
     }  
-    if(!$this->isClusterBlocked($cluster))
+    
+    if($this->isCluster($cluster))
     {
-      if($this->isCluster($cluster))
+      return $this->update($cluster);
+      
+    } else {
+      if(!$this->isClusterBlocked($cluster))
       {
-        return $this->update($cluster);
-      } else {
         return $this->insert($cluster);
       }
-    }
+    }    
   }  
 
  /**
@@ -2743,7 +2763,13 @@ class SkynetClustersRegistry
     }
   }
   
-  
+ /**
+  * Checks for address exists
+  *
+  * @param string $url
+  *
+  * @return bool
+  */ 
   public function addressExists($url)
   {
     $cluster = new SkynetCluster();
@@ -2761,7 +2787,7 @@ class SkynetClustersRegistry
   *
   * @return bool
   */
-  private function isCluster(SkynetCluster $cluster = null)
+  public function isCluster(SkynetCluster $cluster = null)
   {   
     if($cluster === null)
     {
@@ -2781,7 +2807,7 @@ class SkynetClustersRegistry
       return false;        
     }    
     
-    $url = str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);   
+    $url = SkynetHelper::cleanUrl($url);  
     
     try
     {
@@ -2811,7 +2837,7 @@ class SkynetClustersRegistry
   *
   * @return bool
   */
-  private function isClusterBlocked(SkynetCluster $cluster = null)
+  public function isClusterBlocked(SkynetCluster $cluster = null)
   {   
     if($cluster === null)
     {
@@ -2831,7 +2857,7 @@ class SkynetClustersRegistry
       return false;        
     }    
     
-    $url = str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);   
+    $url = SkynetHelper::cleanUrl($url);
     
     try
     {
@@ -2861,7 +2887,7 @@ class SkynetClustersRegistry
   *
   * @return bool True if success
   */
-  private function update(SkynetCluster $cluster = null)
+  public function update(SkynetCluster $cluster = null)
   {
     if($cluster === null)
     {
@@ -2881,7 +2907,7 @@ class SkynetClustersRegistry
       return false;        
     }
 
-    $url = str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+    $url = SkynetHelper::cleanUrl($url);
     
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyself() || strpos($url, '/') === false)
@@ -2941,6 +2967,8 @@ class SkynetClustersRegistry
   {
     try
     {
+      $url = SkynetHelper::cleanUrl($url);
+      
       $this->removeAllBlocked($url);
       
       $stmt = $this->db->prepare(
@@ -2969,6 +2997,8 @@ class SkynetClustersRegistry
   {
     try
     {
+      $url = SkynetHelper::cleanUrl($url);
+      
       $stmt = $this->db->prepare(
       'DELETE FROM skynet_clusters_blocked WHERE url != :url');
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
@@ -2991,18 +3021,52 @@ class SkynetClustersRegistry
   *
   * @return bool True if success
   */
-  private function remove(SkynetCluster $cluster = null)
+  public function remove(SkynetCluster $cluster = null)
   {
     //$url = $this->cluster->getHeader()->getUrl();
     if($cluster !== null) 
     {
       $url = $cluster->getUrl();
+      $url = SkynetHelper::cleanUrl($url);
     }   
 
     try
     {
       $stmt = $this->db->prepare(
       'DELETE FROM skynet_clusters WHERE url = :url');
+      $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
+      if($stmt->execute()) 
+      {
+        return true;
+      }
+    
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::CLUSTERS_DB, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  }
+  
+ /**
+  * Removes cluster from blocked in database
+  *
+  * @param SkynetCluster $cluster Cluster entity to update
+  *
+  * @return bool True if success
+  */
+  public function removeBlocked(SkynetCluster $cluster = null)
+  {    
+    if($cluster !== null) 
+    {
+      $url = $cluster->getUrl();
+      $url = SkynetHelper::cleanUrl($url);
+      var_dump($url);
+    }   
+
+    try
+    {
+      $stmt = $this->db->prepare(
+      'DELETE FROM skynet_clusters_blocked WHERE url = :url');
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
@@ -3023,7 +3087,7 @@ class SkynetClustersRegistry
   *
   * @return bool True if success
   */
-  private function insert(SkynetCluster $cluster = null)
+  public function insert(SkynetCluster $cluster = null)
   {
     if($cluster === null)
     {
@@ -3043,7 +3107,7 @@ class SkynetClustersRegistry
       return false;        
     }
     
-    $url = str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+   $url = SkynetHelper::cleanUrl($url);
     
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
@@ -3102,7 +3166,7 @@ class SkynetClustersRegistry
   *
   * @return bool True if success
   */
-  private function insertBlocked(SkynetCluster $cluster = null)
+  public function insertBlocked(SkynetCluster $cluster = null)
   {
     if($cluster === null)
     {
@@ -3122,7 +3186,7 @@ class SkynetClustersRegistry
       return false;        
     }
     
-    $url = str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+    $url = SkynetHelper::cleanUrl($url);
     
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
@@ -3193,7 +3257,7 @@ class SkynetClustersRegistry
       $clusterUrlDecoded = base64_decode($clusterUrlRaw);
       if(strcmp($clusterUrlDecoded, SkynetHelper::getMyUrl()) != 0)
       {
-        $url = str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $clusterUrlDecoded);
+        $url = SkynetHelper::cleanUrl($clusterUrlDecoded);
         $newCluster = new SkynetCluster();
         $newCluster->setUrl($url);
         $newClusters[] = $newCluster;
@@ -3536,6 +3600,18 @@ class SkynetHelper
     }
   }
   
+ /**
+  * Sanitazes URL
+  *
+  * @param string $url
+  *
+  * @return string
+  */  
+  public static function cleanUrl($url)
+  {
+    return str_replace(array(SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+  }
+ 
  /**
   * Translates Config value
   *
@@ -6464,9 +6540,12 @@ class SkynetChain
     {
       foreach($clusters as $cluster)
       {
-        if(!empty($cluster->getUrl())) 
+        if(!$this->clustersRegistry->isClusterBlocked($cluster))
         {
-          $ary[] = base64_encode($cluster->getUrl());
+          if(!empty($cluster->getUrl())) 
+          {
+            $ary[] = base64_encode($cluster->getUrl());
+          }
         }
       }
       $ret = implode(';', $ary);
@@ -6940,6 +7019,11 @@ class SkynetConnect
     /* Add cluster to database if not exists */
     if($this->isConnected)
     {
+      if($this->clustersRegistry->isClusterBlocked($this->cluster))
+      {
+        $this->clustersRegistry->removeBlocked($this->cluster);
+      }
+      
       $this->clustersRegistry->add($this->cluster);
       $this->cluster->getHeader()->setResult(1);
     }
@@ -9506,13 +9590,53 @@ class SkynetDatabaseSchema
     
   /** @var string[] Array with CREATE queries */
   private $createQueries = [];
+  
+  /** @var SkynetEventListenersInterface[] Array of Event Listeners */
+  private $eventListeners = [];
+
+  /** @var SkynetEventListenersInterface[] Array of Event Loggers */
+  private $eventLoggers = [];
 
  /**
   * Constructor (private)
   */
   public function __construct() 
   {
+    $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
+    $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();
+    $this->registerListenersTables();
+  }
+  
+ /**
+  * Registers tables from listeners
+  */
+  public function registerListenersTables()
+  {
+    $listenersData = [];
     
+    foreach($this->eventListeners as $listener)
+    {
+      $data = $listener->registerDatabase();  
+      if(is_array($data) && isset($data['queries']) && isset($data['tables']) && isset($data['fields']))
+      {
+        $listenersData[] = $data;
+      }
+    }
+    foreach($this->eventLoggers as $listener)
+    {
+      $data = $listener->registerDatabase(); 
+      if(is_array($data) && isset($data['queries']) && isset($data['tables']) && isset($data['fields']))
+      {
+        $listenersData[] = $data;
+      }
+    } 
+    
+    foreach($listenersData as $listenerData)
+    {
+      $this->createQueries = array_merge($this->createQueries, $listenerData['queries']);
+      $this->dbTables = array_merge($this->dbTables, $listenerData['tables']);
+      $this->tablesFields = array_merge($this->tablesFields, $listenerData['fields']);      
+    }    
   }
   
  /**
@@ -9522,21 +9646,6 @@ class SkynetDatabaseSchema
   */   
   public function getCreateQueries()
   {   
-    $this->createQueries = [];
-    
-    $this->createQueries['skynet_clusters'] = 'CREATE TABLE skynet_clusters (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
-    $this->createQueries['skynet_clusters_blocked'] = 'CREATE TABLE skynet_clusters_blocked (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
-    $this->createQueries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
-    $this->createQueries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
-    $this->createQueries['skynet_chain'] = ['CREATE TABLE skynet_chain (id INTEGER PRIMARY KEY AUTOINCREMENT, chain BIGINT, updated_at INTEGER)', 'INSERT INTO skynet_chain (id, chain, updated_at) VALUES(1, 0, 0)'];
-    $this->createQueries['skynet_logs_echo'] = 'CREATE TABLE skynet_logs_echo (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
-    $this->createQueries['skynet_logs_broadcast'] = 'CREATE TABLE skynet_logs_broadcast (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
-    $this->createQueries['skynet_errors'] = 'CREATE TABLE skynet_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, remote_ip VARCHAR (15))';
-    $this->createQueries['skynet_access_errors'] = 'CREATE TABLE skynet_access_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, remote_cluster TEXT, request_uri TEXT, remote_host TEXT, remote_ip VARCHAR (15))';
-    $this->createQueries['skynet_registry'] = 'CREATE TABLE skynet_registry (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, key VARCHAR (15), content TEXT)';
-    $this->createQueries['skynet_options'] = 'CREATE TABLE skynet_options (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, key VARCHAR (15), content TEXT)';
-    $this->createQueries['skynet_logs_selfupdate'] = 'CREATE TABLE skynet_logs_selfupdate (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, sender_url TEXT, source  TEXT, status TEXT, from_version VARCHAR (15), to_version VARCHAR (15))';
-
     return $this->createQueries;
   }
   
@@ -9547,21 +9656,6 @@ class SkynetDatabaseSchema
   */   
   public function getDbTables()
   {
-    $this->dbTables = [];
-    
-    $this->dbTables['skynet_clusters'] = 'Clusters';
-    $this->dbTables['skynet_clusters_blocked'] = 'Clusters (corrupted/blocked)';
-    $this->dbTables['skynet_registry'] = 'Registry';
-    $this->dbTables['skynet_options'] = 'Options';
-    $this->dbTables['skynet_chain'] = 'Chain';
-    $this->dbTables['skynet_logs_responses'] = 'Logs: Responses';
-    $this->dbTables['skynet_logs_requests'] = 'Logs: Requests';
-    $this->dbTables['skynet_logs_echo'] = 'Logs: Echo';
-    $this->dbTables['skynet_logs_broadcast'] = 'Logs: Broadcasts';
-    $this->dbTables['skynet_errors'] = 'Logs: Errors';
-    $this->dbTables['skynet_access_errors'] = 'Logs: Access Errors';
-    $this->dbTables['skynet_logs_selfupdate'] = 'Logs: Self-updates';  
-    
     return $this->dbTables;   
   }
 
@@ -9571,120 +9665,7 @@ class SkynetDatabaseSchema
   * @return string[]
   */  
   public function getTablesFields()
-  {
-    $this->tablesFields = [];
-    
-    $this->tablesFields['skynet_clusters'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'url' => 'URL Address',
-    'ip' => 'IP Address',
-    'version' => 'Skynet version',
-    'last_connect' => 'Last connection',
-    'registrator' => 'Added by'
-    ];
-    
-    $this->tablesFields['skynet_clusters_blocked'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'url' => 'URL Address',
-    'ip' => 'IP Address',
-    'version' => 'Skynet version',
-    'last_connect' => 'Last connection',
-    'registrator' => 'Added by'
-    ];
-    
-    $this->tablesFields['skynet_registry'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Last update',
-    'key' => 'Key',
-    'content' => 'Value'
-    ];
-    
-     $this->tablesFields['skynet_options'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Last update',
-    'key' => 'Key',
-    'content' => 'Value'
-    ];
-    
-    $this->tablesFields['skynet_chain'] = [
-    'id' => '#ID',
-    'chain' => 'Current Chain Value',
-    'updated_at' => 'Last update'
-    ];
-    
-    $this->tablesFields['skynet_logs_responses'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Sended/received At',
-    'content' => 'Full Response',
-    'sender_url' => 'Response Sender',
-    'receiver_url' => 'Response Receiver'
-    ];
-    
-    $this->tablesFields['skynet_logs_requests'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Sended/received At',
-    'content' => 'Full Request',
-    'sender_url' => 'Request Sender',
-    'receiver_url' => 'Request Receiver'
-    ];
-    
-    $this->tablesFields['skynet_logs_echo'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Sended/received At',
-    'request' => 'Echo Full Request',    
-    'ping_from' => '@Echo received from',
-    'ping_to' => '@Echo resended to',
-    'urls_chain' => 'URLs Chain'
-    ];
-    
-    $this->tablesFields['skynet_logs_broadcast'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Sended/received At',
-    'request' => 'Echo Full Request',    
-    'ping_from' => '@Broadcast received from',
-    'ping_to' => '@Broadcast resended to',
-    'urls_chain' => 'URLs Chain'
-    ];
-    
-    $this->tablesFields['skynet_errors'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Created At',
-    'content' => 'Error log',    
-    'remote_ip' => 'IP Address'
-    ];
-    
-    $this->tablesFields['skynet_access_errors'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Created At',
-    'request' => 'Full Request',
-    'remote_cluster' => 'Remote Cluster Address',
-    'request_uri' => 'Request URI',
-    'remote_host' => 'Remote Host',
-    'remote_ip' => 'Remote IP Address'
-    ];
-    
-    $this->tablesFields['skynet_logs_selfupdate'] = [
-    'id' => '#ID',
-    'skynet_id' => 'SkynetID',
-    'created_at' => 'Created At',
-    'request' => 'Full Request',
-    'sender_url' => 'Update command Sender',
-    'source' => 'Update remote Source Code',
-    'status' => 'Update Status',
-    'from_version' => 'From version (before)',
-    'to_version' => 'To version (after)'
-    ];
-    
+  {   
     return $this->tablesFields;
   }
 }
@@ -10849,6 +10830,24 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
     $cli[] = ['-compile', '', 'Compiles Skynet sources to standalone file'];
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }
 
@@ -11063,6 +11062,24 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
     $console[] = ['@clone', ['me', 'cluster address', 'cluster address1, address2 ...'], 'no args=TO ALL'];   
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }
 
@@ -11266,6 +11283,59 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
     
     return array('cli' => $cli, 'console' => $console);    
   }
+  
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    
+    $queries['skynet_clusters'] = 'CREATE TABLE skynet_clusters (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
+    $queries['skynet_clusters_blocked'] = 'CREATE TABLE skynet_clusters_blocked (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';    
+    $queries['skynet_chain'] = ['CREATE TABLE skynet_chain (id INTEGER PRIMARY KEY AUTOINCREMENT, chain BIGINT, updated_at INTEGER)', 'INSERT INTO skynet_chain (id, chain, updated_at) VALUES(1, 0, 0)'];
+    
+    $tables['skynet_clusters'] = 'Clusters';
+    $tables['skynet_clusters_blocked'] = 'Clusters (corrupted/blocked)';   
+    $tables['skynet_chain'] = 'Chain';   
+    
+    $fields['skynet_clusters'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'url' => 'URL Address',
+    'ip' => 'IP Address',
+    'version' => 'Skynet version',
+    'last_connect' => 'Last connection',
+    'registrator' => 'Added by'
+    ];
+    
+    $fields['skynet_clusters_blocked'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'url' => 'URL Address',
+    'ip' => 'IP Address',
+    'version' => 'Skynet version',
+    'last_connect' => 'Last connection',
+    'registrator' => 'Added by'
+    ];    
+    
+    $fields['skynet_chain'] = [
+    'id' => '#ID',
+    'chain' => 'Current Chain Value',
+    'updated_at' => 'Last update'
+    ];   
+    
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
 }
 
 /**
@@ -11422,6 +11492,24 @@ class SkynetEventListenerEcho extends SkynetEventListenerAbstract implements Sky
     $console[] = ['@broadcast', ['cluster address', 'cluster address1, address2 ...'], 'TO ALL'];     
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 
  /**
@@ -11827,6 +11915,24 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
     $console[] = ['@eval', 'php:code_to_execute', 'no args=TO ALL'];    
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }
 
@@ -12112,6 +12218,24 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
     $console[] = ['@fdel', 'path:/path/to', ''];    
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }
 
@@ -12330,6 +12454,34 @@ class SkynetEventListenerOptions extends SkynetEventListenerAbstract implements 
     $console[] = ['@opt_get', ['key', 'key1,key2, key3...'], 'no @to=TO ALL'];   
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    
+    $queries['skynet_options'] = 'CREATE TABLE skynet_options (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, key VARCHAR (15), content TEXT)';
+    $tables['skynet_options'] = 'Options';
+    $fields['skynet_options'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Last update',
+    'key' => 'Key',
+    'content' => 'Value'
+    ];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }
 
@@ -12544,6 +12696,34 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
     $console[] = ['@reg_get', ['key', 'key1,key2, key3...'], 'no @to=TO ALL'];  
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    
+    $queries['skynet_registry'] = 'CREATE TABLE skynet_registry (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, key VARCHAR (15), content TEXT)';
+    $tables['skynet_registry'] = 'Registry';
+    $fields['skynet_registry'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Last update',
+    'key' => 'Key',
+    'content' => 'Value'
+    ];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }
 
@@ -12690,6 +12870,7 @@ class SkynetEventListenersLauncher
   private $cliOutput = [];
   private $consoleOutput = [];
   private $sender = true;
+  private $dbTables = [];
 
  /**
   * Constructor
@@ -13236,6 +13417,25 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
     
     return array('cli' => $cli, 'console' => $console);    
   }
+  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
 }
 
 /**
@@ -13583,6 +13783,24 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
     
     return array('cli' => $cli, 'console' => $console);    
   }
+  
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
 }
 
 /**
@@ -13782,6 +14000,24 @@ class SkynetEventListenerEmailer extends SkynetEventListenerAbstract implements 
     $console[] = ['@emailer', ['1', '0'], 'TO ALL'];   
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
   
  /**
@@ -14122,7 +14358,112 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
     
     return array('cli' => $cli, 'console' => $console);    
   }
-
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];    
+    
+    $queries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
+    $queries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';    
+    $queries['skynet_logs_echo'] = 'CREATE TABLE skynet_logs_echo (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
+    $queries['skynet_logs_broadcast'] = 'CREATE TABLE skynet_logs_broadcast (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
+    $queries['skynet_errors'] = 'CREATE TABLE skynet_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, remote_ip VARCHAR (15))';
+    $queries['skynet_access_errors'] = 'CREATE TABLE skynet_access_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, remote_cluster TEXT, request_uri TEXT, remote_host TEXT, remote_ip VARCHAR (15))';   
+    $queries['skynet_logs_selfupdate'] = 'CREATE TABLE skynet_logs_selfupdate (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, sender_url TEXT, source  TEXT, status TEXT, from_version VARCHAR (15), to_version VARCHAR (15))';    
+   
+    $tables['skynet_logs_responses'] = 'Logs: Responses';
+    $tables['skynet_logs_requests'] = 'Logs: Requests';
+    $tables['skynet_logs_echo'] = 'Logs: Echo';
+    $tables['skynet_logs_broadcast'] = 'Logs: Broadcasts';
+    $tables['skynet_errors'] = 'Logs: Errors';
+    $tables['skynet_access_errors'] = 'Logs: Access Errors';
+    $tables['skynet_logs_selfupdate'] = 'Logs: Self-updates';  
+    
+    
+    $fields['skynet_logs_responses'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'content' => 'Full Response',
+    'sender_url' => 'Response Sender',
+    'receiver_url' => 'Response Receiver'
+    ];
+    
+    $fields['skynet_logs_requests'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'content' => 'Full Request',
+    'sender_url' => 'Request Sender',
+    'receiver_url' => 'Request Receiver'
+    ];
+    
+    $fields['skynet_logs_echo'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'request' => 'Echo Full Request',    
+    'ping_from' => '@Echo received from',
+    'ping_to' => '@Echo resended to',
+    'urls_chain' => 'URLs Chain'
+    ];
+    
+    $fields['skynet_logs_broadcast'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'request' => 'Echo Full Request',    
+    'ping_from' => '@Broadcast received from',
+    'ping_to' => '@Broadcast resended to',
+    'urls_chain' => 'URLs Chain'
+    ];
+    
+    $fields['skynet_errors'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Created At',
+    'content' => 'Error log',    
+    'remote_ip' => 'IP Address'
+    ];
+    
+    $fields['skynet_access_errors'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Created At',
+    'request' => 'Full Request',
+    'remote_cluster' => 'Remote Cluster Address',
+    'request_uri' => 'Request URI',
+    'remote_host' => 'Remote Host',
+    'remote_ip' => 'Remote IP Address'
+    ];
+    
+    $fields['skynet_logs_selfupdate'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Created At',
+    'request' => 'Full Request',
+    'sender_url' => 'Update command Sender',
+    'source' => 'Update remote Source Code',
+    'status' => 'Update Status',
+    'from_version' => 'From version (before)',
+    'to_version' => 'To version (after)'
+    ];
+    
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
+  
  /**
   * Saves response data in database
   *
@@ -14581,6 +14922,24 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $console = [];    
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */    
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 
  /**
@@ -16990,9 +17349,8 @@ class SkynetRendererHtmlClustersRenderer extends SkynetRendererAbstract
            break;          
          }
          
-         $id = $cluster->getHeader()->getConnId();
-         
-         // var_dump($cluster->getHeader());         
+         $id = $cluster->getHeader()->getConnId();         
+             
          $status = '<span class="statusId'.$id.' statusIcon '.$class.'">( )</span>';
          $url = $this->elements->addUrl(SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl(), $cluster->getHeader()->getUrl());
          $output[] = $this->elements->addClusterRow($status, $url, $cluster->getHeader()->getPing().'ms', '<a href="javascript:skynetControlPanel.insertConnect(\''.SkynetConfig::get('core_connection_protocol').$cluster->getHeader()->getUrl().'\');" class="btn">CONNECT</a>');

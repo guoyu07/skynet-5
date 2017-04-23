@@ -165,6 +165,24 @@ class SkynetEventListenerEcho extends SkynetEventListenerAbstract implements Sky
     $console[] = ['@broadcast', ['cluster address', 'cluster address1, address2 ...'], 'TO ALL'];     
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 
  /**

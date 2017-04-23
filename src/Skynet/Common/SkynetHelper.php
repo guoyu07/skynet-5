@@ -116,6 +116,18 @@ class SkynetHelper
   }
   
  /**
+  * Sanitazes URL
+  *
+  * @param string $url
+  *
+  * @return string
+  */  
+  public static function cleanUrl($url)
+  {
+    return str_replace(array(\SkynetUser\SkynetConfig::get('core_connection_protocol'), 'http://', 'https://'), '', $url);
+  }
+ 
+ /**
   * Translates Config value
   *
   * @param string $key

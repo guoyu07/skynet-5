@@ -208,4 +208,57 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
     
     return array('cli' => $cli, 'console' => $console);    
   }
+  
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    
+    $queries['skynet_clusters'] = 'CREATE TABLE skynet_clusters (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
+    $queries['skynet_clusters_blocked'] = 'CREATE TABLE skynet_clusters_blocked (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';    
+    $queries['skynet_chain'] = ['CREATE TABLE skynet_chain (id INTEGER PRIMARY KEY AUTOINCREMENT, chain BIGINT, updated_at INTEGER)', 'INSERT INTO skynet_chain (id, chain, updated_at) VALUES(1, 0, 0)'];
+    
+    $tables['skynet_clusters'] = 'Clusters';
+    $tables['skynet_clusters_blocked'] = 'Clusters (corrupted/blocked)';   
+    $tables['skynet_chain'] = 'Chain';   
+    
+    $fields['skynet_clusters'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'url' => 'URL Address',
+    'ip' => 'IP Address',
+    'version' => 'Skynet version',
+    'last_connect' => 'Last connection',
+    'registrator' => 'Added by'
+    ];
+    
+    $fields['skynet_clusters_blocked'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'url' => 'URL Address',
+    'ip' => 'IP Address',
+    'version' => 'Skynet version',
+    'last_connect' => 'Last connection',
+    'registrator' => 'Added by'
+    ];    
+    
+    $fields['skynet_chain'] = [
+    'id' => '#ID',
+    'chain' => 'Current Chain Value',
+    'updated_at' => 'Last update'
+    ];   
+    
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
 }

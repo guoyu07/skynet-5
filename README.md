@@ -1,7 +1,7 @@
 ### Donate project in BTC: 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr or PayPal: [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
 ------------
-Current version: 1.1.2-alpha (2017.04.24)
+Current version: 1.1.3-alpha (2017.04.24)
 [https://skynetframework.blogspot.com](https://skynetframework.blogspot.com)
 
 
