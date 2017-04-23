@@ -109,6 +109,11 @@ class SkynetRendererHtmlThemes
     .tdClusterPing { width:10%; }
     .tdClusterConn { width:20%; }
     
+    .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
+    .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
+    .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
+    .tblStates .tdKey { width:15%; } .tblStates .tdValue { width:85%; }
+    
     .statusIcon { padding: 1px; }
     .statusConnected { background: #3ffb6e; }
     .statusIdle { background: #2e2e2e; }
@@ -139,22 +144,19 @@ class SkynetRendererHtmlThemes
     .formConnections { padding-top:30px }
     .sendBtn { background: #50ea59; color: #000;}
     .sendBtn:hover { background: #89f190; color: #000;}
-    .aSwitch, .aTxtGen { border:1px solid #2a2a2a; padding:3px; }
-    .aTxtGen b { color:#6f8f69; }
-    .aTxtGen:hover b { color: #fff; }
-    .aSwitch:hover, .aTxtGen:hover { border:1px solid #b5b5b5; background: #2a2a2a; padding:3px; text-decoration:none; color: #fff}
-    .aDelete, .aLogout { background:#fde1ea; border:1px solid red; padding:3px; color:black; }
-    .aDelete:hover, .aLogout:hover { background:red; border:1px solid red; padding:3px; color:black; text-decoration:none; }
-    .aDelete b, .aLogout b { color: #831c15; }
-    .aDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
+    .aSwitch, .btnNormal { border:1px solid #2a2a2a; padding:3px; background:#1e1e1e; }
+    .btnNormal b { color:#a4ce9c; }
+    .btnNormal:hover b { color: #fff; }
+    .aSwitch:hover, .btnNormal:hover { border:1px solid #b5b5b5; background: #2a2a2a; padding:3px; text-decoration:none; color: #fff}
+    .btnDelete, .aLogout { background:#fde1ea; border:1px solid red; padding:3px; color:black; }
+    .btnDelete:hover, .aLogout:hover { background:red; border:1px solid red; padding:3px; color:black; text-decoration:none; }
+    .btnDelete b, .aLogout b { color: #831c15; }
+    .btnDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
     .clr { clear: both; }
     .loginForm { padding-top:100px; }
     .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }
     
-    .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
-    .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
-    .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
-    .tblStates .tdKey { width:15%; } .tblStates .tdValue { width:85%; }
+    
     </style>';
   }    
 

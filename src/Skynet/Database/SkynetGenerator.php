@@ -73,7 +73,7 @@ class SkynetGenerator
   */  
   private function generateFromTable($table, $id)
   {
-    $row = $this->database->getTableRow($table, $id);
+    $row = $this->database->ops->getTableRow($table, $id);
     
     $fileName = date('Y-m-d_H-i-s').'_'.$table.'_'.$id.'.txt';
     $logFile = new SkynetLogFile('RECORD #ID '.$id);

@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 17:01:23 (1492966883) */
+/* Skynet Standalone | version compiled: 2017.04.23 17:26:57 (1492968417) */
 
 namespace Skynet;
 
@@ -9648,7 +9648,7 @@ class SkynetGenerator
   */  
   private function generateFromTable($table, $id)
   {
-    $row = $this->database->getTableRow($table, $id);
+    $row = $this->database->ops->getTableRow($table, $id);
     
     $fileName = date('Y-m-d_H-i-s').'_'.$table.'_'.$id.'.txt';
     $logFile = new SkynetLogFile('RECORD #ID '.$id);
@@ -17753,7 +17753,7 @@ class SkynetRendererHtmlDatabaseRenderer
   private function getNewButton()
   {
     $newHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetNewRecord=1&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;    
-    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('New record'), false, 'aDelete').$this->elements->getNl().$this->elements->getNl();
+    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('New record'), false, 'btnNormal').$this->elements->getNl().$this->elements->getNl();
   }  
   
  /**
@@ -17767,7 +17767,7 @@ class SkynetRendererHtmlDatabaseRenderer
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteRecordId='.$this->tableEditId.'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteLink = 'javascript:if(confirm(\'Delete record from database?\')) window.location.assign(\''.$deleteHref.'\');';
     $saveBtn = '<input type="submit" value="Save record"/>';    
-    $deleteBtn = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete');
+    $deleteBtn = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'btnDelete');
     $actionsEdit = $saveBtn.' '.$deleteBtn;
     $actionsNew = '<input type="submit" value="Add record"/>';
     
@@ -17878,7 +17878,7 @@ class SkynetRendererHtmlDatabaseRenderer
     if($this->selectedTable != 'skynet_chain')
     {
       $deleteLink = 'javascript:if(confirm(\'Delete ALL RECORDS from this table?\')) window.location.assign(\''.$deleteHref.'\');';
-      $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'aDelete');
+      $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'btnDelete');
     }
     
     return '<form method="GET" action="">
@@ -17981,10 +17981,10 @@ class SkynetRendererHtmlDatabaseRenderer
     $deleteLink = 'javascript:if(confirm(\'Delete record from database?\')) window.location.assign(\''.$deleteHref.'\');';
     if($this->selectedTable != 'skynet_chain')
     {
-      $deleteStr = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete');
+      $deleteStr = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'btnDelete');
     }
-    $editStr = $this->elements->addUrl($editLink, $this->elements->addBold('Edit'), false, 'aTxtGen'); 
-    $td[] = '<td class="tdActions">'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$editStr.' '.$deleteStr.'</td>';
+    $editStr = $this->elements->addUrl($editLink, $this->elements->addBold('Edit'), false, 'btnNormal'); 
+    $td[] = '<td class="tdActions">'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'btnNormal').' '.$editStr.' '.$deleteStr.'</td>';
     
     return '<tr>'.implode('', $td).'</tr>';    
   }
@@ -19785,6 +19785,11 @@ class SkynetRendererHtmlThemes
     .tdClusterPing { width:10%; }
     .tdClusterConn { width:20%; }
     
+    .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
+    .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
+    .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
+    .tblStates .tdKey { width:15%; } .tblStates .tdValue { width:85%; }
+    
     .statusIcon { padding: 1px; }
     .statusConnected { background: #3ffb6e; }
     .statusIdle { background: #2e2e2e; }
@@ -19815,22 +19820,19 @@ class SkynetRendererHtmlThemes
     .formConnections { padding-top:30px }
     .sendBtn { background: #50ea59; color: #000;}
     .sendBtn:hover { background: #89f190; color: #000;}
-    .aSwitch, .aTxtGen { border:1px solid #2a2a2a; padding:3px; }
-    .aTxtGen b { color:#6f8f69; }
-    .aTxtGen:hover b { color: #fff; }
-    .aSwitch:hover, .aTxtGen:hover { border:1px solid #b5b5b5; background: #2a2a2a; padding:3px; text-decoration:none; color: #fff}
-    .aDelete, .aLogout { background:#fde1ea; border:1px solid red; padding:3px; color:black; }
-    .aDelete:hover, .aLogout:hover { background:red; border:1px solid red; padding:3px; color:black; text-decoration:none; }
-    .aDelete b, .aLogout b { color: #831c15; }
-    .aDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
+    .aSwitch, .btnNormal { border:1px solid #2a2a2a; padding:3px; background:#1e1e1e; }
+    .btnNormal b { color:#a4ce9c; }
+    .btnNormal:hover b { color: #fff; }
+    .aSwitch:hover, .btnNormal:hover { border:1px solid #b5b5b5; background: #2a2a2a; padding:3px; text-decoration:none; color: #fff}
+    .btnDelete, .aLogout { background:#fde1ea; border:1px solid red; padding:3px; color:black; }
+    .btnDelete:hover, .aLogout:hover { background:red; border:1px solid red; padding:3px; color:black; text-decoration:none; }
+    .btnDelete b, .aLogout b { color: #831c15; }
+    .btnDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
     .clr { clear: both; }
     .loginForm { padding-top:100px; }
     .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }
     
-    .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
-    .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
-    .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
-    .tblStates .tdKey { width:15%; } .tblStates .tdValue { width:85%; }
+    
     </style>';
   }    
 
