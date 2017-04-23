@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 19:36:23 (1492976183) */
+/* Skynet Standalone | version compiled: 2017.04.23 19:42:28 (1492976548) */
 
 namespace Skynet;
 
@@ -3548,7 +3548,7 @@ class SkynetHelper
     $titles = [];
     
     $titles['core_secure'] = 'Secure connections by Key';
-    $titles['core_raw'] = 'Data encryptions';
+    $titles['core_raw'] = 'Disable data encryption';
     $titles['core_updater'] = 'Updater engine enabled';
     $titles['core_cloner'] = 'Cloner engine enabled';
     $titles['core_check_new_versions'] = 'Check GitHub for new version';
