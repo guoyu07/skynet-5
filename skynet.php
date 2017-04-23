@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 03:02:03 (1492916523) */
+/* Skynet Standalone | version compiled: 2017.04.23 03:08:21 (1492916901) */
 
 namespace Skynet;
 
@@ -4480,7 +4480,8 @@ class SkynetCliInput
     $this->eventListenersLauncher->assignRequest($this->request);
     $this->eventListenersLauncher->assignResponse($this->response);
     $this->eventListenersLauncher->assignConnectId($this->connectId);
-    $this->eventListenersLauncher->assignClusterUrl($this->clusterUrl);   
+    $this->eventListenersLauncher->assignClusterUrl($this->clusterUrl);
+    $this->eventListenersLauncher->assignCli($this->cli);    
   }
   
  /**
@@ -5602,6 +5603,7 @@ class SkynetConsoleInput
   {
     $this->eventListenersLauncher->assignRequest($this->request);
     $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignConsole($this->console);
     //$this->eventListenersLauncher->assignConnectId($this->connectId);
     //$this->eventListenersLauncher->assignClusterUrl($this->clusterUrl);   
   }
@@ -12863,7 +12865,7 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
   * Access to Console: $this->console
   */   
   public function onConsole()
-  {
+  {    
     if($this->console->isConsoleCommand('sleep'))
     {
        $this->opt_set('sleep', 1);
@@ -12871,7 +12873,7 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
     }
     
     if($this->console->isConsoleCommand('wakeup'))
-    {
+    {       
        $this->opt_set('sleep', 0);
        return '@SLEEPER: cluster woked up';      
     }

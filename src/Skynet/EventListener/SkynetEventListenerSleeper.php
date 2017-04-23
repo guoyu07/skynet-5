@@ -197,7 +197,7 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
   * Access to Console: $this->console
   */   
   public function onConsole()
-  {
+  {    
     if($this->console->isConsoleCommand('sleep'))
     {
        $this->opt_set('sleep', 1);
@@ -205,7 +205,7 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
     }
     
     if($this->console->isConsoleCommand('wakeup'))
-    {
+    {       
        $this->opt_set('sleep', 0);
        return '@SLEEPER: cluster woked up';      
     }

@@ -226,6 +226,7 @@ class SkynetConsoleInput
   {
     $this->eventListenersLauncher->assignRequest($this->request);
     $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignConsole($this->console);
     //$this->eventListenersLauncher->assignConnectId($this->connectId);
     //$this->eventListenersLauncher->assignClusterUrl($this->clusterUrl);   
   }
