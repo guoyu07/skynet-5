@@ -217,8 +217,8 @@ class SkynetDatabase
     'skynet_id' => 'SkynetID',
     'created_at' => 'Sended/received At',
     'content' => 'Full Request',
-    'sender_url' => 'Response Sender',
-    'receiver_url' => 'Response Receiver'
+    'sender_url' => 'Request Sender',
+    'receiver_url' => 'Request Receiver'
     ];
     
     $this->tablesFields['skynet_logs_echo'] = [

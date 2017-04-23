@@ -63,9 +63,8 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   
   public function renderAjaxOutput()
   {
-    $output = [];    
-   
-    $output['test'] = 'xxxxx';
+    $output = [];   
+    $output['connectionMode'] = $this->connectionMode;  
     $output['addresses'] = $this->statusRenderer->renderClusters(true);  
     $output['connectionData'] = $this->connectionsRenderer->render(true);  
     $output['gotoConnection'] = $this->connectionsRenderer->renderGoToConnection($this->connectionsData);

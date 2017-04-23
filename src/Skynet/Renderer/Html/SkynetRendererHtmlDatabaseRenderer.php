@@ -94,16 +94,19 @@ class SkynetRendererHtmlDatabaseRenderer
     {
       $this->tableSortOrder = $_REQUEST['_skynetSortOrder'];
     }    
-
-    if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
+    
+    if($this->selectedTable != 'skynet_chain')
     {
-      $this->database->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId']));
-    }    
+      if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
+      {
+        $this->database->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId']));
+      }    
 
-    if(isset($_REQUEST['_skynetDeleteAllRecords']) && $_REQUEST['_skynetDeleteAllRecords'] == 1)
-    {
-      $this->database->deleteAllRecords($this->selectedTable);
-    }     
+      if(isset($_REQUEST['_skynetDeleteAllRecords']) && $_REQUEST['_skynetDeleteAllRecords'] == 1)
+      {
+        $this->database->deleteAllRecords($this->selectedTable);
+      }   
+    }
     
     /* Set defaults */   
     if($this->tableSortBy === null)
@@ -239,8 +242,13 @@ class SkynetRendererHtmlDatabaseRenderer
     }      
     
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteAllRecords=1&_skynetPage=1&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
-    $deleteLink = 'javascript:if(confirm(\'Delete ALL RECORDS from this table?\')) window.location.assign(\''.$deleteHref.'\');';
-    $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'aDelete');
+    $allDeleteLink = '';
+    
+    if($this->selectedTable != 'skynet_chain')
+    {
+      $deleteLink = 'javascript:if(confirm(\'Delete ALL RECORDS from this table?\')) window.location.assign(\''.$deleteHref.'\');';
+      $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'aDelete');
+    }
     
     return '<form method="GET" action="">
     Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
@@ -318,10 +326,15 @@ class SkynetRendererHtmlDatabaseRenderer
         $td[] = '<td>'.$data.'</td>';
       }     
     }
+    $deleteStr = '';
     $txtLink = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetGenerateTxtFromId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteRecordId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteLink = 'javascript:if(confirm(\'Delete record from database?\')) window.location.assign(\''.$deleteHref.'\');';
-    $td[] = '<td>'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete').'</td>';
+    if($this->selectedTable != 'skynet_chain')
+    {
+      $deleteStr = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete');
+    }
+    $td[] = '<td>'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$deleteStr.'</td>';
     
     return '<tr>'.implode('', $td).'</tr>';    
   }

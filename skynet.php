@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 00:18:19 (1492906699) */
+/* Skynet Standalone | version compiled: 2017.04.23 01:52:37 (1492912357) */
 
 namespace Skynet;
 
@@ -6086,6 +6086,10 @@ class Skynet
         $this->connect($address);
       }
     }
+    if(!$startBroadcast)
+    {
+      $this->connMode = 1;
+    }
     return $startBroadcast;
   }
 
@@ -9001,8 +9005,8 @@ class SkynetDatabase
     'skynet_id' => 'SkynetID',
     'created_at' => 'Sended/received At',
     'content' => 'Full Request',
-    'sender_url' => 'Response Sender',
-    'receiver_url' => 'Response Receiver'
+    'sender_url' => 'Request Sender',
+    'receiver_url' => 'Request Receiver'
     ];
     
     $this->tablesFields['skynet_logs_echo'] = [
@@ -16466,9 +16470,8 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   
   public function renderAjaxOutput()
   {
-    $output = [];    
-   
-    $output['test'] = 'xxxxx';
+    $output = [];   
+    $output['connectionMode'] = $this->connectionMode;  
     $output['addresses'] = $this->statusRenderer->renderClusters(true);  
     $output['connectionData'] = $this->connectionsRenderer->render(true);  
     $output['gotoConnection'] = $this->connectionsRenderer->renderGoToConnection($this->connectionsData);
@@ -16937,7 +16940,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addSectionClass('columnConnections'); 
     
     $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
-    $output[] = '<div id="test"></div>';
+    $output[] = '<div class="reconnectArea">@Auto-reconnect interval: <input value="0" type="text" id="connIntervalValue" name="connectionInterval"> seconds <input type="button" onclick="skynetControlPanel.setConnectInterval(\''.basename($_SERVER['PHP_SELF']).'\')" value="OK"> (<span id="connIntervalStatus">disabled</span>)</div>';
     $output[] = $this->elements->addSectionEnd();      
     
     $output[] = $this->elements->addSectionClass('innerConnectionsData'); 
@@ -17259,16 +17262,19 @@ class SkynetRendererHtmlDatabaseRenderer
     {
       $this->tableSortOrder = $_REQUEST['_skynetSortOrder'];
     }    
-
-    if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
+    
+    if($this->selectedTable != 'skynet_chain')
     {
-      $this->database->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId']));
-    }    
+      if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
+      {
+        $this->database->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId']));
+      }    
 
-    if(isset($_REQUEST['_skynetDeleteAllRecords']) && $_REQUEST['_skynetDeleteAllRecords'] == 1)
-    {
-      $this->database->deleteAllRecords($this->selectedTable);
-    }     
+      if(isset($_REQUEST['_skynetDeleteAllRecords']) && $_REQUEST['_skynetDeleteAllRecords'] == 1)
+      {
+        $this->database->deleteAllRecords($this->selectedTable);
+      }   
+    }
     
     /* Set defaults */   
     if($this->tableSortBy === null)
@@ -17404,8 +17410,13 @@ class SkynetRendererHtmlDatabaseRenderer
     }      
     
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteAllRecords=1&_skynetPage=1&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
-    $deleteLink = 'javascript:if(confirm(\'Delete ALL RECORDS from this table?\')) window.location.assign(\''.$deleteHref.'\');';
-    $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'aDelete');
+    $allDeleteLink = '';
+    
+    if($this->selectedTable != 'skynet_chain')
+    {
+      $deleteLink = 'javascript:if(confirm(\'Delete ALL RECORDS from this table?\')) window.location.assign(\''.$deleteHref.'\');';
+      $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'aDelete');
+    }
     
     return '<form method="GET" action="">
     Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
@@ -17483,10 +17494,15 @@ class SkynetRendererHtmlDatabaseRenderer
         $td[] = '<td>'.$data.'</td>';
       }     
     }
+    $deleteStr = '';
     $txtLink = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetGenerateTxtFromId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteRecordId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteLink = 'javascript:if(confirm(\'Delete record from database?\')) window.location.assign(\''.$deleteHref.'\');';
-    $td[] = '<td>'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete').'</td>';
+    if($this->selectedTable != 'skynet_chain')
+    {
+      $deleteStr = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete');
+    }
+    $td[] = '<td>'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$deleteStr.'</td>';
     
     return '<tr>'.implode('', $td).'</tr>';    
   }
@@ -18274,6 +18290,12 @@ class SkynetRendererHtmlJavascript
 {
   
   status: null,
+  connectMode: 2,
+  connectInterval: 0, 
+  connectIntervalNow: 0,
+  connectTimer: null,
+  connectTimerNow: null,
+  cluster: null,
   
   switchTab: function(e) 
   {
@@ -18350,7 +18372,7 @@ class SkynetRendererHtmlJavascript
     }    
   },
     
-  gotoConnection() 
+  gotoConnection: function() 
   {
     
     var connectList = document.getElementById('connectList');
@@ -18360,7 +18382,7 @@ class SkynetRendererHtmlJavascript
     }
   },
   
-  switchStatus(e)
+  switchStatus: function(e)
   {
     var statusIdle = document.getElementsByClassName('statusIdle');
     var statusSingle  = document.getElementsByClassName('statusSingle');
@@ -18373,11 +18395,33 @@ class SkynetRendererHtmlJavascript
     var toActive = 'status' + e;
     document.getElementsByClassName(toActive)[0].className += ' active';
   },
-
-  load(connMode, cmd = false, skynetCluster)
+  
+  switchMode: function(connId)
   {
+    this.connectMode = connId;
+    switch(connId)
+    {
+      case 0:
+        this.switchStatus('Idle');
+      break;
+      
+      case 1:
+        this.switchStatus('Single');
+      break;
+      
+      case 2:
+        this.switchStatus('Broadcast');
+      break;      
+    }      
+  },
+
+  load: function(connMode, cmd = false, skynetCluster)
+  {   
+    this.cluster = skynetCluster;
+    
     if(cmd == false)
     {
+      this.connectMode = connMode;
       switch(connMode)
       {
         case 0:
@@ -18396,25 +18440,20 @@ class SkynetRendererHtmlJavascript
     
     var divConnectionData = document.getElementsByClassName('innerConnectionsData')[0];
     var divAddresses = document.getElementsByClassName('innerAddresses')[0];
-    var divGoto = document.getElementsByClassName('innerGotoConnection')[0];
-    
+    var divGoto = document.getElementsByClassName('innerGotoConnection')[0];    
     var divTabStates = document.getElementsByClassName('tabStates')[0];
     var divTabErrors = document.getElementsByClassName('tabErrors')[0];
     var divTabConfig = document.getElementsByClassName('tabConfig')[0];
-    var divTabConsole = document.getElementsByClassName('tabConsole')[0];
-    
+    var divTabConsole = document.getElementsByClassName('tabConsole')[0];    
     var divNumStates = document.getElementsByClassName('numStates')[0];
     var divNumErrors = document.getElementsByClassName('numErrors')[0];
     var divNumConfig = document.getElementsByClassName('numConfig')[0];
-    var divNumConsole = document.getElementsByClassName('numConsole')[0];
-    
-    var divNumConnections = document.getElementsByClassName('numConnections')[0];
-    
+    var divNumConsole = document.getElementsByClassName('numConsole')[0];    
+    var divNumConnections = document.getElementsByClassName('numConnections')[0];    
     var divSumBroadcasted = document.getElementsByClassName('sumBroadcasted')[0];
     var divSumClusters = document.getElementsByClassName('sumClusters')[0];
     var divSumAttempts = document.getElementsByClassName('sumAttempts')[0];
-    var divSumSuccess = document.getElementsByClassName('sumSuccess')[0];
-    
+    var divSumSuccess = document.getElementsByClassName('sumSuccess')[0];    
     var divSumChain = document.getElementsByClassName('sumChain')[0];
     var divSumSleeped = document.getElementsByClassName('sumSleeped')[0];
     
@@ -18434,29 +18473,25 @@ class SkynetRendererHtmlJavascript
        var response = JSON.parse(this.responseText);
        
        divConnectionData.innerHTML = response.connectionData;
-       divAddresses.innerHTML = response.addresses;
-       
-       divGoto.innerHTML = response.gotoConnection;
-       
+       divAddresses.innerHTML = response.addresses;       
+       divGoto.innerHTML = response.gotoConnection;       
        divTabStates.innerHTML = response.tabStates;
        divTabErrors.innerHTML = response.tabErrors;
        divTabConfig.innerHTML = response.tabConfig;
-       divTabConsole.innerHTML = response.tabConsole;
-       
+       divTabConsole.innerHTML = response.tabConsole;       
        divNumStates.innerHTML = response.numStates;
        divNumErrors.innerHTML = response.numErrors;
        divNumConfig.innerHTML = response.numConfig;
-       divNumConsole.innerHTML = response.numConsole;
-       
-       divNumConnections.innerHTML = response.numConnections;
-       
+       divNumConsole.innerHTML = response.numConsole;       
+       divNumConnections.innerHTML = response.numConnections;       
        divSumBroadcasted.innerHTML = response.sumBroadcasted;
        divSumClusters.innerHTML = response.sumClusters;
        divSumAttempts.innerHTML = response.sumAttempts;
-       divSumSuccess.innerHTML = response.sumSuccess;
-       
+       divSumSuccess.innerHTML = response.sumSuccess;       
        divSumChain.innerHTML = response.sumChain;
-       divSumSleeped.innerHTML = response.sumSleeped;
+       divSumSleeped.innerHTML = response.sumSleeped;      
+       
+       skynetControlPanel.switchMode(parseInt(response.connectionMode));
       }
     }
     
@@ -18472,7 +18507,58 @@ class SkynetRendererHtmlJavascript
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhttp.send(params);
     return false;    
-  }  
+  },
+  connectionHelper: function()
+  {
+    var divIntervalStatus = document.getElementById('connIntervalStatus');
+    var now = parseInt(this.connectIntervalNow) - 1;
+    this.connectIntervalNow = now;
+    divIntervalStatus.innerHTML = now+'s';    
+  },
+  connectionClock: function() 
+  {
+    this.connectIntervalNow = this.connectInterval + 1;
+    this.load(this.connectMode, false, this.cluster);
+  },
+  setConnectInterval: function(cluster)
+  {
+    this.cluster = cluster;
+    var divIntervalInput = document.getElementById('connIntervalValue');
+    var divIntervalStatus = document.getElementById('connIntervalStatus');
+    var interval = parseInt(divIntervalInput.value);
+    if(isNaN(interval))
+    {
+      interval = 0;
+    }
+    this.connectInterval = interval;
+    
+    if(interval == 0)
+    {
+      divIntervalStatus.innerHTML = 'disabled';
+      clearInterval(this.connectTimer);
+      clearInterval(this.connectTimerNow);
+    } else {
+      clearInterval(this.connectTimer);
+      clearInterval(this.connectTimerNow);
+      
+      divIntervalStatus.innerHTML = interval +'s';
+      var s = interval * 1000;
+      this.connectIntervalNow = s;
+      
+      skynetControlPanel.connectInterval = interval;
+      skynetControlPanel.connectIntervalNow = interval;
+      this.connectTimer = setInterval(function()
+      { 
+        skynetControlPanel.connectionClock(); 
+      }, s);
+      
+      
+      this.connectTimerNow = setInterval(function()
+      { 
+        skynetControlPanel.connectionHelper(); 
+      }, 1000);
+    }
+  }
 }
 ";
 
@@ -19055,7 +19141,8 @@ class SkynetRendererHtmlThemes
     #authMain { text-align: center; }
     
     .monits { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; background:#03312f;}
-    
+    .reconnectArea { font-size:0.8rem; }
+    .reconnectArea input { width: 30px; }
     .hide { display:none; }
     
     .sectionAddresses { width:50%; float:left; height:100%; max-height:100%;}

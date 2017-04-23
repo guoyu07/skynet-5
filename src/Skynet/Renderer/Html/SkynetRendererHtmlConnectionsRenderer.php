@@ -292,7 +292,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addSectionClass('columnConnections'); 
     
     $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
-    $output[] = '<div id="test"></div>';
+    $output[] = '<div class="reconnectArea">@Auto-reconnect interval: <input value="0" type="text" id="connIntervalValue" name="connectionInterval"> seconds <input type="button" onclick="skynetControlPanel.setConnectInterval(\''.basename($_SERVER['PHP_SELF']).'\')" value="OK"> (<span id="connIntervalStatus">disabled</span>)</div>';
     $output[] = $this->elements->addSectionEnd();      
     
     $output[] = $this->elements->addSectionClass('innerConnectionsData'); 

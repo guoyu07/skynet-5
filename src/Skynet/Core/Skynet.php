@@ -469,6 +469,10 @@ class Skynet
         $this->connect($address);
       }
     }
+    if(!$startBroadcast)
+    {
+      $this->connMode = 1;
+    }
     return $startBroadcast;
   }
 
