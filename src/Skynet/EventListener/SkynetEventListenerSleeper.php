@@ -56,26 +56,8 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
     {
       
     }
-  }
-
- /**
-  * onResponse Event
-  *
-  * Actions executes when onResponse event is fired.
-  * Context: beforeSend - executes in responder when creating response for request.
-  * Context: afterReceive - executes in sender when response for request is received from responder.
-  *
-  * @param string $context Context - beforeSend | afterReceive
-  */
-  public function onResponse($context = null)
-  {
     if($context == 'afterReceive')
     {
-      
-    }
-
-    if($context == 'beforeSend')
-    {      
       if($this->request->get('@sleep') !== null)
       {
         $key = 'sleep';
@@ -126,6 +108,28 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
           $this->response->set('@opt_set_errors', $returnError);
         }   
       }
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+      
+    }
+
+    if($context == 'beforeSend')
+    {      
+      
     }
   }
   

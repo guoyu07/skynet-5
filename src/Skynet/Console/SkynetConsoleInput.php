@@ -143,16 +143,17 @@ class SkynetConsoleInput
         {         
           $params = $command->getParams();        
           if(count($params) > 0)
-          {           
+          {    
             foreach($params as $param)
             {
               if(is_string($param) && $param == 'me')
               {
-                $this->console->clear();
+                //$this->console->clear();
                 
                 /* Launch Console commands listeners */
+                $this->prepareListeners();
                 $this->eventListenersLauncher->launch('onConsole');
-                $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                
+                $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                  
                 
               } elseif(is_string($param) && $param != 'all')
               {

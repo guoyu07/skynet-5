@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 02:31:39 (1492914699) */
+/* Skynet Standalone | version compiled: 2017.04.23 03:02:03 (1492916523) */
 
 namespace Skynet;
 
@@ -4424,7 +4424,8 @@ class SkynetCliInput
       }        
     }
     
-    /* Launch CLI commands listeners */
+     /* Launch CLI commands listeners */
+     $this->prepareListeners();
      $this->eventListenersLauncher->launch('onCli');    
      $this->cliOutput = $this->eventListenersLauncher->getCliOutput();
     
@@ -5518,16 +5519,17 @@ class SkynetConsoleInput
         {         
           $params = $command->getParams();        
           if(count($params) > 0)
-          {           
+          {    
             foreach($params as $param)
             {
               if(is_string($param) && $param == 'me')
               {
-                $this->console->clear();
+                //$this->console->clear();
                 
                 /* Launch Console commands listeners */
+                $this->prepareListeners();
                 $this->eventListenersLauncher->launch('onConsole');
-                $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                
+                $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                  
                 
               } elseif(is_string($param) && $param != 'all')
               {
@@ -12720,26 +12722,8 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
     {
       
     }
-  }
-
- /**
-  * onResponse Event
-  *
-  * Actions executes when onResponse event is fired.
-  * Context: beforeSend - executes in responder when creating response for request.
-  * Context: afterReceive - executes in sender when response for request is received from responder.
-  *
-  * @param string $context Context - beforeSend | afterReceive
-  */
-  public function onResponse($context = null)
-  {
     if($context == 'afterReceive')
     {
-      
-    }
-
-    if($context == 'beforeSend')
-    {      
       if($this->request->get('@sleep') !== null)
       {
         $key = 'sleep';
@@ -12790,6 +12774,28 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
           $this->response->set('@opt_set_errors', $returnError);
         }   
       }
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+      
+    }
+
+    if($context == 'beforeSend')
+    {      
+      
     }
   }
   
@@ -18074,8 +18080,8 @@ class SkynetRendererHtmlElements
   */
   public function addFooter($successed = 0)
   {
-    //$html = '<script src="skynet.js"></script>';
-    $html = '<script>'.$this->js->getJavascript().'</script>';
+    $html = '<script src="skynet.js"></script>';
+    //$html = '<script>'.$this->js->getJavascript().'</script>';
     $html.= '<script>skynetControlPanel.setFavIcon('.$successed.');</script>';
     $html.= '</body></html>';
     return $html;

@@ -121,7 +121,8 @@ class SkynetCliInput
       }        
     }
     
-    /* Launch CLI commands listeners */
+     /* Launch CLI commands listeners */
+     $this->prepareListeners();
      $this->eventListenersLauncher->launch('onCli');    
      $this->cliOutput = $this->eventListenersLauncher->getCliOutput();
     
