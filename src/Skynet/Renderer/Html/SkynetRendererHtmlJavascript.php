@@ -170,6 +170,7 @@ class SkynetRendererHtmlJavascript
   load: function(connMode, cmd = false, skynetCluster)
   {   
     this.cluster = skynetCluster;
+    var successed = 0;
     
     if(cmd == false)
     {
@@ -188,7 +189,8 @@ class SkynetRendererHtmlJavascript
           this.switchStatus('Broadcast');
         break;      
       }  
-    }      
+    }
+    
     
     var divConnectionData = document.getElementsByClassName('innerConnectionsData')[0];
     var divAddresses = document.getElementsByClassName('innerAddresses')[0];
@@ -222,7 +224,8 @@ class SkynetRendererHtmlJavascript
     {
       if(this.readyState == 4 && this.status == 200) 
       {       
-       var response = JSON.parse(this.responseText);
+       var response = JSON.parse(this.responseText);       
+       successed = parseInt(response.sumSuccess);
        
        divConnectionData.innerHTML = response.connectionData;
        divAddresses.innerHTML = response.addresses;       
@@ -241,8 +244,13 @@ class SkynetRendererHtmlJavascript
        divSumAttempts.innerHTML = response.sumAttempts;
        divSumSuccess.innerHTML = response.sumSuccess;       
        divSumChain.innerHTML = response.sumChain;
-       divSumSleeped.innerHTML = response.sumSleeped;      
-       
+       divSumSleeped.innerHTML = response.sumSleeped;           
+       if(successed > 0)
+       {
+         skynetControlPanel.setFavIcon(1);
+       } else {
+         skynetControlPanel.setFavIcon(0);
+       }       
        skynetControlPanel.switchMode(parseInt(response.connectionMode));
       }
     }
@@ -310,6 +318,30 @@ class SkynetRendererHtmlJavascript
         skynetControlPanel.connectionHelper(); 
       }, 1000);
     }
+  },
+  setFavIcon: function(mode = 0) 
+  {
+    var iconIdle = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1lAE4gMjMga3dpIDIwMTcgMDM6NTY6NTUgKzAxMDAVMKR0AAAAB3RJTUUH4QQXATklbcCYqwAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACeSURBVHja7dIxCkIhHMdxb9PsEB1CaAzXukeNuVqbBNkJOk5zk7OLmCD++/WKEIqXvamhz6TCVwVl7K/XDo4wKF4D3WWt9f6reAWPmJxzJKWcW2sPTfES6phzTqWUbr6B5pO994QlyjlTbQvNcUqJ3nm5SR2HELo4xkh9npsopWaYn26LFxBCTDGU9NnZGLNgY6hvM4LW15rAoD/yW64SvPFhV3oXpAAAAABJRU5ErkJggg==';
+    var iconSuccess = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1lAE4gMjMga3dpIDIwMTcgMDM6NTY6NTUgKzAxMDAVMKR0AAAAB3RJTUUH4QQXAg0XHHuEhQAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAABJSURBVHjaY2AY3iDxn9R/EManhhGfZmT+fKZnjEQbgMtWbIYwEqsZlyGMpGjGZggjqZrRDWEkRzOyIYzkaoYBJko0Dw4DBh4AAJKoH3bZk1EYAAAAAElFTkSuQmCC';
+    var docHead = document.getElementsByTagName('head')[0];       
+    var newLink = document.createElement('link');
+    newLink.rel = 'shortcut icon';
+    newLink.id = 'fav';
+    oldLink = document.getElementById('fav');
+    
+    var ico = '';
+    if(mode == 0)
+    {
+      ico = 'data:image/png;base64,'+iconIdle;
+    } else {
+      ico = 'data:image/png;base64,'+iconSuccess;
+    }
+    newLink.href = ico;
+    if (oldLink) 
+    {
+      docHead.removeChild(oldLink);
+    }
+    docHead.appendChild(newLink);    
   }
 }
 ";

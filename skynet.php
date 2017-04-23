@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 01:52:37 (1492912357) */
+/* Skynet Standalone | version compiled: 2017.04.23 02:31:39 (1492914699) */
 
 namespace Skynet;
 
@@ -16506,6 +16506,12 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   */
   public function render()
   {  
+    $connected = 0;
+    if($this->fields['Succesful connections']->getValue() > 0)
+    {
+      $connected = 1;
+    }
+    
     $this->headerRenderer->setConnectionsCounter($this->connectionsCounter);
     $this->headerRenderer->setFields($this->fields);
     $this->headerRenderer->addConnectionData($this->connectionsData);
@@ -16561,7 +16567,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
 
       /* !End of wrapper */
     $this->output[] = $this->elements->addSectionEnd();
-    $this->output[] = $this->elements->addFooter();
+    $this->output[] = $this->elements->addFooter($connected);
     
     return implode('', $this->output);
   } 
@@ -18055,6 +18061,8 @@ class SkynetRendererHtmlElements
     $html = '<html><head>';
     $html.= '<title>SKYNET '.SkynetVersion::VERSION.'</title>';
     $html.= $this->css;
+    $html.= '<meta charset="utf-8">';
+    $html.= '<link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,">';
     $html.= '</head><body>';
     return $html;
   } 
@@ -18064,10 +18072,11 @@ class SkynetRendererHtmlElements
   *
   * @return string HTML code
   */
-  public function addFooter()
+  public function addFooter($successed = 0)
   {
     //$html = '<script src="skynet.js"></script>';
     $html = '<script>'.$this->js->getJavascript().'</script>';
+    $html.= '<script>skynetControlPanel.setFavIcon('.$successed.');</script>';
     $html.= '</body></html>';
     return $html;
   }
@@ -18418,6 +18427,7 @@ class SkynetRendererHtmlJavascript
   load: function(connMode, cmd = false, skynetCluster)
   {   
     this.cluster = skynetCluster;
+    var successed = 0;
     
     if(cmd == false)
     {
@@ -18436,7 +18446,8 @@ class SkynetRendererHtmlJavascript
           this.switchStatus('Broadcast');
         break;      
       }  
-    }      
+    }
+    
     
     var divConnectionData = document.getElementsByClassName('innerConnectionsData')[0];
     var divAddresses = document.getElementsByClassName('innerAddresses')[0];
@@ -18470,7 +18481,8 @@ class SkynetRendererHtmlJavascript
     {
       if(this.readyState == 4 && this.status == 200) 
       {       
-       var response = JSON.parse(this.responseText);
+       var response = JSON.parse(this.responseText);       
+       successed = parseInt(response.sumSuccess);
        
        divConnectionData.innerHTML = response.connectionData;
        divAddresses.innerHTML = response.addresses;       
@@ -18489,8 +18501,13 @@ class SkynetRendererHtmlJavascript
        divSumAttempts.innerHTML = response.sumAttempts;
        divSumSuccess.innerHTML = response.sumSuccess;       
        divSumChain.innerHTML = response.sumChain;
-       divSumSleeped.innerHTML = response.sumSleeped;      
-       
+       divSumSleeped.innerHTML = response.sumSleeped;           
+       if(successed > 0)
+       {
+         skynetControlPanel.setFavIcon(1);
+       } else {
+         skynetControlPanel.setFavIcon(0);
+       }       
        skynetControlPanel.switchMode(parseInt(response.connectionMode));
       }
     }
@@ -18558,6 +18575,30 @@ class SkynetRendererHtmlJavascript
         skynetControlPanel.connectionHelper(); 
       }, 1000);
     }
+  },
+  setFavIcon: function(mode = 0) 
+  {
+    var iconIdle = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1lAE4gMjMga3dpIDIwMTcgMDM6NTY6NTUgKzAxMDAVMKR0AAAAB3RJTUUH4QQXATklbcCYqwAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACeSURBVHja7dIxCkIhHMdxb9PsEB1CaAzXukeNuVqbBNkJOk5zk7OLmCD++/WKEIqXvamhz6TCVwVl7K/XDo4wKF4D3WWt9f6reAWPmJxzJKWcW2sPTfES6phzTqWUbr6B5pO994QlyjlTbQvNcUqJ3nm5SR2HELo4xkh9npsopWaYn26LFxBCTDGU9NnZGLNgY6hvM4LW15rAoD/yW64SvPFhV3oXpAAAAABJRU5ErkJggg==';
+    var iconSuccess = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1lAE4gMjMga3dpIDIwMTcgMDM6NTY6NTUgKzAxMDAVMKR0AAAAB3RJTUUH4QQXAg0XHHuEhQAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAABJSURBVHjaY2AY3iDxn9R/EManhhGfZmT+fKZnjEQbgMtWbIYwEqsZlyGMpGjGZggjqZrRDWEkRzOyIYzkaoYBJko0Dw4DBh4AAJKoH3bZk1EYAAAAAElFTkSuQmCC';
+    var docHead = document.getElementsByTagName('head')[0];       
+    var newLink = document.createElement('link');
+    newLink.rel = 'shortcut icon';
+    newLink.id = 'fav';
+    oldLink = document.getElementById('fav');
+    
+    var ico = '';
+    if(mode == 0)
+    {
+      ico = 'data:image/png;base64,'+iconIdle;
+    } else {
+      ico = 'data:image/png;base64,'+iconSuccess;
+    }
+    newLink.href = ico;
+    if (oldLink) 
+    {
+      docHead.removeChild(oldLink);
+    }
+    docHead.appendChild(newLink);    
   }
 }
 ";

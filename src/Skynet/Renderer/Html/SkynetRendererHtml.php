@@ -99,6 +99,12 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   */
   public function render()
   {  
+    $connected = 0;
+    if($this->fields['Succesful connections']->getValue() > 0)
+    {
+      $connected = 1;
+    }
+    
     $this->headerRenderer->setConnectionsCounter($this->connectionsCounter);
     $this->headerRenderer->setFields($this->fields);
     $this->headerRenderer->addConnectionData($this->connectionsData);
@@ -154,7 +160,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
 
       /* !End of wrapper */
     $this->output[] = $this->elements->addSectionEnd();
-    $this->output[] = $this->elements->addFooter();
+    $this->output[] = $this->elements->addFooter($connected);
     
     return implode('', $this->output);
   } 

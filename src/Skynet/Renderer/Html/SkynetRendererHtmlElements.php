@@ -402,6 +402,8 @@ class SkynetRendererHtmlElements
     $html = '<html><head>';
     $html.= '<title>SKYNET '.SkynetVersion::VERSION.'</title>';
     $html.= $this->css;
+    $html.= '<meta charset="utf-8">';
+    $html.= '<link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,">';
     $html.= '</head><body>';
     return $html;
   } 
@@ -411,10 +413,11 @@ class SkynetRendererHtmlElements
   *
   * @return string HTML code
   */
-  public function addFooter()
+  public function addFooter($successed = 0)
   {
     //$html = '<script src="skynet.js"></script>';
     $html = '<script>'.$this->js->getJavascript().'</script>';
+    $html.= '<script>skynetControlPanel.setFavIcon('.$successed.');</script>';
     $html.= '</body></html>';
     return $html;
   }
