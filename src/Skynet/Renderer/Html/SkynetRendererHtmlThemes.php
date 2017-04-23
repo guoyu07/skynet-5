@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html/SkynetRendererHtmlThemes.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -60,7 +60,7 @@ class SkynetRendererHtmlThemes
     #dbSwitch { height: 10%; max-height:10%; min-height:90px; width:100%; overflow:auto; }
     #dbRecords { height: 80%; max-height:80%; overflow:auto; }    
     #console { width: 100%; height: 15%; }    
-    #loginSection { text-align:center; margin: auto }
+    #loginSection { text-align:center; margin: auto; font-size:1.2rem; }
     #loginSection input[type="password"] { width:400px; }
     
     .main { height: 90%; }
@@ -68,16 +68,15 @@ class SkynetRendererHtmlThemes
     .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
     .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }    
     
-    .monits { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; background:#03312f;}
-    
-    .monitOK { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; color: #32c434; background:#113112; text-align:center;}
-    .monitError { padding:8px; font-size:1.1em; border: 1px solid #fdf6f7; color:#df888a; background:#4c1819; text-align:center;}
+    .monits { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; background:#03312f; }    
+    .monitOK { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; color: #32c434; background:#113112; text-align:center; }
+    .monitError { padding:8px; font-size:1.1em; border: 1px solid #fdf6f7; color:#df888a; background:#4c1819; text-align:center; }
     
     .reconnectArea { font-size:0.8rem; }
     .reconnectArea input { width: 30px; }
     .hide { display:none; }
     
-    .sectionAddresses { width:50%; float:left; height:100%; max-height:100%;}
+    .sectionAddresses { width:50%; float:left; height:100%; max-height:100%; }
     .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
     
     .innerAddresses { width:100%; height:90%; max-height:90%; overflow-y:auto; }
@@ -90,13 +89,13 @@ class SkynetRendererHtmlThemes
     .hdrLogo { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
     .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
     .hdrColumn2 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
-    .hdrSwitch { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; text-align:right;}
+    .hdrSwitch { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; text-align:right; }
     .hdrConnection { margin-top:5px; font-size: 1.1rem; }
     .hdrConnection .active { background-color: #3ffb6e; color: #000; }
     
     .tabsHeader { border-bottom:1px solid #2e2e2e;  padding-top: 20px; padding-bottom:8px; }
-    .tabsHeader a { font-size:1.3em; background: #2e2e2e; padding: 8px; margin-top:8px; margin-bottom:8px;}
-    .tabsHeader a.active { background:#fff; color: #000;}
+    .tabsHeader a { font-size:1.3em; background: #2e2e2e; padding: 8px; margin-top:8px; margin-bottom:8px; }
+    .tabsHeader a.active { background:#fff; color: #000; }
     
     .tabStates { display:block; }
     .tabConsole { display:none; }
@@ -137,7 +136,7 @@ class SkynetRendererHtmlThemes
     .exception { color: #ae3516; }
     .exception b { color: red; }
     .error { color: red; }
-    .yes { color: green; }
+    .yes { color: green; font-weight:bold; }
     .no { color: #ae3516; }
     .viewActive { color: #40ff40; }    
     .genLink:hover { color: #fff; }
@@ -154,8 +153,7 @@ class SkynetRendererHtmlThemes
     .btnDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
     .clr { clear: both; }
     .loginForm { padding-top:100px; }
-    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }
-    
+    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }    
     
     </style>';
   }    

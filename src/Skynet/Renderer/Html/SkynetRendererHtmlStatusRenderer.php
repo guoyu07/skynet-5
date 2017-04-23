@@ -148,6 +148,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->beginTable('tblStates');
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('States ('.count($this->statesFields).')'));
     $output[] = $this->renderMonits();
+    $output[] = $this->elements->addHeaderRow2('Sender', 'State');
     $output[] = $this->debugParser->parseStatesFields($this->statesFields);
     $output[] = $this->elements->endTable();
     if(!$ajax)
@@ -173,7 +174,8 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
       $output[] = $this->elements->addSectionClass('tabConfig');
     }
     $output[] = $this->elements->beginTable('tblConfig');
-    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Config ('.count($this->configFields).')'));
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Config ('.count($this->configFields).')'), 3);
+    $output[] = $this->elements->addHeaderRow3('Option', 'Value', 'Key');    
     $output[] = $this->debugParser->parseConfigFields($this->configFields);
     $output[] = $this->elements->endTable();
     if(!$ajax)
@@ -201,7 +203,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     }
     
     $output[] = $this->elements->addSectionId('consoleDebug');  
-    $output[] = $this->elements->beginTable('tblConfig');        
+    $output[] = $this->elements->beginTable('tblConfig');   
     $output[] = $this->consoleRenderer->renderConsoleInput();
     $output[] = $this->elements->endTable();
     $output[] = $this->elements->addSectionEnd(); 

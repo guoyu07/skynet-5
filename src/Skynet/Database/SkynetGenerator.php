@@ -6,7 +6,7 @@
  * Checking and veryfing access to skynet
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -134,7 +134,10 @@ class SkynetGenerator
   */
   private function decodeIfNeeded($key, $val)
   {
-    if(is_numeric($key)) return $val;
+    if(is_numeric($key)) 
+    {
+      return $val;
+    }
     if($key == '_skynet_clusters' || $key == '@_skynet_clusters')
     {
       $ret = [];

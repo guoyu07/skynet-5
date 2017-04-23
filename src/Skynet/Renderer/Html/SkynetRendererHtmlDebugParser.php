@@ -14,6 +14,8 @@
 
 namespace Skynet\Renderer\Html;
 
+use Skynet\Common\SkynetHelper;
+
  /**
   * Skynet Renderer Debug Renderer
   *
@@ -144,7 +146,10 @@ class SkynetRendererHtmlDebugParser
     $rows = [];
     foreach($fields as $field)
     {
-      $rows[] = $this->elements->addValRow($this->elements->addBold($field->getName()), $this->parseConfigValue($field->getValue()));  
+      $key = $field->getName();
+      $keyTitle = SkynetHelper::translateCfgKey($key);
+      
+      $rows[] = $this->elements->addVal3Row($this->elements->addBold($keyTitle), $this->parseConfigValue($field->getValue()), $key);  
     }
     
     return implode('', $rows);

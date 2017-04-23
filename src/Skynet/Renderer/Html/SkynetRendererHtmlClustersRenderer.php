@@ -48,7 +48,7 @@ class SkynetRendererHtmlClustersRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Your Skynet clusters ('.$c.')'));
     if($c > 0)
     {
-      $output[] = $this->elements->addHeaderRow3('Status', 'Cluster address', 'Ping', 'Connect');
+      $output[] = $this->elements->addHeaderRow4('Status', 'Cluster address', 'Ping', 'Connect');
       foreach($this->clustersData as $cluster)
       {
          $class = '';

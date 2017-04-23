@@ -66,7 +66,12 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output = [];   
     $output['connectionMode'] = $this->connectionMode;  
     $output['addresses'] = $this->statusRenderer->renderClusters(true);  
-    $output['connectionData'] = $this->connectionsRenderer->render(true);  
+    $connData = $this->connectionsRenderer->render(true);
+    if(empty($connData))
+    {
+      $connData = 'Connections data is empty.';
+    }
+    $output['connectionData'] = $connData;  
     $output['gotoConnection'] = $this->connectionsRenderer->renderGoToConnection($this->connectionsData);
     
     $output['tabStates'] = $this->statusRenderer->renderStates(true);

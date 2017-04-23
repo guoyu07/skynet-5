@@ -134,10 +134,10 @@ class SkynetOutput
         {
           if($this->verifier->isPing())
           {
-            return false;
+            return '';
           } else {
             $this->auth->checkAuth();
-            return false;
+            return '';
           }
         }        
         
@@ -184,7 +184,7 @@ class SkynetOutput
     $renderer->addField('Chain', $chainData['chain'] . ' (updated: '.date('H:i:s d.m.Y', $chainData['updated_at']).')');
     $renderer->addField('Skynet Key ID', \SkynetUser\SkynetConfig::KEY_ID);
     $renderer->addField('Time now', date('H:i:s d.m.Y').' ['.time().']');  
-    $renderer->addField('Sleeped', ($this->options->getOptionsValue('sleep') == 1) ? 'YES' : 'NO');
+    $renderer->addField('Sleeped', ($this->options->getOptionsValue('sleep') == 1) ? true : false);
     
     foreach($this->connectionData as $connectionData)
     {

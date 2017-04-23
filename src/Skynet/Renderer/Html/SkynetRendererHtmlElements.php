@@ -352,8 +352,8 @@ class SkynetRendererHtmlElements
   * Adds table key => value row
   * 
   * @param string $status TD 1
-  * @param string $url TD 1
-  * @param string $ping TD 1
+  * @param string $url TD 2
+  * @param string $ping TD 3
   *
   * @return string HTML code
   */   
@@ -366,7 +366,7 @@ class SkynetRendererHtmlElements
   * Adds table key => value row
   * 
   * @param string $key TD 1
-  * @param string $val TD 1
+  * @param string $val TD 2
   *
   * @return string HTML code
   */   
@@ -379,7 +379,21 @@ class SkynetRendererHtmlElements
   * Adds table key => value row
   * 
   * @param string $key TD 1
-  * @param string $val TD 1
+  * @param string $val TD 2
+  * @param string $val2 TD 3
+  *
+  * @return string HTML code
+  */   
+  public function addVal3Row($key, $val, $val2)
+  {
+    return '<tr><td class="tdKey">'.$key.'</td><td class="tdVal">'.$val.'</td><td class="tdVal">'.$val2.'</td></tr>';
+  }
+  
+ /**
+  * Adds table key => value row
+  * 
+  * @param string $key TD 1
+  * @param string $val TD 2
   *
   * @return string HTML code
   */   
@@ -434,15 +448,45 @@ class SkynetRendererHtmlElements
   {
     return '<tr><td class="tdFormActions" colspan="2">'.$val.'</td></tr>';
   }
+
+ /**
+  * Adds table header row
+  * 
+  * @param string $col1 TD 1
+  * @param string $col2 TD 2
+  *
+  * @return string HTML code
+  */   
+  public function addHeaderRow2($col1, $col2)
+  {
+    return '<tr><th class="tdHeader">'.$col1.'</th><th class="tdHeader">'.$col2.'</th></tr>';
+  }
   
  /**
   * Adds table header row
   * 
-  * @param string $val TD 1
+  * @param string $col1 TD 1
+  * @param string $col2 TD 2
+  * @param string $col3 TD 3
   *
   * @return string HTML code
   */   
-  public function addHeaderRow3($col1, $col2, $col3, $col4)
+  public function addHeaderRow3($col1, $col2, $col3)
+  {
+    return '<tr><th class="tdHeader">'.$col1.'</th><th class="tdHeader">'.$col2.'</th><th class="tdHeader">'.$col3.'</th></tr>';
+  } 
+  
+ /**
+  * Adds table header row
+  * 
+  * @param string $col1 TD 1
+  * @param string $col2 TD 2
+  * @param string $col3 TD 3
+  * @param string $col4 TD 4
+  *
+  * @return string HTML code
+  */   
+  public function addHeaderRow4($col1, $col2, $col3, $col4)
   {
     return '<tr><th class="tdHeader">'.$col1.'</th><th class="tdHeader">'.$col2.'</th><th class="tdHeader">'.$col3.'</th><th class="tdHeader">'.$col4.'</th></tr>';
   } 

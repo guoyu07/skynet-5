@@ -266,7 +266,7 @@ class Skynet
   public function broadcast()
   {
     /* Disable broadcast when cluster is sleeped */
-    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']))
+    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || !$this->auth->isAuthorized())
     {
       return false;
     }

@@ -17,6 +17,7 @@ namespace Skynet\Secure;
 use Skynet\Renderer\Html\SkynetRendererHtmlThemes;
 use Skynet\Renderer\Html\SkynetRendererHtmlElements;
 use Skynet\Secure\SkynetVerifier;
+use Skynet\Console\SkynetCli;
 
  /**
   * Skynet Authentication
@@ -35,6 +36,9 @@ class SkynetAuth
   /** @var SkynetVerifier Verifier instance */
   private $verifier;
   
+  /** @var SkynetCli CLI Console */
+  private $cli;
+  
  /**
   * Constructor
   */
@@ -47,7 +51,8 @@ class SkynetAuth
     $this->themes = new SkynetRendererHtmlThemes();
     $this->css = $this->themes->getTheme(\SkynetUser\SkynetConfig::get('core_renderer_theme'));
     $this->elements = new SkynetRendererHtmlElements();    
-    $this->verifier = new SkynetVerifier();    
+    $this->verifier = new SkynetVerifier();  
+    $this->cli = new SkynetCli();    
     
     if(!$this->verifier->isPing() && isset($_REQUEST['_skynetLogout']))
     {
@@ -138,7 +143,7 @@ class SkynetAuth
   */ 
   public function isAuthorized()
   {     
-    if(empty(\SkynetUser\SkynetConfig::KEY_ID) || \SkynetUser\SkynetConfig::KEY_ID == '1234567890')
+    if(empty(\SkynetUser\SkynetConfig::PASSWORD) || $this->cli->isCli())
     {
       return true;
     }

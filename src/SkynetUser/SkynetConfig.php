@@ -68,6 +68,20 @@ class SkynetConfig
     /* core_date_format -> string
     Date format for date() function */
     'core_date_format' => 'H:i:s d.m.Y',
+    
+/*
+  ==================================
+  Translate configuration 
+  ==================================
+*/   
+    
+    /* translator_config -> bool:[true|false]
+    If TRUE - config fields are translated*/
+    'translator_config' => true,
+    
+    /* translator_params -> bool:[true|false]
+    If TRUE - param fields are translated*/
+    'translator_params' => true,
 
 
 /*
@@ -207,6 +221,10 @@ class SkynetConfig
      /* debug_exceptions -> bool:[true|false]
      If TRUE, debugger will show more info like line, file and trace on errors */
     'debug_exceptions' => false,
+    
+    /* debug_internal -> bool:[true|false]
+     If TRUE, internal params will be show in debug data */
+    'debug_internal' => true,
 
 /*
  -------- end of config.

@@ -50,8 +50,7 @@ class SkynetRendererHtmlJavascript
   cluster: null,
   
   switchTab: function(e) 
-  {
-    
+  {    
     var tabStates = document.getElementsByClassName('tabStates');
     var tabErrors = document.getElementsByClassName('tabErrors');
     var tabConfig = document.getElementsByClassName('tabConfig');
@@ -73,8 +72,7 @@ class SkynetRendererHtmlJavascript
   },
   
   switchConnTab: function(e, id) 
-  {
-    
+  {    
     var tabConnPlain = document.getElementsByClassName('tabConnPlain'+id);
     var tabConnEncrypted = document.getElementsByClassName('tabConnEncrypted'+id);
     var tabConnRaw = document.getElementsByClassName('tabConnRaw'+id);
@@ -93,9 +91,9 @@ class SkynetRendererHtmlJavascript
   },
   
   insertCommand: function() 
-  {
-    
+  {    
     var cmdsList = document.getElementById('cmdsList');
+    
     if(cmdsList.options[cmdsList.selectedIndex].value != '0') 
     { 
         if(document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value == '' || document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value == null) 
@@ -110,8 +108,7 @@ class SkynetRendererHtmlJavascript
   },
   
   insertConnect: function(url) 
-  {    
-    
+  {  
     var cmd = '@connect ' + url;
     
     if(document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value == '' || document.forms['_skynetCmdConsole']['_skynetCmdConsoleInput'].value == null) 
@@ -126,7 +123,6 @@ class SkynetRendererHtmlJavascript
     
   gotoConnection: function() 
   {
-    
     var connectList = document.getElementById('connectList');
     if(connectList.options[connectList.selectedIndex].value > 0) 
     {       
@@ -166,6 +162,31 @@ class SkynetRendererHtmlJavascript
       break;      
     }      
   },
+  
+  parseParam: function(param, paramClass = null)
+  {
+    if(param == true || param == false)
+    {
+     if(paramClass != null)
+      {
+        paramClass.className = paramClass.className.replace(/(?:^|\s)yes(?!\S)/g, '');
+        paramClass.className = paramClass.className.replace(/(?:^|\s)no(?!\S)/g, '');          
+      }   
+        
+      if(param == true)
+      {
+        paramClass.className += ' yes';
+        return 'YES';
+      } else {
+        paramClass.className += ' no';
+        return 'NO';
+      }
+      
+    } else {
+      
+      return param;
+    }    
+  },
 
   load: function(connMode, cmd = false, skynetCluster)
   {   
@@ -189,8 +210,7 @@ class SkynetRendererHtmlJavascript
           this.switchStatus('Broadcast');
         break;      
       }  
-    }
-    
+    }    
     
     var divConnectionData = document.getElementsByClassName('innerConnectionsData')[0];
     var divAddresses = document.getElementsByClassName('innerAddresses')[0];
@@ -247,7 +267,7 @@ class SkynetRendererHtmlJavascript
          divSumAttempts.innerHTML = response.sumAttempts;
          divSumSuccess.innerHTML = response.sumSuccess;       
          divSumChain.innerHTML = response.sumChain;
-         divSumSleeped.innerHTML = response.sumSleeped;           
+         divSumSleeped.innerHTML = skynetControlPanel.parseParam(response.sumSleeped, divSumSleeped);           
          if(successed > 0)
          {
            skynetControlPanel.setFavIcon(1);
@@ -275,6 +295,7 @@ class SkynetRendererHtmlJavascript
     xhttp.send(params);
     return false;    
   },
+  
   connectionHelper: function()
   {
     var divIntervalStatus = document.getElementById('connIntervalStatus');
@@ -282,11 +303,13 @@ class SkynetRendererHtmlJavascript
     this.connectIntervalNow = now;
     divIntervalStatus.innerHTML = now+'s';    
   },
+  
   connectionClock: function() 
   {
     this.connectIntervalNow = this.connectInterval + 1;
     this.load(this.connectMode, false, this.cluster);
   },
+  
   setConnectInterval: function(cluster)
   {
     this.cluster = cluster;
@@ -317,8 +340,7 @@ class SkynetRendererHtmlJavascript
       this.connectTimer = setInterval(function()
       { 
         skynetControlPanel.connectionClock(); 
-      }, s);
-      
+      }, s);      
       
       this.connectTimerNow = setInterval(function()
       { 
@@ -326,6 +348,7 @@ class SkynetRendererHtmlJavascript
       }, 1000);
     }
   },
+  
   setFavIcon: function(mode = 0) 
   {
     var iconIdle = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1lAE4gMjMga3dpIDIwMTcgMDM6NTY6NTUgKzAxMDAVMKR0AAAAB3RJTUUH4QQXATklbcCYqwAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACeSURBVHja7dIxCkIhHMdxb9PsEB1CaAzXukeNuVqbBNkJOk5zk7OLmCD++/WKEIqXvamhz6TCVwVl7K/XDo4wKF4D3WWt9f6reAWPmJxzJKWcW2sPTfES6phzTqWUbr6B5pO994QlyjlTbQvNcUqJ3nm5SR2HELo4xkh9npsopWaYn26LFxBCTDGU9NnZGLNgY6hvM4LW15rAoD/yW64SvPFhV3oXpAAAAABJRU5ErkJggg==';
