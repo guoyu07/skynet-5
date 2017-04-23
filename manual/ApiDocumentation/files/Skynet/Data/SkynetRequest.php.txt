@@ -300,10 +300,13 @@ class SkynetRequest
     {
       $this->set('_skynet_clusters_chain', base64_encode(SkynetHelper::getMyUrl()));      
     }
+    
+    $milliseconds = round(microtime(true) * 1000);
 
     /* Create fields */
     $this->set('_skynet', 1);
     $this->set('_skynet_id', $clusterHeader->getId());
+    $this->set('_skynet_ping', $milliseconds);
     $this->set('_skynet_hash', $this->verifier->generateHash());
     $this->set('_skynet_chain', $clusterHeader->getChain());
     $this->set('_skynet_chain_updated_at', $clusterHeader->getUpdatedAt());

@@ -39,7 +39,11 @@ class SkynetLauncher
   public function __construct($startSender = false, $startResponder = false)
   {
     $this->skynet = new Skynet($startSender);
-    $this->skynetService = new SkynetResponder($startResponder);
-    return $this->skynet;    
+    $this->skynetService = new SkynetResponder($startResponder);       
+  }
+  
+  public function __toString()
+  {
+    return (string)$this->skynet->renderOutput(); 
   }
 }

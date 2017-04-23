@@ -20,11 +20,14 @@ namespace Skynet;
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.0.0';
+   const VERSION = '1.1.3-alpha';
    
    /** @var string build */
-   const BUILD = '2017.04.17';
+   const BUILD = '2017.04.24';
    
    /** @var string website */
-   const WEBSITE = 'http://github.com/szczyglinski/skynet';
+   const WEBSITE = 'https://github.com/szczyglinski/skynet';
+   
+   /** @var string blog */
+   const BLOG = 'https://skynetframework.blogspot.com';
 }

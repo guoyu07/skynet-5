@@ -60,6 +60,27 @@ class SkynetRendererHtmlDebugParser
     }    
     return implode('', $rows);
   }
+ 
+ /**
+  * Parses assigned debug data
+  *
+  * @param string[] $fields
+  *
+  * @return string HTML code
+  */    
+  public function parseDebugFields($fields)
+  {
+    $rows = [];
+    foreach($fields as $k => $v)
+    {
+      $rows[] = $this->elements->addValRow($k, $v);
+    }    
+    if(count($rows) == 0) 
+    {
+      return $this->elements->addRow('-- no debug fields --');
+    }  
+    return implode('', $rows);
+  }
   
  /**
   * Parses assigned states data
@@ -74,7 +95,11 @@ class SkynetRendererHtmlDebugParser
     foreach($fields as $field)
     {
       $rows[] = $this->elements->addValRow($this->elements->addBold($field->getName()), $field->getValue());
-    }    
+    } 
+    if(count($rows) == 0) 
+    {
+      return $this->elements->addRow('-- no states --');
+    }  
     return implode('', $rows);
   } 
 

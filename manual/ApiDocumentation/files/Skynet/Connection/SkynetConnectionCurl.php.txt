@@ -54,6 +54,7 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
   public function connect($remote_address = null)
   {       
     $this->data = null;
+    
     $address = '';
     
     if($this->cluster !== null) 
@@ -75,7 +76,9 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
     $this->url = $address;
 
     $this->prepareParams();
-    $this->data = $this->init($this->url);
+    $data = $this->init($this->url);    
+    $this->data = $data['data'];
+    $result = $data['result'];
 
     try
     {
@@ -85,12 +88,13 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
       }   
       if(empty($this->data))
       {
-        $this->addState(SkynetTypes::CURL_ERR,'[[[[ERROR]]]: NO RESPONSE: '.$this->url);  
+        $this->addState(SkynetTypes::CURL_ERR,'[[[[ERROR]]]: NO RESPONSE: '.$this->url);           
       } else {
-        $this->launchConnectListeners();        
+        $this->launchConnectListeners($this);        
       }
       
       $adapter = [];
+      $adapter['result'] = $result;
       $adapter['data'] = $this->data;
       $adapter['params'] = $this->requests;
       return $adapter;
@@ -110,6 +114,7 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
   */
   private function init($address)
   {
+    $result = null;
     try
     {
       $ch = curl_init();
@@ -147,14 +152,25 @@ class SkynetConnectionCurl extends SkynetConnectionAbstract implements SkynetCon
         $msg = curl_error($ch);
         $this->addError(SkynetTypes::CURL, 'Connection error: [CURL] Code: '.$msg.' | Error: '.$msg);
         $this->addState(SkynetTypes::CURL, 'CONNECTION ERROR: '.$address);
+        $result = false;
       } 
       if($responseData !== null && !empty($responseData))
       {      
         $this->addState(SkynetTypes::CURL,'[OK] RESPONSE DATA RECEIVED: '.$this->url.' (CHARSET: '.$charset.')');
+        $preResponse = json_decode($responseData);
+        if($preResponse !== null && isset($preResponse->_skynet))
+        {        
+          $result = true;
+        }
       }
 
       curl_close($ch);
-      return $responseData;
+      
+      $data = [];
+      $data['result'] = $result;
+      $data['data'] = $responseData;
+      
+      return $data;
       
     } catch(SkynetException $e)
     {

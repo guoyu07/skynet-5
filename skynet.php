@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 21:59:50 (1492984790) */
+/* Skynet Standalone | version compiled: 2017.04.23 23:11:33 (1492989093) */
 
 namespace Skynet;
 
@@ -722,7 +722,7 @@ abstract class SkynetEventListenerAbstract
  * Skynet/Renderer/SkynetRendererAbstract.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -742,6 +742,9 @@ abstract class SkynetRendererAbstract
   
   /** @var SkynetField[] States data fields */
   protected $statesFields = [];
+  
+  /** @var SkynetField[] Debug data fields */
+  protected $debugFields = [];
   
   /** @var SkynetError[] Errors data fields */  
   protected $errorsFields = [];
@@ -892,6 +895,27 @@ abstract class SkynetRendererAbstract
   public function setStatesFields($fields)
   {
     $this->statesFields = $fields;
+  }
+ 
+ /**
+  * Assigns Debug data field to renderer
+  *
+  * @param mixed $key
+  * @param mixed $value
+  */  
+  public function addDebugField($key, $value)
+  {
+    $this->debugFields[] = new SkynetField($key, $value);
+  }
+
+  /**
+  * Sets debug fields
+  *
+  * @param mixed[] 
+  */  
+  public function setDebugFields($fields)
+  {
+    $this->debugFields = $fields;
   }
   
  /**
@@ -6069,7 +6093,6 @@ class Skynet
         $this->monits[] = $detectClusters;
       }
     }
-    echo $this->renderOutput();
   }
 
  /**
@@ -7796,7 +7819,7 @@ class SkynetResponder
     $this->eventListenersLauncher->setSender(false);
     $this->eventListenersLauncher->assignConnectId(1);
     $this->eventListenersLauncher->assignRequest($this->request);
-    $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignResponse($this->response);    
     
     if($start)
     {
@@ -10223,14 +10246,12 @@ class SkynetRegistry
  */
 
  /**
-  * Skynet Event Listeners Launcher
+  * Skynet Debugger
   *
   */
 class SkynetDebug
 {     
   use SkynetErrorsTrait, SkynetStatesTrait; 
-  
-  
 
  /**
   * Constructor
@@ -10239,6 +10260,136 @@ class SkynetDebug
   {
         
   }  
+ 
+ /**
+  * Returns debug data
+  *
+  * @return string[] Debug
+  */ 
+  public function getData()
+  {
+    $this->newSession();    
+    $output = [];
+    
+    $c = count($_SESSION['_skynetDebugger']);
+    if($c > 0)
+    {
+      foreach($_SESSION['_skynetDebugger'] as $k => $v)
+      {
+        $output[$k] = $this->decorate($v);
+      }    
+    }
+    
+    return $output;    
+  }
+
+ /**
+  * Adds div to output
+  *
+  * @param string $input
+  *
+  * @return string Output
+  */   
+  private function decorate($input)
+  {
+    return '<div class="debuggerField">'.$input.'</div>';    
+  }
+
+ /**
+  * Resets debug fields
+  */    
+  public function resetDebug()
+  {
+    $_SESSION['_skynetDebugger'] = [];
+  }
+
+ /**
+  * Dumps var
+  *
+  * @param mixed $var
+  * @param string|null $name
+  */    
+  public function dump($var = null, $name = null)
+  {
+    if($name === null)
+    {
+      $file = debug_backtrace()[0]['file']; 
+      $line = debug_backtrace()[0]['line'];    
+      $name = '<b>'.basename($file).'</b><br>Line: '.$line;
+    }
+    
+    $this->newSession();    
+    ob_start(); 
+    var_dump($var);
+    $output = ob_get_clean();
+    $this->addDebugField($output, $name);
+  }
+  
+ /**
+  * Adds debug text
+  *
+  * @param string $var
+  */   
+  public function txt($var = null)
+  {    
+    $file = debug_backtrace()[0]['file']; 
+    $line = debug_backtrace()[0]['line'];    
+    $name = '<b>'.basename($file).'</b><br>Line: '.$line;
+     
+    if(is_array($var))
+    {
+      $dbg = implode('<br>', $var);
+    } elseif(is_string($var)) 
+    {
+      $dbg = $var;
+    } else {
+      $this->dump($var, $name);
+      return false;
+    }
+    $this->addDebugField($dbg, $name);
+  }
+
+ /**
+  * Counts debug fields
+  *
+  * @return int 
+  */   
+  public function countDebug()
+  {
+    $this->newSession(); 
+    return count($_SESSION['_skynetDebugger']);    
+  }
+
+ /**
+  * Adds debug to session
+  *
+  * @param mixed $debug
+  * @param string|null $name
+  */   
+  private function addDebugField($debug, $name = null)
+  {
+    if($name === null)
+    {
+      $_SESSION['_skynetDebugger'][] = $debug;
+    } else {
+      $_SESSION['_skynetDebugger'][$name] = $debug;
+    }    
+  }
+
+ /**
+  * Stats session if not exists
+  */    
+  private function newSession()
+  {
+    if(!isset($_SESSION))
+    {
+      session_start();
+    } 
+    if(!isset($_SESSION['_skynetDebugger']))
+    {
+      $_SESSION['_skynetDebugger'] = [];
+    }
+  }
 }
 
 /**
@@ -17200,6 +17351,9 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   /** @var SkynetRendererHtmlStatusRenderer Status Renderer */
   private $statusRenderer;
   
+  /** @var SkynetDebug Debugger */
+  private $debugger;
+  
 
  /**
   * Constructor
@@ -17213,6 +17367,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();   
     $this->headerRenderer = new  SkynetRendererHtmlHeaderRenderer();    
     $this->statusRenderer = new  SkynetRendererHtmlStatusRenderer(); 
+    $this->debugger = new SkynetDebug();
   }
 
   
@@ -17238,7 +17393,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['numStates'] = count($this->statesFields);
     $output['numErrors'] = count($this->errorsFields);
     $output['numConfig'] = count($this->configFields);
-    $output['numDebug'] = count($this->statesFields);
+    $output['numDebug'] = $this->debugger->countDebug();
     $output['numConsole'] = count($this->consoleOutput);
     
     $output['numConnections'] = $this->connectionsCounter;
@@ -17250,6 +17405,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     
     $output['sumChain'] = $this->fields['Chain']->getValue();
     $output['sumSleeped'] = $this->fields['Sleeped']->getValue();
+    $this->debugger->resetDebug();
     
     return json_encode($output);
   }
@@ -17324,6 +17480,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $this->output[] = $this->elements->addSectionEnd();
     $this->output[] = $this->elements->addFooter($connected);
     
+    $this->debugger->resetDebug();
     return implode('', $this->output);
   } 
 }
@@ -18620,6 +18777,27 @@ class SkynetRendererHtmlDebugParser
     }    
     return implode('', $rows);
   }
+ 
+ /**
+  * Parses assigned debug data
+  *
+  * @param string[] $fields
+  *
+  * @return string HTML code
+  */    
+  public function parseDebugFields($fields)
+  {
+    $rows = [];
+    foreach($fields as $k => $v)
+    {
+      $rows[] = $this->elements->addValRow($k, $v);
+    }    
+    if(count($rows) == 0) 
+    {
+      return $this->elements->addRow('-- no debug fields --');
+    }  
+    return implode('', $rows);
+  }
   
  /**
   * Parses assigned states data
@@ -18634,7 +18812,11 @@ class SkynetRendererHtmlDebugParser
     foreach($fields as $field)
     {
       $rows[] = $this->elements->addValRow($this->elements->addBold($field->getName()), $field->getValue());
-    }    
+    } 
+    if(count($rows) == 0) 
+    {
+      return $this->elements->addRow('-- no states --');
+    }  
     return implode('', $rows);
   } 
 
@@ -19942,6 +20124,9 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   
   /** @var SkynetRendererHtmlDebugParser Debug Parser */
   private $debugParser;
+  
+  /** @var SkynetDebug Debugger */
+  private $debugger;
 
  /**
   * Constructor
@@ -19954,7 +20139,8 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $this->modeRenderer = new  SkynetRendererHtmlModeRenderer();
     $this->clustersRenderer = new  SkynetRendererHtmlClustersRenderer();
     $this->debugParser = new SkynetRendererHtmlDebugParser();
-    $this->consoleRenderer = new  SkynetRendererHtmlConsoleRenderer();        
+    $this->consoleRenderer = new  SkynetRendererHtmlConsoleRenderer();  
+    $this->debugger = new SkynetDebug();
   }  
    
  /**
@@ -19993,7 +20179,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addTabBtn('Errors (<span class="numErrors">'.count($this->errorsFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabErrors\');', 'tabErrorsBtn errors');
     $output[] = $this->elements->addTabBtn('Config (<span class="numConfig">'.count($this->configFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
     $output[] = $this->elements->addTabBtn('Console (<span class="numConsole">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
-    $output[] = $this->elements->addTabBtn('Debug (<span class="numDebug">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabDebug\');', 'tabDebugBtn');
+    $output[] = $this->elements->addTabBtn('Debug (<span class="numDebug">'.$this->debugger->countDebug().'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabDebug\');', 'tabDebugBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
@@ -20072,11 +20258,11 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     {
       $output[] = $this->elements->addSectionClass('tabDebug');
     }
+    
     $output[] = $this->elements->beginTable('tblStates');
-    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Debugger ('.count($this->statesFields).')'));
-    $output[] = $this->renderMonits();
-    $output[] = $this->elements->addHeaderRow2('Sender', 'State');
-    $output[] = $this->debugParser->parseStatesFields($this->statesFields);
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Debugger ('.$this->debugger->countDebug().')'));    
+    $output[] = $this->elements->addHeaderRow2('File/line', 'Debug');    
+    $output[] = $this->debugParser->parseDebugFields($this->debugger->getData());
     $output[] = $this->elements->endTable();
     if(!$ajax)
     {      
@@ -20445,6 +20631,8 @@ class SkynetRendererHtmlThemes
     #loginSection { text-align:center; margin: auto; font-size:1.2rem; }
     #loginSection input[type="password"] { width:400px; }
     
+    .debuggerField { padding:5px; background:#fff; color: #000; font-size:1.2rem; }
+    
     .main { height: 90%; }
     .dbTable { table-layout: auto; }
     .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
@@ -20484,6 +20672,7 @@ class SkynetRendererHtmlThemes
     .tabConfig { display:none; }
     .tabErrors { display:none; }
     .tabConsole { display:none; }
+    .tabDebug { display:none; }
     
     .tdClusterStatus { width:10%; }
     .tdClusterUrl { width:60%; }
@@ -21340,8 +21529,12 @@ class SkynetLauncher
   public function __construct($startSender = false, $startResponder = false)
   {
     $this->skynet = new Skynet($startSender);
-    $this->skynetService = new SkynetResponder($startResponder);
-    return $this->skynet;    
+    $this->skynetService = new SkynetResponder($startResponder);       
+  }
+  
+  public function __toString()
+  {
+    return (string)$this->skynet->renderOutput(); 
   }
 }
 
@@ -21872,7 +22065,7 @@ class SkynetCompiler
   private function generateStandalone($src)
   {     
     $header = " ".$this->nl1.$this->nl1."/* Skynet Standalone | version compiled: ".date('Y.m.d H:i:s')." (".time().") */".$this->nl1.$this->nl1."".$this->nl1;
-    $code = $this->nl1."\$skynet = new SkynetLauncher(true, true);".$this->nl1;
+    $code = $this->nl1."\$skynet = new SkynetLauncher(true, true);".$this->nl1."echo \$skynet;";
     $src = $header.$src.$code;
     return $src;
   }
@@ -22136,3 +22329,4 @@ class SkynetUpdater
    }
 }
 $skynet = new SkynetLauncher(true, true);
+echo $skynet;

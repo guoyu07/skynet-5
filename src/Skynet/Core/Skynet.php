@@ -252,7 +252,6 @@ class Skynet
         $this->monits[] = $detectClusters;
       }
     }
-    echo $this->renderOutput();
   }
 
  /**

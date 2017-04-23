@@ -15,6 +15,7 @@
 namespace Skynet\Renderer\Cli;
 
 use Skynet\Database\SkynetDatabase;
+use Skynet\Database\SkynetDatabaseSchema;
 use Skynet\Console\SkynetCli;
 
  /**
@@ -34,6 +35,9 @@ class SkynetRendererCliDatabaseRenderer
   
   /** @var SkynetDatabase DB Instance */
   protected $database;
+  
+  /** @var SkynetDatabaseSchema DB Schema */
+  protected $databaseSchema;
   
   /** @var PDO Connection instance */
   protected $db;
@@ -62,9 +66,10 @@ class SkynetRendererCliDatabaseRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererCliElements();
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();
+    $this->database = SkynetDatabase::getInstance(); 
+    $this->databaseSchema = new SkynetDatabaseSchema;        
+    $this->dbTables = $this->databaseSchema->getDbTables();   
+    $this->tablesFields = $this->databaseSchema->getTablesFields();
     $this->tablePerPageLimit = 10;
     $this->cli = new SkynetCli();
     
@@ -107,13 +112,13 @@ class SkynetRendererCliDatabaseRenderer
           $delParam = $this->cli->getParam('del');
           if($delParam !== null && is_numeric($delParam))
           {
-            $this->database->deleteRecordId($this->selectedTable, intval($delParam));            
+            $this->database->ops->deleteRecordId($this->selectedTable, intval($delParam));            
           }        
         }
         
         if($this->cli->isCommand('truncate'))
         {
-           $this->database->deleteAllRecords($this->selectedTable);                 
+           $this->database->ops->deleteAllRecords($this->selectedTable);                 
         }
       }      
     }
@@ -166,10 +171,10 @@ class SkynetRendererCliDatabaseRenderer
       $start = $min * $this->tablePerPageLimit;
     }
     
-    $rows = $this->database->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
+    $rows = $this->database->ops->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
     if($rows !== false && count($rows) > 0)
     {
-      $numRecords = $this->database->countTableRows($this->selectedTable);
+      $numRecords = $this->database->ops->countTableRows($this->selectedTable);
       $numPages = (int)ceil($numRecords / $this->tablePerPageLimit);
     
       $fields = $this->tablesFields[$this->selectedTable];   

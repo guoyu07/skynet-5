@@ -18,6 +18,7 @@ use Skynet\Error\SkynetErrorsTrait;
 use Skynet\State\SkynetStatesTrait;
 use Skynet\Renderer\SkynetRendererAbstract;
 use Skynet\Renderer\SkynetRendererInterface;
+use Skynet\Debug\SkynetDebug;
 
  /**
   * Skynet Html Output Renderer 
@@ -45,6 +46,9 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   /** @var SkynetRendererHtmlStatusRenderer Status Renderer */
   private $statusRenderer;
   
+  /** @var SkynetDebug Debugger */
+  private $debugger;
+  
 
  /**
   * Constructor
@@ -58,6 +62,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();   
     $this->headerRenderer = new  SkynetRendererHtmlHeaderRenderer();    
     $this->statusRenderer = new  SkynetRendererHtmlStatusRenderer(); 
+    $this->debugger = new SkynetDebug();
   }
 
   
@@ -83,7 +88,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['numStates'] = count($this->statesFields);
     $output['numErrors'] = count($this->errorsFields);
     $output['numConfig'] = count($this->configFields);
-    $output['numDebug'] = count($this->statesFields);
+    $output['numDebug'] = $this->debugger->countDebug();
     $output['numConsole'] = count($this->consoleOutput);
     
     $output['numConnections'] = $this->connectionsCounter;
@@ -95,6 +100,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     
     $output['sumChain'] = $this->fields['Chain']->getValue();
     $output['sumSleeped'] = $this->fields['Sleeped']->getValue();
+    $this->debugger->resetDebug();
     
     return json_encode($output);
   }
@@ -169,6 +175,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $this->output[] = $this->elements->addSectionEnd();
     $this->output[] = $this->elements->addFooter($connected);
     
+    $this->debugger->resetDebug();
     return implode('', $this->output);
   } 
 }

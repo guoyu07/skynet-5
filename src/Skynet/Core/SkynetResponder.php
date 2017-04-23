@@ -30,6 +30,7 @@ use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Cluster\SkynetCluster;
 use Skynet\SkynetVersion;
 use Skynet\EventListener\SkynetEventListenersLauncher;
+use Skynet\Debug\SkynetDebug;
 
  /**
   * Skynet ResponderService Main Launcher
@@ -109,7 +110,7 @@ class SkynetResponder
     $this->eventListenersLauncher->setSender(false);
     $this->eventListenersLauncher->assignConnectId(1);
     $this->eventListenersLauncher->assignRequest($this->request);
-    $this->eventListenersLauncher->assignResponse($this->response);
+    $this->eventListenersLauncher->assignResponse($this->response);    
     
     if($start)
     {

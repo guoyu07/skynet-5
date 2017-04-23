@@ -4,7 +4,7 @@
  * Skynet/Renderer/SkynetRendererAbstract.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -29,6 +29,9 @@ abstract class SkynetRendererAbstract
   
   /** @var SkynetField[] States data fields */
   protected $statesFields = [];
+  
+  /** @var SkynetField[] Debug data fields */
+  protected $debugFields = [];
   
   /** @var SkynetError[] Errors data fields */  
   protected $errorsFields = [];
@@ -180,6 +183,27 @@ abstract class SkynetRendererAbstract
   public function setStatesFields($fields)
   {
     $this->statesFields = $fields;
+  }
+ 
+ /**
+  * Assigns Debug data field to renderer
+  *
+  * @param mixed $key
+  * @param mixed $value
+  */  
+  public function addDebugField($key, $value)
+  {
+    $this->debugFields[] = new SkynetField($key, $value);
+  }
+
+  /**
+  * Sets debug fields
+  *
+  * @param mixed[] 
+  */  
+  public function setDebugFields($fields)
+  {
+    $this->debugFields = $fields;
   }
   
  /**

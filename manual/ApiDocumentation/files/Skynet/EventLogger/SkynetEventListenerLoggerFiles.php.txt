@@ -4,7 +4,7 @@
  * Skynet/EventLogger/SkynetEventListenerLoggerFiles.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -19,6 +19,7 @@ use Skynet\EventListener\SkynetEventListenerAbstract;
 use Skynet\Filesystem\SkynetLogFile;
 use Skynet\Common\SkynetTypes;
 use Skynet\Common\SkynetHelper;
+use Skynet\SkynetVersion;
 
  /**
   * Skynet Event Listener Logger - Files
@@ -149,6 +150,24 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $console = [];    
     
     return array('cli' => $cli, 'console' => $console);    
+  }  
+    
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */    
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 
  /**

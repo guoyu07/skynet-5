@@ -50,17 +50,42 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
   */
   private function init($address)
   {
-    if(!\SkynetUser\SkynetConfig::get('core_connection_ssl_verify'))
+    $data = null; 
+    $result = null;
+    try 
     {
-       $options = array(
-        "ssl" => array(
-            "verify_peer" => false,
-            "verify_peer_name" => false,
-        ));
-      return file_get_contents($address, false, stream_context_create($options));
-    } else {
-      return file_get_contents($address);
-    }
+      if(!\SkynetUser\SkynetConfig::get('core_connection_ssl_verify'))
+      {
+         $options = array(
+          "ssl" => array(
+              "verify_peer" => false,
+              "verify_peer_name" => false,
+          ));
+        $data = @file_get_contents($address, false, stream_context_create($options));       
+      } else {
+        $data = @file_get_contents($address);
+      }   
+      
+      if($data === null || $data === false)
+      {
+        $result = false;
+        throw new SkynetException('DATA IS NULL');
+      }    
+      
+      $preResponse = json_decode($data);
+      if($preResponse !== null && isset($preResponse->_skynet))
+      {        
+        $result = true;
+      }     
+      
+    } catch(SkynetException $e)
+    {
+      $this->addError(SkynetTypes::FILE_GET_CONTENTS, 'Connection error: NO DATA RECEIVED', $e);            
+    }   
+    
+    $ret['data'] = $data;
+    $ret['result'] = $result;
+    return $ret;
   }
 
  /**
@@ -89,13 +114,20 @@ class SkynetConnectionFileGetContents extends SkynetConnectionAbstract implement
     }
 
     $this->prepareParams();
-    $this->data = $this->init($address.$this->params);
+    $data = $this->init($address.$this->params);
+    $this->data = $data['data'];
     if($this->data === null) 
     {
       $this->addError(SkynetTypes::FILE_GET_CONTENTS, 'Connection error: RESPONSE DATA IS NULL');
     }
-    $this->launchConnectListeners();
-    return $this->data;
+    $this->launchConnectListeners($this);
+    
+    $adapter = [];
+    $adapter['data'] = $this->data;
+    $adapter['params'] = $this->requests;
+    $adapter['result'] = $data['result'];
+      
+    return $adapter;
   }
 
  /**

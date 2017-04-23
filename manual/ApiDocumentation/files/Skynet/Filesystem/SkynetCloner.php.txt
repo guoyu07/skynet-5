@@ -19,6 +19,7 @@ use Skynet\State\SkynetStatesTrait;
 use Skynet\Secure\SkynetVerifier;
 use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Error\SkynetException;
+use Skynet\Common\SkynetTypes;
 
  /**
   * Skynet Cloner
@@ -47,7 +48,7 @@ class SkynetCloner
   */
   public function startCloning()
   {   
-    $dirsList = $this->inspectDirs('sandbox');
+    $dirsList = $this->inspectDirs('');
     $success = [];
     
     if($dirsList !== false)

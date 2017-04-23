@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlConsoleRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -106,21 +106,8 @@ class SkynetRendererHtmlConsoleRenderer
          $options[] = '<option value="'.$code.'">'.$code.' '.$params.'</option>';        
       }      
     }    
-
-    /* Pasting commands from list */
-    $js = 'if(this.options[this.selectedIndex].value != "0") 
-    { 
-        if(document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value == "" || document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value == null) 
-        {
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value = this.options[this.selectedIndex].value + " ";
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].focus();
-        } else {
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value = document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].value + "\r\n" + this.options[this.selectedIndex].value + " ";
-          document.forms["_skynetCmdConsole"]["_skynetCmdConsoleInput"].focus();
-        }        
-    }';
       
-    return "<select onchange='".$js."' name='_cmd1'>".implode('', $options)."</select>";      
+    return "<select id='cmdsList' onchange='skynetControlPanel.insertCommand();' name='_cmd1'>".implode('', $options)."</select>";      
   }  
  
  /**
@@ -135,15 +122,19 @@ class SkynetRendererHtmlConsoleRenderer
     $this->console->parseConsoleInput($input);
     $errors = $this->console->getParserErrors();
     $states = $this->console->getParserStates();
-    
+    $outputs = [];
+    $output = '';
+     
     $parsedErrors = '';
     $parsedStates = '';
     $i = 1;
     if(is_array($errors) && count($errors) > 0)
     {
+      $parsedErrors.= $this->elements->addHeaderRow($this->elements->addSubtitle('Parser errors'));
       foreach($errors as $error)
       {
-        $parsedErrors.= $this->elements->addBold('InputParserError #'.$i.': ', 'error').$this->elements->addSpan($error, 'error').$this->elements->getNl();        
+        $parsedErrors.= $this->elements->addValRow('InputParserError #'.$i, $this->elements->addSpan($error, 'error'));   
+        $i++;
       }      
     }
     
@@ -153,26 +144,46 @@ class SkynetRendererHtmlConsoleRenderer
       
       if(is_array($states) && count($states) > 0)
       {
+        $parsedErrors.= $this->elements->addHeaderRow($this->elements->addSubtitle('Parser states'));
         foreach($states as $state)
         {
-          $parsedStates.= $this->elements->addBold('InputParserState #'.$i.': ', 'yes').$this->elements->addSpan($state, 'yes').$this->elements->getNl();        
+          $parsedStates.= $this->elements->addValRow('InputParserState #'.$i, $this->elements->addSpan($state, 'yes')); 
+          $i++;
         }      
       }
     }
-    
+   
     /* Add output from listeners */
     foreach($this->listenersOutput as $listenerOutput)
     {
-      if(!empty($listenerOutput))
+      if(is_string($listenerOutput) && !empty($listenerOutput))
       {
-        $input.= "\n".$listenerOutput;
+        $outputs[] = $listenerOutput;
+      } elseif(is_array($listenerOutput) && count($listenerOutput) > 0)
+      {
+        foreach($listenerOutput as $addressListenerOutput)
+        {
+          $outputs[] = $addressListenerOutput;
+        }
       }
     }
     
     $input = str_replace("\r\n", "\n", $input);
-    $input =  htmlentities($input);
+    $input = htmlentities($input);
     $input = str_replace("\n", $this->elements->getNl(), $input);
-    return $parsedErrors.$parsedStates.$input;
+    
+    $input = $this->elements->addHeaderRow($this->elements->addSubtitle('Input query')).$this->elements->addRow($input);
+    
+    if(count($outputs) > 0)
+    {
+      $output = implode("\n", $outputs);
+      $output = str_replace("\r\n", "\n", $output);
+      $output = htmlentities($output);
+      $output = $this->elements->addSectionClass('monits').str_replace("\n", $this->elements->getNl(), $output).$this->elements->addSectionEnd();
+      $output = $this->elements->addHeaderRow($this->elements->addSubtitle('Output')).$this->elements->addRow($output);
+    }
+    
+    return $output.$parsedErrors.$parsedStates.$input;
   }
   
  /**
@@ -182,9 +193,18 @@ class SkynetRendererHtmlConsoleRenderer
   */   
   public function renderConsole()
   {
+    $ajaxSupport = true;
+    
+    $onsubmit = '';
+    $submit = '<input type="submit" title="Send request commands from console" value="Send request" class="sendBtn" />';
+    if($ajaxSupport)
+    {     
+      $submit = '<input type="button" onclick="skynetControlPanel.load(1, true, \''.basename($_SERVER['PHP_SELF']).'\');" title="Send request commands from console" value="Send request" class="sendBtn" />';
+    }
+    
     return '<form method="post" action="#console'.md5(time()).'" name="_skynetCmdConsole">
-    <input type="submit" title="Send request commands from console" value="Send request" class="sendBtn" />'.$this->renderConsoleHelpers().' See '.$this->elements->addUrl(SkynetVersion::WEBSITE, 'documentation').' for information about console usage 
-    <textarea autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
+    '.$submit.$this->renderConsoleHelpers().' See '.$this->elements->addUrl(SkynetVersion::WEBSITE, 'documentation').' for information about console usage 
+    <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
     <input type="hidden" name="_skynetCmdCommandSend" value="1" />
     </form>';
   }
@@ -196,6 +216,11 @@ class SkynetRendererHtmlConsoleRenderer
   */    
   public function renderConsoleInput()
   {
-    return $this->elements->addBold('Console:').$this->elements->getNl().$this->parseConsoleInputDebug($_REQUEST['_skynetCmdConsoleInput']);    
+    if(isset($_REQUEST['_skynetCmdConsoleInput'])) 
+    {
+      return $this->parseConsoleInputDebug($_REQUEST['_skynetCmdConsoleInput']); 
+    } else {
+      return $this->elements->addHeaderRow($this->elements->addSubtitle('Console')).$this->elements->addRow('-- no input --');
+    }    
   }
 }

@@ -22,10 +22,10 @@ class SkynetConfig
 {
   
   /** @var string SKYNET KEY ID, default: empty*/
-  const KEY_ID = '2d78098aa0061387301adf84a1341b3491b7eecd';
+  const KEY_ID = '1234567890';
   
   /** @var string SKYNET PASSWORD, default: 123456 */
-  const PASSWORD = '$2y$10$.wJUJCeHf0ZezPxZsqr5ne25gLkh3dg1aGzp8blyk/bB.Kn0Gxguy';
+  const PASSWORD = '';
   
   
   /** @var string[] Array of configuration options */
@@ -50,7 +50,11 @@ class SkynetConfig
     
     /* core_cloner -> bool:[true|false]
     If TRUE - cloner will be enabled and listening for clone command */
-    'core_cloner' => true,
+    'core_cloner' => false,
+    
+    /* core_check_new_versions -> bool:[true|false]
+    If TRUE - information about new version is given from GitHub */
+    'core_check_new_versions' => true,
 
 
     /* core_encryptor -> string:[base64|...]
@@ -64,6 +68,20 @@ class SkynetConfig
     /* core_date_format -> string
     Date format for date() function */
     'core_date_format' => 'H:i:s d.m.Y',
+    
+/*
+  ==================================
+  Translate configuration 
+  ==================================
+*/   
+    
+    /* translator_config -> bool:[true|false]
+    If TRUE - config fields are translated*/
+    'translator_config' => true,
+    
+    /* translator_params -> bool:[true|false]
+    If TRUE - param fields are translated*/
+    'translator_params' => true,
 
 
 /*
@@ -73,7 +91,7 @@ class SkynetConfig
 */
     /* core_connection_mode -> string:[host|ip]
     Specified connection addresses by host or IP */
-    'core_connection_mode' => 'host',
+    'core_connection_mode' => 'host', // WARNING: at now only host method is supported
 
     /* core_connection_type -> string:[curl|file_get_contents|...]
     Name of registered class used for connection with clusters */
@@ -203,6 +221,10 @@ class SkynetConfig
      /* debug_exceptions -> bool:[true|false]
      If TRUE, debugger will show more info like line, file and trace on errors */
     'debug_exceptions' => false,
+    
+    /* debug_internal -> bool:[true|false]
+     If TRUE, internal params will be show in debug data */
+    'debug_internal' => true,
 
 /*
  -------- end of config.

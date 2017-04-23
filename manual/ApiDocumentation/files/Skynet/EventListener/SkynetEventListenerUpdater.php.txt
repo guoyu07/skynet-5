@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerEcho.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -65,7 +65,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   {
     if($context == 'beforeSend')
     {
-      
+      //$this->request->set('@self_update', array('source' => 'aaaa'));
     }
   }
 
@@ -90,7 +90,16 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
     {      
       if($this->request->get('@self_update') !== null)
       { 
-        if($this->request->get('@self_update') == SkynetHelper::getMyUrl()) 
+        
+        if(isset($this->request->get('@self_update')[0]['source']))
+        {
+          $address = $this->request->get('@self_update')[0]['source'];
+        } else {
+           $this->response->set('@<<self_update_error', 'NO SOURCE: '.SkynetHelper::getMyUrl());           
+           return false;
+        }        
+        
+        if($address == SkynetHelper::getMyUrl()) 
         {
           return false;
         }
@@ -100,8 +109,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
           $success = false;
           $logs = [];
           $data = null;
-          $logs[] = 'SELF-UPDATE: REQUEST RECEIVED';
-          $address = $this->request->get('@self_update');
+          $logs[] = 'SELF-UPDATE: REQUEST RECEIVED';          
           $remote = $this->getRemoteCode($address);
           $logs[] = 'SELF-UPDATE: REMOTE SOURCE: '.$address;
           
@@ -183,7 +191,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
         if(\SkynetUser\SkynetConfig::get('logs_db_selfupdate'))
         {
           $data = [];
-          $data['source'] = $this->request->get('@self_update');
+          $data['source'] = $address;
           $data['version'] = '';          
           if(isset($encodedData->version)) $data['version'] = $encodedData->version;          
           
@@ -198,9 +206,9 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
         
         if(!$success) 
         {
-          $this->response->set('@self_update_error', SkynetHelper::getMyUrl());
+          $this->response->set('@<<self_update_error', SkynetHelper::getMyUrl());
         } else {
-          $this->response->set('@self_update_success', SkynetHelper::getMyUrl());         
+          $this->response->set('@<<self_update_success', SkynetHelper::getMyUrl());         
         }
       }
     }
@@ -350,8 +358,26 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
     $cli = [];
     $console = [];
     
-    $console[] = ['@update', 'source', 'TO ALL'];   
+    $console[] = ['@self_update', 'source:source_cluster_address', 'TO ALL'];   
     
     return array('cli' => $cli, 'console' => $console);    
+  }
+  
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }

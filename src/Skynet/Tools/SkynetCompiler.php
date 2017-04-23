@@ -303,7 +303,7 @@ class SkynetCompiler
   private function generateStandalone($src)
   {     
     $header = "<?php ".$this->nl1.$this->nl1."/* Skynet Standalone | version compiled: ".date('Y.m.d H:i:s')." (".time().") */".$this->nl1.$this->nl1."namespace Skynet;".$this->nl1;
-    $code = $this->nl1."\$skynet = new SkynetLauncher(true, true);".$this->nl1;
+    $code = $this->nl1."\$skynet = new SkynetLauncher(true, true);".$this->nl1."echo \$skynet;";
     $src = $header.$src.$code;
     return $src;
   }

@@ -14,14 +14,23 @@
 
 namespace Skynet\Renderer\Html;
 
+use Skynet\Data\SkynetParams;
+use Skynet\Renderer\SkynetRendererAbstract;
+use Skynet\Secure\SkynetVerifier;
+
  /**
   * Skynet Renderer HTML Connections Renderer
   */
-class SkynetRendererHtmlConnectionsRenderer
+class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
 {   
   /** @var SkynetRendererHtmlElements HTML Tags generator */
   private $elements;
   
+  /** @var SkynetParams[] Params */
+  private $params;
+  
+  /** @var SkynetVerifier SkynetVerifier instance */
+  private $verifier;  
 
  /**
   * Constructor
@@ -29,6 +38,8 @@ class SkynetRendererHtmlConnectionsRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererHtmlElements();
+    $this->params = new SkynetParams;
+    $this->verifier = new SkynetVerifier();
   }   
   
  /**
@@ -49,11 +60,14 @@ class SkynetRendererHtmlConnectionsRenderer
   * @return string HTML code
   */   
   public function renderGoToConnection($connectionsDataArray)
-  {
+  {   
     $options = [];
     $options[] = '<option value="0"> --- choose from list --- </option>';
     $conns = count($connectionsDataArray);
-    if($conns == 0) return false;
+    if($conns == 0) 
+    {
+      return '';
+    }
     
     for($i = 1; $i <= $conns; $i++)
     {
@@ -63,13 +77,43 @@ class SkynetRendererHtmlConnectionsRenderer
       {
         $url = $connectionsDataArray[$j]['CLUSTER URL'];
       }
+      $url = str_replace(array('http://', 'https://'), '', $url);
+      if(strlen($url) > 20)
+      {
+        $url = substr($url, 0, 20).'...'.basename($url);
+      }      
+      
       $options[] = '<option value="'.$i.'">#'.$i.' ('.$url.')</option>';     
     }   
       
     return '<form method="GET" action="" class="formConnections">
-    Go to connection: <select onchange="if(this.options[this.selectedIndex].value > 0) { window.location.assign(window.location.href.replace(location.hash, \'\') + \'#_connection\' + this.options[this.selectedIndex].value); }" name="_go">'.implode('', $options).'</select></form>';      
+    Go to connection: <select id="connectList" onchange="skynetControlPanel.gotoConnection();" name="_go">'.implode('', $options).'</select></form>';      
   }  
+ 
+ /**
+  * Parses fields with time
+  * 
+  * @param string $key
+  * @param string $value
+  *
+  * @return string Parsed time
+  */  
+  private function parseParamTime($key, $value)
+  {
+    if(!\SkynetUser\SkynetConfig::get('translator_params'))
+    {
+      return $value;
+    }
     
+    $timeParams = ['_skynet_sender_time', '_skynet_cluster_time', '_skynet_chain_updated_at', '@_skynet_sender_time', '@_skynet_cluster_time', '@_skynet_chain_updated_at'];
+    if(in_array($key, $timeParams) && !empty($value) && is_numeric($value))
+    {
+      return date(\SkynetUser\SkynetConfig::get('core_date_format'), $value);      
+    } else {
+      return $value;
+    }
+  }
+ 
  /**
   * Parses array 
   * 
@@ -80,9 +124,33 @@ class SkynetRendererHtmlConnectionsRenderer
   public function parseParamsArray($fields)
   {
     $rows = [];    
+    $debugInternal = \SkynetUser\SkynetConfig::get('debug_internal');
+    
     foreach($fields as $key => $field)
     {
-      $rows[] = $this->elements->addValRow('<b>'.htmlspecialchars($field->getName(), ENT_QUOTES, "UTF-8").'</b>', str_replace(array("<", ">"), array("&lt;", "&gt;"), $field->getValue()));         
+      $render = true;
+      
+      if(\SkynetUser\SkynetConfig::get('translator_params'))
+      {
+        $paramName = $this->params->translateInternalParam(htmlspecialchars($field->getName(), ENT_QUOTES, "UTF-8"));
+      } else {
+        $paramName = $field->getName();
+      }
+      
+      if($this->verifier->isInternalParameter($field->getName()))
+      {
+        $render = false;
+        if($debugInternal)
+        {
+          $render = true;
+        }
+      }
+      
+      if($render)
+      {
+        $value = $this->parseParamTime($field->getName(), $field->getValue());
+        $rows[] = $this->elements->addValRow('<b>'.$paramName.'</b>', str_replace(array("<", ">"), array("&lt;", "&gt;"), $value));    
+      }      
     }
     
     if(count($rows) > 0)
@@ -101,26 +169,58 @@ class SkynetRendererHtmlConnectionsRenderer
   *
   * @return string HTML code
   */   
-  public function parseConnectionFields($fields, $clusterUrl)
+  public function parseConnectionFields($fields, $clusterUrl, $id)
   {
     $names = [
-      'request_raw' => 'Request Fields {sended} (plain) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'),
-      'request_encypted' => 'Request Fields {sended} (encrypted) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'),
-      'response_raw' => 'Response Fields {received} (raw) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'),
-      'response_decrypted' => 'Response Fields {received} (decrypted) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't')
+      'request_raw' => ['Request Fields {sended} (plain) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'request_encypted' => ['Request Fields {sended} (encrypted) '.$this->elements->getGt().$this->elements->getGt().' to: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'response_raw' => ['Response Fields {received} (raw) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'), ''],
+      'response_decrypted' => ['Response Fields {received} (decrypted) '.$this->elements->getLt().$this->elements->getLt().' from: '.$this->elements->addSpan($clusterUrl, 't'), '']
       ];      
     
     $rows = [];   
-    foreach($fields as $key => $value)
-    {
-      $rows[] = 
-        $this->elements->addHeaderRow($this->elements->addH3('[### '.$names[$key].' ###]')).
-        $this->parseParamsArray($value);      
-    }
+    
+    $rows[] = $this->elements->addSectionClass('tabConnPlain'.$id);
+    $rows[] = $this->elements->beginTable();
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['request_raw'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['request_raw']);      
+    $rows[] = $this->elements->endTable();      
+    
+    $rows[] = $this->elements->beginTable();
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['response_decrypted'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['response_decrypted']);      
+    $rows[] = $this->elements->endTable();  
+    $rows[] = $this->elements->addSectionEnd();
+    
+    $rows[] = $this->elements->addSectionClass('hide tabConnEncrypted'.$id);
+    $rows[] = $this->elements->beginTable();
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['request_encypted'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['request_encypted']);      
+    $rows[] = $this->elements->endTable();      
+    
+    $rows[] = $this->elements->beginTable();
+    $rows[] = $this->elements->addHeaderRow($this->elements->addH3('[ '.$names['response_raw'][0].' ]'));
+    $rows[] = $this->parseParamsArray($fields['response_raw']);      
+    $rows[] = $this->elements->endTable();  
+    $rows[] = $this->elements->addSectionEnd();
     
     return implode('', $rows);    
-  }
+  } 
  
+ /**
+  * Renders tabs
+  *
+  * @return string HTML code
+  */  
+  public function renderConnectionTabs($id = 0)
+  {
+    $output = [];
+    $output[] = '<div class="tabsHeader">';
+    $output[] = '<a class="tabConnPlainBtn'.$id.' active" href="javascript:skynetControlPanel.switchConnTab(\'tabConnPlain\', '.$id.');">Plain data</a> <a class="tabConnEncryptedBtn'.$id.' errors" href="javascript:skynetControlPanel.switchConnTab(\'tabConnEncrypted\', '.$id.');">Encrypted data</a> <a class="tabConnRawBtn'.$id.'" href="javascript:skynetControlPanel.switchConnTab(\'tabConnRaw\', '.$id.');">Raw data</a>';
+    $output[] = '</div>';    
+    return implode($output);
+  }
+  
  /**
   * Parses connection params array
   *
@@ -135,41 +235,41 @@ class SkynetRendererHtmlConnectionsRenderer
       $this->elements->addHtml('<a name="_connection'.$connData['id'].'"></a>').
       $this->elements->addH2('@'.$connData['id'].' Connection {').
       $this->elements->addH3('@ClusterAddress: '.$this->elements->addUrl($connData['CLUSTER URL']));
-    $rows[] = '<table>';
+    
+    
+    $rows[] = $this->renderConnectionTabs($connData['id']);
       
     $paramsFields = ['SENDED PARAMS', 'SENDED HEADER PARAMS (broadcast)'];  
     $rawDataFields = ['RECEIVED RAW DATA', 'RECEIVED RAW HEADER (broadcast)'];
-      
-    foreach($connData as $key => $value)
-    {
-      $parsedValue = $value;
-      
-      if($key == 'FIELDS')
-      {
-        $rows[] = $this->parseConnectionFields($value, $connData['CLUSTER URL']);
-                
-      } else {
-        
-        $parsedValue = $value;
-        
-        if($key == 'CLUSTER URL')
-        {
-          $parsedValue = $this->elements->addUrl($value);
-        }
-        
-        if(in_array($key, $paramsFields))
-        {
-          $parsedValue = $this->parseDebugParams($value);
-          
-        } elseif(in_array($key, $rawDataFields))
-        {
-          $parsedValue = $this->parseResponseRawData($value);
-        }        
-        
-        $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper($key).' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);   
-      }        
-    }
-    $rows[] = '</table>';
+    
+    $rows[] = $this->elements->beginTable();
+    $parsedValue = $this->elements->addUrl($connData['CLUSTER URL']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('CLUSTER URL').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);    
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Connection number').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['id']);    
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Ping').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['Ping']);   
+    $rows[] = $this->elements->endTable();  
+    
+    
+    $rows[] = $this->parseConnectionFields($connData['FIELDS'], $connData['CLUSTER URL'], $connData['id']);
+    
+    
+    $rows[] = $this->elements->addSectionClass('hide tabConnRaw'.$connData['id']);
+    $rows[] = $this->elements->beginTable();
+    $parsedValue = $this->parseDebugParams($connData['SENDED PARAMS']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('SENDED PARAMS').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseDebugParams($connData['SENDED HEADER PARAMS (broadcast)']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('SENDED HEADER PARAMS (broadcast)').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseResponseRawData($connData['RECEIVED RAW DATA']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW DATA').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    
+    $parsedValue = $this->parseResponseRawData($connData['RECEIVED RAW HEADER (broadcast)']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW HEADER (broadcast)').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    $rows[] = $this->elements->endTable();  
+    $rows[] = $this->elements->addSectionEnd();   
+    
+    
     $rows[] = $this->elements->addH2('}');
     return implode('', $rows);    
   }
@@ -226,6 +326,36 @@ class SkynetRendererHtmlConnectionsRenderer
     {
       $fields[] = '<b>'.$k.'=</b>'.$v;
     }
-    return implode('; ', $fields);
+    return implode(';'.$this->elements->getNl(), $fields);
   }
+  
+ /**
+  * Renders and returns connections view
+  *
+  * @return string HTML code
+  */    
+  public function render($ajax = false)
+  {
+    if($ajax)
+    {
+      return $this->renderConnections($this->connectionsData);
+    }
+    
+    $output = [];   
+    /* Center Main : Right Column: */
+    $output[] = $this->elements->addSectionClass('columnConnections'); 
+    
+    $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
+    $output[] = $this->elements->addSectionClass('reconnectArea'); 
+    $output[] = '@Auto-reconnect interval: <input value="0" type="text" id="connIntervalValue" name="connectionInterval"> seconds <input type="button" onclick="skynetControlPanel.setConnectInterval(\''.basename($_SERVER['PHP_SELF']).'\')" value="OK"> (<span id="connIntervalStatus">disabled</span>)';
+    $output[] = $this->elements->addSectionEnd();
+    $output[] = $this->elements->addSectionEnd();
+    
+    $output[] = $this->elements->addSectionClass('innerConnectionsData'); 
+    $output[] = $this->renderConnections($this->connectionsData);
+    $output[] = $this->elements->addSectionEnd();  
+    
+    $output[] = $this->elements->addSectionEnd();  
+    return implode('', $output);      
+  } 
 }

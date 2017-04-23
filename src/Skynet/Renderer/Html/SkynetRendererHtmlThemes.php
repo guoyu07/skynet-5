@@ -63,6 +63,8 @@ class SkynetRendererHtmlThemes
     #loginSection { text-align:center; margin: auto; font-size:1.2rem; }
     #loginSection input[type="password"] { width:400px; }
     
+    .debuggerField { padding:5px; background:#fff; color: #000; font-size:1.2rem; }
+    
     .main { height: 90%; }
     .dbTable { table-layout: auto; }
     .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
@@ -102,6 +104,7 @@ class SkynetRendererHtmlThemes
     .tabConfig { display:none; }
     .tabErrors { display:none; }
     .tabConsole { display:none; }
+    .tabDebug { display:none; }
     
     .tdClusterStatus { width:10%; }
     .tdClusterUrl { width:60%; }

@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerClusters.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -98,7 +98,7 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
   {
     if($context == 'afterReceive')
     {
-      if($this->response->get('_skynet_clusters') !== null)
+      if($this->response->get('_skynet_clusters') !== null && $this->request->get('@<<reset') === null)
       {
         $clustersAry = explode(';', $this->response->get('_skynet_clusters'));
         
@@ -119,7 +119,16 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
 
     if($context == 'beforeSend')
     { 
-      
+      if($this->request->get('@reset') !== null && $this->request->get('_skynet_sender_url') !== null)
+      {
+        $u = SkynetHelper::getMyUrl();       
+        if($this->clustersRegistry->removeAll($this->request->get('_skynet_sender_url')))
+        {
+          $this->response->set('@<<reset', 'DELETED');
+        } else {          
+          $this->response->set('@<<reset', 'NOT DELETED');
+        }
+      }
     }
   }
 
@@ -194,8 +203,62 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
     $console = [];
     $console[] = ['@add', ['cluster address', 'cluster address1, address2 ...'], ''];   
     $console[] = ['@connect', ['cluster address', 'cluster address1, address2 ...'], ''];  
-    $console[] = ['@to', 'cluster address', ''];  
+    $console[] = ['@to', 'cluster address', ''];
+    $console[] = ['@reset', ['cluster address', 'cluster address1, address2 ...'], ''];    
     
     return array('cli' => $cli, 'console' => $console);    
+  }
+  
+ /**
+  * Registers database tables
+  * 
+  * Must returns: 
+  * ['queries'] - array with create/insert queries
+  * ['tables'] - array with tables names
+  * ['fields'] - array with tables fields definitions
+  *
+  * @return array[] tables data
+  */   
+  public function registerDatabase()
+  {
+    $queries = [];
+    $tables = [];
+    $fields = [];
+    
+    $queries['skynet_clusters'] = 'CREATE TABLE skynet_clusters (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
+    $queries['skynet_clusters_blocked'] = 'CREATE TABLE skynet_clusters_blocked (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';    
+    $queries['skynet_chain'] = ['CREATE TABLE skynet_chain (id INTEGER PRIMARY KEY AUTOINCREMENT, chain BIGINT, updated_at INTEGER)', 'INSERT INTO skynet_chain (id, chain, updated_at) VALUES(1, 0, 0)'];
+    
+    $tables['skynet_clusters'] = 'Clusters';
+    $tables['skynet_clusters_blocked'] = 'Clusters (corrupted/blocked)';   
+    $tables['skynet_chain'] = 'Chain';   
+    
+    $fields['skynet_clusters'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'url' => 'URL Address',
+    'ip' => 'IP Address',
+    'version' => 'Skynet version',
+    'last_connect' => 'Last connection',
+    'registrator' => 'Added by'
+    ];
+    
+    $fields['skynet_clusters_blocked'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'url' => 'URL Address',
+    'ip' => 'IP Address',
+    'version' => 'Skynet version',
+    'last_connect' => 'Last connection',
+    'registrator' => 'Added by'
+    ];    
+    
+    $fields['skynet_chain'] = [
+    'id' => '#ID',
+    'chain' => 'Current Chain Value',
+    'updated_at' => 'Last update'
+    ];   
+    
+    return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
   }
 }

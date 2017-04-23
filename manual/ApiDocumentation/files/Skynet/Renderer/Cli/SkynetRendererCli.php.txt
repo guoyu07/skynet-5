@@ -4,7 +4,7 @@
  * Skynet/Renderer/Cli/SkynetRendererCli.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.2
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -57,13 +57,12 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
   */
   public function __construct()
   {
-    parent::__construct();       
-     
+    parent::__construct(); 
+    
     $this->elements = new SkynetRendererCliElements();    
     $this->debugRenderer = new SkynetRendererCliDebugRenderer();
     $this->databaseRenderer = new  SkynetRendererCliDatabaseRenderer();
     $this->connectionsRenderer = new  SkynetRendererCliConnectionsRenderer();  
-
     $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();    
   }
@@ -248,8 +247,7 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
     $str.= $this->elements->getNl().$this->elements->getNl().$tables.$this->elements->getNl();
     
     return $str;
-  }
-  
+  }  
   
  /**
   * Renders ad commands

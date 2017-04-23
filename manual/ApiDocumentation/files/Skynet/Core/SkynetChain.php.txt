@@ -91,9 +91,12 @@ class SkynetChain
     {
       foreach($clusters as $cluster)
       {
-        if(!empty($cluster->getUrl())) 
+        if(!$this->clustersRegistry->isClusterBlocked($cluster))
         {
-          $ary[] = base64_encode($cluster->getUrl());
+          if(!empty($cluster->getUrl())) 
+          {
+            $ary[] = base64_encode($cluster->getUrl());
+          }
         }
       }
       $ret = implode(';', $ary);

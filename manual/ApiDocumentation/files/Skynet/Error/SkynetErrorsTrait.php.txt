@@ -14,6 +14,9 @@
 
 namespace Skynet\Error;
 
+use Skynet\Filesystem\SkynetLogFile;
+use Skynet\Database\SkynetDatabase;
+
  /**
   * Skynet Errors Trait
   *
