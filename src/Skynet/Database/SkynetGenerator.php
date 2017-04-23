@@ -35,6 +35,9 @@ class SkynetGenerator
   /** @var SkynetDatabase DB Instance */
   protected $database;
   
+  /** @var SkynetDatabaseSchema DB Schema */
+  protected $databaseSchema;
+  
   /** @var PDO Connection instance */
   protected $db;
   
@@ -42,17 +45,17 @@ class SkynetGenerator
   protected $tablesFields = [];
   
   /** @var SkynetVerifier Verifier instance */
-  private $verifier;
- 
+  private $verifier; 
 
  /**
   * Constructor
   */
   public function __construct()
   {
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();      
+    $this->database = SkynetDatabase::getInstance();   
+    $this->databaseSchema = new SkynetDatabaseSchema;        
+    $this->dbTables = $this->databaseSchema->getDbTables();   
+    $this->tablesFields = $this->databaseSchema->getTablesFields();      
     $this->db = $this->database->connect();
     $this->verifier = new SkynetVerifier();
     

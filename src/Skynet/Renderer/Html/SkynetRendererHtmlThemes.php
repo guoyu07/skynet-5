@@ -56,18 +56,23 @@ class SkynetRendererHtmlThemes
     #header { height: 10%;  }
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
-    .main { height: 90%; }
-    #dbSwitch { height: 15%; max-height:15%; min-height:90px; width:100%; overflow:auto; }
-    #dbRecords { height: 70%; max-height:70%; overflow:auto; }
-    .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
-    .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }
+    #authMain { text-align: center; }    
+    #dbSwitch { height: 10%; max-height:10%; min-height:90px; width:100%; overflow:auto; }
+    #dbRecords { height: 80%; max-height:80%; overflow:auto; }    
     #console { width: 100%; height: 15%; }    
     #loginSection { text-align:center; margin: auto }
     #loginSection input[type="password"] { width:400px; }
-    #dbTable { table-layout: auto; }
-    #authMain { text-align: center; }
+    
+    .main { height: 90%; }
+    .dbTable { table-layout: auto; }
+    .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
+    .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }    
     
     .monits { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; background:#03312f;}
+    
+    .monitOK { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; color: #32c434; background:#113112; text-align:center;}
+    .monitError { padding:8px; font-size:1.1em; border: 1px solid #fdf6f7; color:#df888a; background:#4c1819; text-align:center;}
+    
     .reconnectArea { font-size:0.8rem; }
     .reconnectArea input { width: 30px; }
     .hide { display:none; }
@@ -111,13 +116,17 @@ class SkynetRendererHtmlThemes
     
     a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
     a.btn:hover { background:#3ffb6e; color:#000; }
-      
-   
+    
+    .tdFormKey { width:20%; vertical-align:middle; text-align:center; }
+    .tdFormVal { width:80%; vertical-align:top; }
+    .tdFormVal textarea { width:100%; height:150px; }
+    .tdFormActions { vertical-align:middle; text-align:center; }
     
     .sectionStatus { height:75%; max-height:75%; overflow-y:auto; }
     .sectionConsole { height:20%; max-height:20%; }
     .tdKey { width:30%; }
     .tdVal { width:70%; }
+    .tdActions { width:150px; }
     .tdHeader { border:0px; padding-top:30px; }
     .marked { color: #5ba15f; } 
     .exception { color: #ae3516; }

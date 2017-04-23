@@ -111,7 +111,7 @@ class SkynetRendererHtmlElements
     return $this->separator;
   } 
   
-  /**
+ /**
   * Adds bold
   * 
   * @param string $html Text to decorate
@@ -129,6 +129,25 @@ class SkynetRendererHtmlElements
     return '<b'.$cls.'>'.$html.'</b>';
   }
  
+ /**
+  * Adds select option
+  * 
+  * @param string $value Option value
+  * @param string $title Option name
+  * @param bool $selected Selected
+  *
+  * @return string HTML code
+  */    
+  public function addOption($value, $title, $isSelected = false)
+  {
+    $selected = '';
+    if($isSelected === true) 
+    {
+      $selected = ' selected';
+    }
+    return '<option value="'.$value.'"'.$selected.'>'.$title.'</option>';
+  }
+  
  /**
   * Adds span
   * 
@@ -357,6 +376,66 @@ class SkynetRendererHtmlElements
   }
  
  /**
+  * Adds table key => value row
+  * 
+  * @param string $key TD 1
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addFormRow($key, $val)
+  {
+    return '<tr><td class="tdFormKey">'.$key.'</td><td class="tdFormVal">'.$val.'</td></tr>';
+  }
+ 
+ /**
+  * Adds monit
+  * 
+  * @param string $msg
+  *
+  * @return string HTML code
+  */  
+ public function addMonitOk($msg)
+ {
+    $output = [];
+    $output[] = $this->addSectionClass('monitOK');
+    $output[] = $this->addBold('Result: [OK] ');
+    $output[] = $msg;    
+    $output[] = $this->addSectionEnd(); 
+    return implode('', $output);
+ }
+ 
+ /**
+  * Adds monit
+  * 
+  * @param string $msg
+  *
+  * @return string HTML code
+  */  
+ public function addMonitError($msg)
+ {
+    $output = [];
+    $output[] = $this->addSectionClass('monitError');
+    $output[] = $this->addBold('Result: [ERROR] ');
+    $output[] = $msg;    
+    $output[] = $this->addSectionEnd(); 
+    return implode('', $output);
+ }
+ 
+ /**
+  * Adds table key => value row
+  * 
+  * @param string $key TD 1
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addFormActionsRow($val)
+  {
+    return '<tr><td class="tdFormActions" colspan="2">'.$val.'</td></tr>';
+  }
+  
+ /**
   * Adds table header row
   * 
   * @param string $val TD 1
@@ -375,9 +454,9 @@ class SkynetRendererHtmlElements
   *
   * @return string HTML code
   */   
-  public function addHeaderRow($val)
+  public function addHeaderRow($val, $colspan = 2)
   {
-    return '<tr><th class="tdHeader" colspan="2">'.$val.'</th></tr>';
+    return '<tr><th class="tdHeader" colspan="'.$colspan.'">'.$val.'</th></tr>';
   } 
  
  /**
@@ -387,9 +466,9 @@ class SkynetRendererHtmlElements
   *
   * @return string HTML code
   */   
-  public function addRow($val)
+  public function addRow($val, $colspan = 2)
   {
-    return '<tr><td colspan="2">'.$val.'</td></tr>';
+    return '<tr><td colspan="'.$colspan.'">'.$val.'</td></tr>';
   } 
   
  /**
@@ -400,7 +479,7 @@ class SkynetRendererHtmlElements
   public function addHeader()
   {
     $html = '<html><head>';
-    $html.= '<title>SKYNET '.SkynetVersion::VERSION.'</title>';
+    $html.= '<title>'.pathinfo($_SERVER['PHP_SELF'], PATHINFO_FILENAME).' ('.SkynetVersion::VERSION.')</title>';
     $html.= $this->css;
     $html.= '<meta charset="utf-8">';
     $html.= '<link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,">';

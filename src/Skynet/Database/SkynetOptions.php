@@ -52,9 +52,7 @@ class SkynetOptions
   */
   public function __construct()
   {
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();      
+    $this->database = SkynetDatabase::getInstance();   
     $this->db = $this->database->connect();
     $this->verifier = new SkynetVerifier();   
   }

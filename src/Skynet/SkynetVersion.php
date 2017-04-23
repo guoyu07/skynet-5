@@ -20,7 +20,7 @@ namespace Skynet;
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.1.2-alpha';
+   const VERSION = '1.1.3-alpha';
    
    /** @var string build */
    const BUILD = '2017.04.24';

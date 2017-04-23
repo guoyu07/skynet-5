@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.23 03:11:55 (1492917115) */
+/* Skynet Standalone | version compiled: 2017.04.23 17:01:23 (1492966883) */
 
 namespace Skynet;
 
@@ -8805,7 +8805,7 @@ class SkynetResponse
  * Skynet/Database/SkynetDatabase.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -8826,10 +8826,10 @@ class SkynetDatabase
   use SkynetErrorsTrait, SkynetStatesTrait;
 
   /** @var bool Status of database connection */
-  protected $db_connected = false;
+  protected $dbConnected = false;
 
   /** @var bool Status of tables schema */
-  protected $db_created = false;
+  protected $dbCreated = false;
 
   /** @var SkynetDatabase Instance of this */
   private static $instance = null;
@@ -8842,6 +8842,9 @@ class SkynetDatabase
   
   /** @var PDO Connection */
   private $db;
+  
+  /** @var SkynetDatabaseOperations DB Methods */
+  public $ops;
 
  /**
   * Constructor (private)
@@ -8860,7 +8863,10 @@ class SkynetDatabase
   */
   public function connect()
   {
-    if($this->db !== null) return $this->db;
+    if($this->db !== null) 
+    {
+      return $this->db;
+    }
     
     if(SkynetConfig::get('db_type') == 'sqlite')
     {
@@ -8872,7 +8878,11 @@ class SkynetDatabase
       if(!empty(SkynetConfig::get('db_file_dir')))
       {
         $db_path = SkynetConfig::get('db_file_dir');
-        if(substr($db_path, -1) != '/') $db_path.= '/';
+        if(substr($db_path, -1) != '/') 
+        {
+          $db_path.= '/';
+        }
+        
         if(!is_dir($db_path)) 
         {
           try
@@ -8907,11 +8917,16 @@ class SkynetDatabase
 
        $options = array(\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION);
        $this->db = new \PDO($dsn, SkynetConfig::get('db_user'),  SkynetConfig::get('db_password'), $options);
-       $this->db_connected = true;
+       $this->dbConnected = true;
        $this->addState(SkynetTypes::DB, SkynetTypes::DBCONN_OK.' : '. SkynetConfig::get('db_type'));
 
+       
+       $this->ops = new SkynetDatabaseOperations();
+       $this->ops->setDb($this->db);
+       
        /* Check for database schema */
-       $this->checkSchemas();
+       $this->ops->checkSchemas();
+       $this->dbCreated = $this->ops->getDbCreated();
 
        return $this->db;
 
@@ -8923,13 +8938,508 @@ class SkynetDatabase
   }
 
  /**
+  * Returns Connection
+  *
+  * @return PDO PDO Connection object
+  */
+  public function getDB()
+  {
+    return $this->db;
+  }
+
+ /**
+  * Returns instance of this
+  *
+  * @return SkynetDatabase
+  */
+  public static function getInstance()
+  {
+    if(self::$instance === null)
+    {
+      self::$instance = new static();
+      self::$instance->connect();
+    }
+    return self::$instance;
+  }
+
+ /**
+  * Checks for connection
+  *
+  * @return bool True if connected to database
+  */
+  public function isDbConnected()
+  {
+    return $this->dbConnected;
+  }
+
+ /**
+  * Checks for database schema is created
+  *
+  * @return bool True if schema exists in database
+  */
+  public function isDbCreated()
+  {
+    return $this->dbCreated;
+  }
+
+ /**
+  * Disconnects with database
+  */
+  public function disconnect()
+  {
+    $this->db = null;
+  }
+}
+
+/**
+ * Skynet/Database/SkynetDatabaseOperations.php
+ *
+ * @package Skynet
+ * @version 1.1.3
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.1.3
+ */
+
+ /**
+  * Skynet Database Operations
+  *
+  * Base class for database ops
+  *
+  * @uses SkynetErrorsTrait
+  * @uses SkynetStatesTrait
+  */
+class SkynetDatabaseOperations
+{
+  use SkynetErrorsTrait, SkynetStatesTrait;
+  
+  /** @var string[] Array with table names */
+  private $dbTables;
+  
+  /** @var string[] Array with tables fields */
+  protected $tablesFields = [];
+  
+  /** @var bool Status of tables schema */
+  protected $dbCreated = false;
+  
+  /** @var PDO Connection */
+  private $db;
+
+ /**
+  * Constructor
+  */
+  public function __construct() 
+  {   
+  }
+
+ /**
+  * Returns table records count
+  *
+  * @param string $table Table name
+  * 
+  * @return int
+  */  
+  public function countTableRows($table)
+  {
+    $counter = 0;
+    try
+    {
+      $stmt = $this->db->query('SELECT count(*) as c FROM '.$table.' LIMIT 200');     
+      $stmt->execute();
+      $row = $stmt->fetch();
+      $counter = $row['c'];
+      $stmt->closeCursor();
+      
+    } catch(\PDOException $e)
+    {
+      $this->addError(SkynetTypes::PDO, 'Getting records from database table: '.$table.' failed', $e);
+      return false;
+    }    
+    return $counter;   
+  }
+
+ /**
+  * Deletes record from table
+  *
+  * @param string $table Table name
+  * @param int $id Record ID
+  * 
+  * @return bool
+  */  
+  public function deleteRecordId($table, $id)
+  {    
+    try
+    {
+      $stmt = $this->db->prepare('DELETE FROM '.$table.' WHERE id = :id');   
+      $stmt->bindParam(':id', $id);        
+      if($stmt->execute())
+      {
+        return true;
+      }
+      
+    } catch(\PDOException $e)
+    {
+      $this->addError(SkynetTypes::PDO, 'Error deleting [ID: '.$id.' ] from table: '.$table, $e);      
+    }       
+  }
+  
+ /**
+  * Deletes all records from table
+  *
+  * @param string $table Table name
+  * 
+  * @return bool
+  */  
+  public function deleteAllRecords($table)
+  {    
+    try
+    {
+      $stmt = $this->db->query('DELETE FROM '.$table); 
+      if($stmt->execute())
+      {
+        return true;      
+      }
+    } catch(\PDOException $e)
+    {
+      $this->addError(SkynetTypes::PDO, 'Error deleting all records from table: '.$table, $e);      
+    }       
+  }
+  
+ /**
+  * Returns rows from table
+  *
+  * @param string $table Table name
+  * @param int $startFrom Limit offset
+  * @param int $limitTo Limit
+  * @param string $sortBy Sort by column
+  * @param string $sortOrder Sort order ASC|DESC
+  * 
+  * @return mixed[] Record's rows
+  */  
+  public function getTableRows($table, $startFrom = null, $limitTo = null, $sortBy = null, $sortOrder = null)
+  {
+    $rows = [];
+    $limit = '';
+    $sort = ''; 
+    $order = '';     
+    if($limitTo !== null) 
+    {
+      $limit = ' LIMIT '.intval($startFrom).', '.intval($limitTo);
+    }
+    
+    if($sortBy !== null) 
+    {
+      $sort = ' ORDER BY '.$sortBy;
+    }
+    
+    if($sortOrder !== null) 
+    {
+      $order = ' '.$sortOrder;
+    }
+    
+    try
+    {
+      $query = 'SELECT * FROM '.$table.$sort.$order.$limit;      
+      $stmt = $this->db->query($query);     
+      $stmt->execute();
+           
+      while($row = $stmt->fetch())
+      {
+        $rows[] = $row;
+      }
+      $stmt->closeCursor();
+      
+    } catch(\PDOException $e)
+    {
+      $this->addError(SkynetTypes::PDO, 'Getting records from database table: '.$table.' failed', $e);
+      return false;
+    }    
+    return $rows;   
+  } 
+
+ /**
+  * Updates row
+  *
+  * @param string $table Table name
+  * @param int $id Record ID
+  * @param mixed[] $data Data
+  * 
+  * @return bool True if success
+  */   
+  public function updateRow($table, $id, $data)
+  {      
+    $params = [];
+    foreach($data as $k => $v)
+    {
+      $params[] = $k.'=:'.$k;      
+    }
+    $paramsSet = implode(',', $params);    
+    $query =  'UPDATE '.$table.' SET '.$paramsSet.' WHERE id=:id';    
+    
+    try
+    {
+      $stmt = $this->db->prepare($query); 
+      $stmt->bindValue(':id', $id);
+      foreach($data as $k => $v)
+      {
+        $stmt->bindValue(':'.$k, $v);
+      }
+      
+      if($stmt->execute())
+      {
+        return true;
+      }
+      
+    } catch(\PDOException $e)
+    {
+      $this->addError(SkynetTypes::PDO, 'Update record in table: '.$table.' failed', $e);
+      return false;
+    } 
+  }  
+ 
+ /**
+  * Create record row
+  *
+  * @param string $table Table name
+  * @param mixed[] $data Data
+  * 
+  * @return bool True if success
+  */   
+  public function newRow($table, $data)
+  {      
+    $params = [];
+    $insert = [];
+    foreach($data as $k => $v)
+    {
+      $params[] = ':'.$k;  
+      $insert[] = $k;
+    }
+    $paramsSet = implode(',', $params);  
+    $fieldsStr = implode(',', $insert);  
+    $query =  'INSERT INTO '.$table.'('.$fieldsStr.') VALUES('.$paramsSet.')';    
+    
+    var_dump($query);
+    
+    try
+    {
+      $stmt = $this->db->prepare($query);       
+      foreach($data as $k => $v)
+      {
+        $stmt->bindValue(':'.$k, $v);
+      }
+      
+      if($stmt->execute())
+      {
+        return true;
+      }
+      
+    } catch(\PDOException $e)
+    {
+      $this->addError(SkynetTypes::PDO, 'New record in table: '.$table.' failed', $e);
+      return false;
+    } 
+  } 
+  
+ /**
+  * Returns row from table
+  *
+  * @param string $table Table name
+  * @param int $id Record ID
+  * 
+  * @return mixed[] Record's row
+  */  
+  public function getTableRow($table, $id)
+  {   
+    try
+    {
+      $query = 'SELECT * FROM '.$table.' WHERE id = :id';      
+      $stmt = $this->db->prepare($query);   
+      $stmt->bindParam(':id', $id);
+      $stmt->execute();           
+      $row = $stmt->fetch();
+      $stmt->closeCursor();
+      return $row;
+      
+    } catch(\PDOException $e)
+    {
+      $this->addError(SkynetTypes::PDO, 'Getting record from database table: '.$table.' failed (id: '.$id.')', $e);
+      return false;
+    }  
+  }
+  
+ /**
+  * Checks database tables and creates schema if not exists
+  *
+  * @return bool
+  */
+  public function checkSchemas()
+  {
+    $error = false;
+    $createQueries = [];
+    $dbSchema = new SkynetDatabaseSchema();
+    $createQueries = $dbSchema->getCreateQueries();
+
+    foreach($createQueries as $table => $query)
+    {
+      if(!$this->isTable($table))
+      {
+        $error = true;
+        if($this->createTable($query))
+        {
+          $error = false;
+          $this->addState(SkynetTypes::DB, 'DATABASE TABLE ['.$table.'] CREATED');
+        }
+      }
+    }
+
+    if(!$error)
+    {
+      $this->dbCreated = true;
+      $this->addState(SkynetTypes::DB, 'DATABASE SCHEMA IS CORRECT');
+    }
+  }
+
+  public function getDbCreated()
+  {
+    return $this->dbCreated;
+  }
+  
+ /**
+  * Creates table in database
+  *
+  * @param string|string[] $queries Queries for schema creation
+  *
+  * @return bool
+  */
+  public function createTable($queries)
+  {
+    $i = 0;
+    try
+    {
+      if(is_array($queries))
+      {
+        foreach($queries as $query)
+        {
+          $this->db->query($query);
+          $i++;
+        }
+      } else {
+         $this->db->query($queries);
+         $i++;
+      }
+      return true;
+
+    } catch (\PDOException $e)
+    {
+      $this->addState(SkynetTypes::DB, 'DATABASE SCHEMA NOT CREATED...');
+      $this->addError(SkynetTypes::PDO, 'DATABASE SCHEMA BUILDING ERROR: Exception: '.$e->getMessage(), $e);
+    }
+  }
+
+ /**
+  * Checks for table exists
+  *
+  * @param string $table Table name
+  *
+  * @return bool
+  */
+  public function isTable($table)
+  {
+    try
+    {
+        $result = $this->db->query("SELECT 1 FROM ".$table." LIMIT 1");
+
+    } catch (\PDOException $e)
+    {
+        $this->addState(SkynetTypes::DB, 'DATABASE TABLE: ['.$table.'] NOT EXISTS...TRYING TO CREATE...');
+        return false;
+    }
+    return $result !== false;
+  }
+
+ /**
+  * Sets DB
+  *
+  * @param PDO PDO Connection object
+  */
+  public function setDB($db)
+  {
+   $this->db = $db;
+  } 
+}
+
+/**
+ * Skynet/Database/SkynetDatabaseSchema.php
+ *
+ * @package Skynet
+ * @version 1.1.3
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.1.3
+ */
+
+ /**
+  * Skynet Database Schema
+  *
+  * Database tables schema
+  */
+class SkynetDatabaseSchema
+{  
+  /** @var string[] Array with table names */
+  private $dbTables = [];
+  
+  /** @var string[] Array with tables fields */
+  private $tablesFields = [];  
+    
+  /** @var string[] Array with CREATE queries */
+  private $createQueries = [];
+
+ /**
+  * Constructor (private)
+  */
+  public function __construct() 
+  {
+    
+  }
+  
+ /**
+  * Returns create queries
+  *
+  * @return string[] SQL Queries
+  */   
+  public function getCreateQueries()
+  {   
+    $this->createQueries = [];
+    
+    $this->createQueries['skynet_clusters'] = 'CREATE TABLE skynet_clusters (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
+    $this->createQueries['skynet_clusters_blocked'] = 'CREATE TABLE skynet_clusters_blocked (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
+    $this->createQueries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
+    $this->createQueries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
+    $this->createQueries['skynet_chain'] = ['CREATE TABLE skynet_chain (id INTEGER PRIMARY KEY AUTOINCREMENT, chain BIGINT, updated_at INTEGER)', 'INSERT INTO skynet_chain (id, chain, updated_at) VALUES(1, 0, 0)'];
+    $this->createQueries['skynet_logs_echo'] = 'CREATE TABLE skynet_logs_echo (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
+    $this->createQueries['skynet_logs_broadcast'] = 'CREATE TABLE skynet_logs_broadcast (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
+    $this->createQueries['skynet_errors'] = 'CREATE TABLE skynet_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, remote_ip VARCHAR (15))';
+    $this->createQueries['skynet_access_errors'] = 'CREATE TABLE skynet_access_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, remote_cluster TEXT, request_uri TEXT, remote_host TEXT, remote_ip VARCHAR (15))';
+    $this->createQueries['skynet_registry'] = 'CREATE TABLE skynet_registry (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, key VARCHAR (15), content TEXT)';
+    $this->createQueries['skynet_options'] = 'CREATE TABLE skynet_options (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, key VARCHAR (15), content TEXT)';
+    $this->createQueries['skynet_logs_selfupdate'] = 'CREATE TABLE skynet_logs_selfupdate (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, sender_url TEXT, source  TEXT, status TEXT, from_version VARCHAR (15), to_version VARCHAR (15))';
+
+    return $this->createQueries;
+  }
+  
+ /**
   * Returns tables names
   *
   * @return string[]
   */   
   public function getDbTables()
   {
-    $this->dbTables = [];    
+    $this->dbTables = [];
+    
     $this->dbTables['skynet_clusters'] = 'Clusters';
     $this->dbTables['skynet_clusters_blocked'] = 'Clusters (corrupted/blocked)';
     $this->dbTables['skynet_registry'] = 'Registry';
@@ -8953,6 +9463,8 @@ class SkynetDatabase
   */  
   public function getTablesFields()
   {
+    $this->tablesFields = [];
+    
     $this->tablesFields['skynet_clusters'] = [
     'id' => '#ID',
     'skynet_id' => 'SkynetID',
@@ -9066,294 +9578,6 @@ class SkynetDatabase
     
     return $this->tablesFields;
   }
-  
-  
- /**
-  * Returns table records count
-  *
-  * @param string $table Table name
-  * 
-  * @return int
-  */  
-  public function countTableRows($table)
-  {
-    $counter = 0;
-    try
-    {
-      $stmt = $this->db->query('SELECT count(*) as c FROM '.$table.' LIMIT 200');     
-      $stmt->execute();
-      $row = $stmt->fetch();
-      $counter = $row['c'];
-      $stmt->closeCursor();
-      
-    } catch(\PDOException $e)
-    {
-      $this->addError(SkynetTypes::PDO, 'Getting records from database table: '.$table.' failed', $e);
-      return false;
-    }    
-    return $counter;   
-  }
-
- /**
-  * Deletes record from table
-  *
-  * @param string $table Table name
-  * @param int $id Record ID
-  * 
-  * @return bool
-  */  
-  public function deleteRecordId($table, $id)
-  {    
-    try
-    {
-      $stmt = $this->db->prepare('DELETE FROM '.$table.' WHERE id = :id');   
-      $stmt->bindParam(':id', $id);        
-      $stmt->execute();
-      return true;
-      
-    } catch(\PDOException $e)
-    {
-      $this->addError(SkynetTypes::PDO, 'Error deleting [ID: '.$id.' ] from table: '.$table, $e);      
-    }       
-  }
-  
- /**
-  * Deletes all records from table
-  *
-  * @param string $table Table name
-  * 
-  * @return bool
-  */  
-  public function deleteAllRecords($table)
-  {    
-    try
-    {
-      $stmt = $this->db->query('DELETE FROM '.$table); 
-      $stmt->execute();       
-      return true;      
-    } catch(\PDOException $e)
-    {
-      $this->addError(SkynetTypes::PDO, 'Error deleting all records from table: '.$table, $e);      
-    }       
-  }
-  
- /**
-  * Returns rows from table
-  *
-  * @param string $table Table name
-  * @param int $startFrom Limit offset
-  * @param int $limitTo Limit
-  * @param string $sortBy Sort by column
-  * @param string $sortOrder Sort order ASC|DESC
-  * 
-  * @return mixed[] Record's rows
-  */  
-  public function getTableRows($table, $startFrom = null, $limitTo = null, $sortBy = null, $sortOrder = null)
-  {
-    $rows = [];
-    $limit = '';
-    $sort = ''; 
-    $order = '';     
-    if($limitTo !== null) $limit = ' LIMIT '.intval($startFrom).', '.intval($limitTo);
-    if($sortBy !== null) $sort = ' ORDER BY '.$sortBy;
-    if($sortOrder !== null) $order = ' '.$sortOrder;
-    
-    try
-    {
-      $query = 'SELECT * FROM '.$table.$sort.$order.$limit;      
-      $stmt = $this->db->query($query);     
-      $stmt->execute();
-           
-      while($row = $stmt->fetch())
-      {
-        $rows[] = $row;
-      }
-      $stmt->closeCursor();
-      
-    } catch(\PDOException $e)
-    {
-      $this->addError(SkynetTypes::PDO, 'Getting records from database table: '.$table.' failed', $e);
-      return false;
-    }    
-    return $rows;   
-  }
-  
-  
-   /**
-  * Returns row from table
-  *
-  * @param string $table Table name
-  * @param int $id Record ID
-  * 
-  * @return mixed[] Record's row
-  */  
-  public function getTableRow($table, $id)
-  {   
-    try
-    {
-      $query = 'SELECT * FROM '.$table.' WHERE id = :id';      
-      $stmt = $this->db->prepare($query);   
-      $stmt->bindParam(':id', $id);
-      $stmt->execute();           
-      $row = $stmt->fetch();
-      $stmt->closeCursor();
-      return $row;
-      
-    } catch(\PDOException $e)
-    {
-      $this->addError(SkynetTypes::PDO, 'Getting record from database table: '.$table.' failed (id: '.$id.')', $e);
-      return false;
-    }  
-  }
-  
- /**
-  * Checks database tables and creates schema if not exists
-  *
-  * @return bool
-  */
-  private function checkSchemas()
-  {
-    $error = false;
-    $queries = [];
-
-    $queries['skynet_clusters'] = 'CREATE TABLE skynet_clusters (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
-    $queries['skynet_clusters_blocked'] = 'CREATE TABLE skynet_clusters_blocked (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), url TEXT, ip VARCHAR (15), version VARCHAR (6), last_connect INTEGER, registrator TEXT)';
-    $queries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
-    $queries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
-    $queries['skynet_chain'] = ['CREATE TABLE skynet_chain (id INTEGER PRIMARY KEY AUTOINCREMENT, chain BIGINT, updated_at INTEGER)', 'INSERT INTO skynet_chain (id, chain, updated_at) VALUES(1, 0, 0)'];
-    $queries['skynet_logs_echo'] = 'CREATE TABLE skynet_logs_echo (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
-    $queries['skynet_logs_broadcast'] = 'CREATE TABLE skynet_logs_broadcast (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
-    $queries['skynet_errors'] = 'CREATE TABLE skynet_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, remote_ip VARCHAR (15))';
-    $queries['skynet_access_errors'] = 'CREATE TABLE skynet_access_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, remote_cluster TEXT, request_uri TEXT, remote_host TEXT, remote_ip VARCHAR (15))';
-    $queries['skynet_registry'] = 'CREATE TABLE skynet_registry (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, key VARCHAR (15), content TEXT)';
-    $queries['skynet_options'] = 'CREATE TABLE skynet_options (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, key VARCHAR (15), content TEXT)';
-    $queries['skynet_logs_selfupdate'] = 'CREATE TABLE skynet_logs_selfupdate (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, sender_url TEXT, source  TEXT, status TEXT, from_version VARCHAR (15), to_version VARCHAR (15))';
-
-    foreach($queries as $table => $query)
-    {
-      if(!$this->isTable($table))
-      {
-        $error = true;
-        if($this->createTable($query))
-        {
-          $error = false;
-          $this->addState(SkynetTypes::DB, 'DATABASE TABLE ['.$table.'] CREATED');
-        }
-      }
-    }
-
-    if(!$error)
-    {
-      $this->db_created = true;
-      $this->addState(SkynetTypes::DB, 'DATABASE SCHEMA IS CORRECT');
-    }
-  }
-
- /**
-  * Creates table in database
-  *
-  * @param string|string[] $queries Queries for schema creation
-  *
-  * @return bool
-  */
-  private function createTable($queries)
-  {
-    $i = 0;
-    try
-    {
-      if(is_array($queries))
-      {
-        foreach($queries as $query)
-        {
-          $this->db->query($query);
-          $i++;
-        }
-      } else {
-         $this->db->query($queries);
-         $i++;
-      }
-      return true;
-
-    } catch (\PDOException $e)
-    {
-      $this->addState(SkynetTypes::DB, 'DATABASE SCHEMA NOT CREATED...');
-      $this->addError(SkynetTypes::PDO, 'DATABASE SCHEMA BUILDING ERROR: Exception: '.$e->getMessage(), $e);
-    }
-  }
-
- /**
-  * Checks for table exists
-  *
-  * @param string $table Table name
-  *
-  * @return bool
-  */
-  private function isTable($table)
-  {
-    try
-    {
-        $result = $this->db->query("SELECT 1 FROM ".$table." LIMIT 1");
-
-    } catch (\PDOException $e)
-    {
-        $this->addState(SkynetTypes::DB, 'DATABASE TABLE: ['.$table.'] NOT EXISTS...TRYING TO CREATE...');
-        return false;
-    }
-    return $result !== false;
-  }
-
- /**
-  * Returns Connection
-  *
-  * @return PDO PDO Connection object
-  */
-  public function getDB()
-  {
-    return $this->db;
-  }
-
- /**
-  * Returns instance of this
-  *
-  * @return SkynetDatabase
-  */
-  public static function getInstance()
-  {
-    if(self::$instance === null)
-    {
-      self::$instance = new static();
-      self::$instance->connect();
-    }
-    return self::$instance;
-  }
-
- /**
-  * Checks for connection
-  *
-  * @return bool True if connected to database
-  */
-  public function isDbConnected()
-  {
-    return $this->db_connected;
-  }
-
- /**
-  * Checks for database schema is created
-  *
-  * @return bool True if schema exists in database
-  */
-  public function isDbCreated()
-  {
-    return $this->db_created;
-  }
-
- /**
-  * Disconnects with database
-  */
-  public function disconnect()
-  {
-    $this->db = null;
-  }
 }
 
 /**
@@ -9386,6 +9610,9 @@ class SkynetGenerator
   /** @var SkynetDatabase DB Instance */
   protected $database;
   
+  /** @var SkynetDatabaseSchema DB Schema */
+  protected $databaseSchema;
+  
   /** @var PDO Connection instance */
   protected $db;
   
@@ -9393,17 +9620,17 @@ class SkynetGenerator
   protected $tablesFields = [];
   
   /** @var SkynetVerifier Verifier instance */
-  private $verifier;
- 
+  private $verifier; 
 
  /**
   * Constructor
   */
   public function __construct()
   {
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();      
+    $this->database = SkynetDatabase::getInstance();   
+    $this->databaseSchema = new SkynetDatabaseSchema;        
+    $this->dbTables = $this->databaseSchema->getDbTables();   
+    $this->tablesFields = $this->databaseSchema->getTablesFields();      
     $this->db = $this->database->connect();
     $this->verifier = new SkynetVerifier();
     
@@ -9549,9 +9776,7 @@ class SkynetOptions
   */
   public function __construct()
   {
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();      
+    $this->database = SkynetDatabase::getInstance();   
     $this->db = $this->database->connect();
     $this->verifier = new SkynetVerifier();   
   }
@@ -9738,9 +9963,7 @@ class SkynetRegistry
   */
   public function __construct()
   {
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();      
+    $this->database = SkynetDatabase::getInstance();
     $this->db = $this->database->connect();
     $this->verifier = new SkynetVerifier();   
   }
@@ -15771,6 +15994,9 @@ class SkynetRendererCliDatabaseRenderer
   /** @var SkynetDatabase DB Instance */
   protected $database;
   
+  /** @var SkynetDatabaseSchema DB Schema */
+  protected $databaseSchema;
+  
   /** @var PDO Connection instance */
   protected $db;
   
@@ -15798,9 +16024,10 @@ class SkynetRendererCliDatabaseRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererCliElements();
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();
+    $this->database = SkynetDatabase::getInstance(); 
+    $this->databaseSchema = new SkynetDatabaseSchema;        
+    $this->dbTables = $this->databaseSchema->getDbTables();   
+    $this->tablesFields = $this->databaseSchema->getTablesFields();
     $this->tablePerPageLimit = 10;
     $this->cli = new SkynetCli();
     
@@ -15843,13 +16070,13 @@ class SkynetRendererCliDatabaseRenderer
           $delParam = $this->cli->getParam('del');
           if($delParam !== null && is_numeric($delParam))
           {
-            $this->database->deleteRecordId($this->selectedTable, intval($delParam));            
+            $this->database->ops->deleteRecordId($this->selectedTable, intval($delParam));            
           }        
         }
         
         if($this->cli->isCommand('truncate'))
         {
-           $this->database->deleteAllRecords($this->selectedTable);                 
+           $this->database->ops->deleteAllRecords($this->selectedTable);                 
         }
       }      
     }
@@ -15902,10 +16129,10 @@ class SkynetRendererCliDatabaseRenderer
       $start = $min * $this->tablePerPageLimit;
     }
     
-    $rows = $this->database->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
+    $rows = $this->database->ops->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
     if($rows !== false && count($rows) > 0)
     {
-      $numRecords = $this->database->countTableRows($this->selectedTable);
+      $numRecords = $this->database->ops->countTableRows($this->selectedTable);
       $numPages = (int)ceil($numRecords / $this->tablePerPageLimit);
     
       $fields = $this->tablesFields[$this->selectedTable];   
@@ -17165,7 +17392,7 @@ class SkynetRendererHtmlConsoleRenderer
     
     return '<form method="post" action="#console'.md5(time()).'" name="_skynetCmdConsole">
     '.$submit.$this->renderConsoleHelpers().' See '.$this->elements->addUrl(SkynetVersion::WEBSITE, 'documentation').' for information about console usage 
-    <textarea autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
+    <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
     <input type="hidden" name="_skynetCmdCommandSend" value="1" />
     </form>';
   }
@@ -17190,7 +17417,7 @@ class SkynetRendererHtmlConsoleRenderer
  * Skynet/Renderer/Html//SkynetRendererHtmlDatabaseRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -17216,6 +17443,9 @@ class SkynetRendererHtmlDatabaseRenderer
   /** @var SkynetDatabase DB Instance */
   protected $database;
   
+  /** @var SkynetDatabaseSchema DB Schema */
+  protected $databaseSchema;
+  
   /** @var PDO Connection instance */
   protected $db;
   
@@ -17227,6 +17457,9 @@ class SkynetRendererHtmlDatabaseRenderer
   
   /** @var string Sort order */
   protected $tableSortOrder;
+  
+  /** @var int EditID */
+  protected $tableEditId = 0;
   
   /** @var int Current pagination */
   protected $tablePage;
@@ -17240,9 +17473,10 @@ class SkynetRendererHtmlDatabaseRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererHtmlElements();
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();
+    $this->database = SkynetDatabase::getInstance();  
+    $this->databaseSchema = new SkynetDatabaseSchema;    
+    $this->dbTables = $this->databaseSchema->getDbTables();   
+    $this->tablesFields = $this->databaseSchema->getTablesFields();
     $this->tablePerPageLimit = 20;
     
     $this->db = $this->database->connect();
@@ -17275,20 +17509,12 @@ class SkynetRendererHtmlDatabaseRenderer
     if(isset($_REQUEST['_skynetSortOrder']) && !empty($_REQUEST['_skynetSortOrder']))
     {
       $this->tableSortOrder = $_REQUEST['_skynetSortOrder'];
-    }    
-    
-    if($this->selectedTable != 'skynet_chain')
-    {
-      if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
-      {
-        $this->database->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId']));
-      }    
-
-      if(isset($_REQUEST['_skynetDeleteAllRecords']) && $_REQUEST['_skynetDeleteAllRecords'] == 1)
-      {
-        $this->database->deleteAllRecords($this->selectedTable);
-      }   
     }
+    
+    if(isset($_REQUEST['_skynetEditId']) && !empty($_REQUEST['_skynetEditId']) && is_numeric($_REQUEST['_skynetEditId']))
+    {
+      $this->tableEditId = intval($_REQUEST['_skynetEditId']);
+    }    
     
     /* Set defaults */   
     if($this->tableSortBy === null)
@@ -17315,6 +17541,106 @@ class SkynetRendererHtmlDatabaseRenderer
     $this->elements = $elements;   
   }  
   
+ /**
+  * Delete controller
+  *
+  * @return string HTML code
+  */   
+  private function deleteRecord()
+  {
+    $output = [];
+    
+    if($this->selectedTable != 'skynet_chain')
+    {
+      if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
+      {
+        if($this->database->ops->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId'])))
+        {
+          $output[] = $this->elements->addMonitOk('Record deleted.');
+        } else {
+          $output[] = $this->elements->addMonitError('Record delete error.');
+        }
+      }    
+
+      if(isset($_REQUEST['_skynetDeleteAllRecords']) && $_REQUEST['_skynetDeleteAllRecords'] == 1)
+      {
+        if($this->database->ops->deleteAllRecords($this->selectedTable))
+        {
+          $output[] = $this->elements->addMonitOk('All records deleted.');
+        } else {
+          $output[] = $this->elements->addMonitError('All records delete error.');
+        }
+      }   
+    }    
+    
+    return implode('', $output);
+  }
+
+ /**
+  * Inserts record
+  *
+  * @return string HTML result
+  */    
+  private function newRecord()
+  {
+    $output = [];
+    
+    $data = [];
+    $fields = $this->tablesFields[$this->selectedTable];
+    
+    foreach($fields as $k => $v)
+    {
+      if($k != 'id')
+      {
+        $data[$k] = '';
+        if(isset($_POST['record_'.$k]))
+        {
+          $data[$k] = $_POST['record_'.$k];
+        }        
+      }      
+    }     
+   
+    if($this->database->ops->newRow($this->selectedTable, $data))
+    {     
+      $output[] = $this->elements->addMonitOk('Record inserted');
+    } else {
+      $output[] = $this->elements->addMonitError('Record insert error.');
+    } 
+    return implode('', $output);
+  }
+  
+ /**
+  * Updates record
+  *
+  * @return string HTML result
+  */    
+  private function updateRecord()
+  {
+    $output = [];
+    
+    $data = [];
+    $fields = $this->tablesFields[$this->selectedTable];
+    
+    foreach($fields as $k => $v)
+    {
+      if($k != 'id')
+      {
+        $data[$k] = '';
+        if(isset($_POST['record_'.$k]))
+        {
+          $data[$k] = $_POST['record_'.$k];
+        }        
+      }      
+    }     
+   
+    if($this->database->ops->updateRow($this->selectedTable, $this->tableEditId, $data))
+    {     
+      $output[] = $this->elements->addMonitOk('Record updated');
+    } else {
+      $output[] = $this->elements->addMonitError('Record update error.');
+    } 
+    return implode('', $output);
+  }  
     
  /**
   * Renders and returns records
@@ -17323,6 +17649,8 @@ class SkynetRendererHtmlDatabaseRenderer
   */  
   public function renderDatabaseView()
   {
+    $output = [];
+    
     $recordRows = [];    
     $start = 0;
     if($this->tablePage > 1)
@@ -17331,7 +17659,27 @@ class SkynetRendererHtmlDatabaseRenderer
       $start = $min * $this->tablePerPageLimit;
     }
     
-    $rows = $this->database->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
+    $output[] = $this->deleteRecord();    
+    $rows = $this->database->ops->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
+    
+    if(isset($_REQUEST['_skynetSaveRecord']))
+    {
+      $output[] = $this->updateRecord();
+    }   
+
+    if(isset($_REQUEST['_skynetInsertRecord']))
+    {
+      $output[] = $this->newRecord();
+    }     
+    
+    if(!empty($this->tableEditId))
+    {
+      $output[] = $this->renderEditForm();
+    } elseif(isset($_REQUEST['_skynetNewRecord']))
+    {
+      $output[] = $this->renderEditForm(true);
+    }
+    
     if($rows !== false && count($rows) > 0)
     {
       $fields = $this->tablesFields[$this->selectedTable];   
@@ -17344,10 +17692,28 @@ class SkynetRendererHtmlDatabaseRenderer
         $i++;
       }        
       $recordRows[] = $header;
-      return '<table id="dbTable">'.implode('', $recordRows).'</table>';
+      
+      $allRecords = $this->database->ops->countTableRows($this->selectedTable);
+      
+      $output[] = $this->elements->beginTable('dbTable');   
+      $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle($this->selectedTable.' ('.$i.'/'.$allRecords.')').$this->getNewButton(), count($fields) + 1);      
+      $output[] = implode('', $recordRows);
+      $output[] = $this->elements->endTable();
+      
+      return implode('', $output);
       
     } else {
-      return 'No records.';
+      
+      $fields = $this->tablesFields[$this->selectedTable];   
+      $header = $this->renderTableHeader($fields);      
+     
+      $output[] = $this->elements->beginTable('dbTable'); 
+      $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle($this->selectedTable).$this->getNewButton(), count($fields) + 1);
+      $output[] = $header;           
+      $output[] = $this->elements->addRow('No records', count($fields) + 1);
+      $output[] = $this->elements->endTable();
+      
+      return implode('', $output);
     }    
   }
   
@@ -17362,13 +17728,13 @@ class SkynetRendererHtmlDatabaseRenderer
     foreach($this->dbTables as $k => $v)
     {
       $numRecords = 0;
-      $numRecords = $this->database->countTableRows($k);
+      $numRecords = $this->database->ops->countTableRows($k);
       
       if($k == $this->selectedTable)
       {
-        $options[] = '<option value="'.$k.'" selected>'.$v.' ('.$numRecords.')</option>';
+        $options[] = $this->elements->addOption($k, $v.' ('.$numRecords.')', true);
       } else {
-        $options[] = '<option value="'.$k.'">'.$v.' ('.$numRecords.')</option>';
+        $options[] = $this->elements->addOption($k, $v.' ('.$numRecords.')');
       }
     }   
       
@@ -17380,6 +17746,89 @@ class SkynetRendererHtmlDatabaseRenderer
   }
 
  /**
+  * Renders new record btn
+  *
+  * @return string HTML code
+  */ 
+  private function getNewButton()
+  {
+    $newHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetNewRecord=1&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;    
+    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('New record'), false, 'aDelete').$this->elements->getNl().$this->elements->getNl();
+  }  
+  
+ /**
+  * Renders edit form
+  *
+  * @return string HTML code
+  */   
+  public function renderEditForm($new = false)
+  {  
+    $output = [];
+    $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteRecordId='.$this->tableEditId.'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
+    $deleteLink = 'javascript:if(confirm(\'Delete record from database?\')) window.location.assign(\''.$deleteHref.'\');';
+    $saveBtn = '<input type="submit" value="Save record"/>';    
+    $deleteBtn = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete');
+    $actionsEdit = $saveBtn.' '.$deleteBtn;
+    $actionsNew = '<input type="submit" value="Add record"/>';
+    
+    $formAction = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
+    $output[] = '<form method="POST" action="'.$formAction.'">';
+    $output[] = $this->elements->beginTable('dbTable'); 
+    
+    if($new)
+    {
+       $title = $this->elements->addSubtitle($this->selectedTable.' | CREATING NEW RECORD');
+    } else {
+       $title = $this->elements->addSubtitle($this->selectedTable.' | EDITING RECORD ID: '.$this->tableEditId);
+    }
+   
+    $output[] = $this->elements->addHeaderRow($title, 2);
+    
+    if($new)
+    {
+      $output[] = $this->elements->addFormActionsRow($actionsNew);  
+    } else{
+      $output[] = $this->elements->addFormActionsRow($actionsEdit);  
+    }      
+    
+    $fields = $this->tablesFields[$this->selectedTable]; 
+    
+    foreach($fields as $k => $v)
+    {
+      if($new)
+      {
+        if($k != 'id')
+        {
+          $output[] = $this->elements->addFormRow($this->elements->addSubtitle($v).'<br>('.$k.')', '<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="record_'.$k.'"></textarea>'); 
+        } 
+        
+      } else {
+        $row = $this->database->ops->getTableRow($this->selectedTable, $this->tableEditId);
+        if($k == 'id')
+        {
+          $output[] = $this->elements->addFormRow($this->elements->addSubtitle($v).'<br>('.$k.')', '<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="record_'.$k.'" readonly>'.htmlentities($row[$k]).'</textarea>'); 
+        } else {
+          $output[] = $this->elements->addFormRow($this->elements->addSubtitle($v).'<br>('.$k.')', '<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="record_'.$k.'">'.htmlentities($row[$k]).'</textarea>');    
+        }
+      }
+    }    
+    
+    if($new)
+    {
+      $output[] = $this->elements->addFormActionsRow($actionsNew);
+      $output[] = $this->elements->addFormActionsRow('<input type="hidden" name="_skynetInsertRecord" value="1">');      
+    } else {
+      $output[] = $this->elements->addFormActionsRow($actionsEdit);  
+      $output[] = $this->elements->addFormActionsRow('<input type="hidden" name="_skynetSaveRecord" value="1">');      
+    }
+    
+    $output[] = $this->elements->endTable();
+    $output[] = '</form>';
+    
+    return implode('', $output); 
+  }
+  
+ /**
   * Renders and returns table form switcher
   *
   * @return string HTML code
@@ -17390,7 +17839,7 @@ class SkynetRendererHtmlDatabaseRenderer
     $optionsOrderBy = [];
     $optionsPages = [];    
    
-    $numRecords = $this->database->countTableRows($this->selectedTable);
+    $numRecords = $this->database->ops->countTableRows($this->selectedTable);
     $numPages = (int)ceil($numRecords / $this->tablePerPageLimit);    
     $order = ['ASC' => 'Ascending', 'DESC' => 'Descending'];    
     
@@ -17398,9 +17847,9 @@ class SkynetRendererHtmlDatabaseRenderer
     {     
       if($k == $this->tableSortBy)
       {
-        $optionsSortBy[] = '<option value="'.$k.'" selected>'.$v.'</option>';
+        $optionsSortBy[] = $this->elements->addOption($k, $v, true);
       } else {
-        $optionsSortBy[] = '<option value="'.$k.'">'.$v.'</option>';
+        $optionsSortBy[] = $this->elements->addOption($k, $v);
       }
     }   
     
@@ -17408,18 +17857,18 @@ class SkynetRendererHtmlDatabaseRenderer
     {     
       if($k == $this->tableSortOrder)
       {
-        $optionsOrderBy[] = '<option value="'.$k.'" selected>'.$v.'</option>';
+        $optionsOrderBy[] = $this->elements->addOption($k, $v, true);
       } else {
-        $optionsOrderBy[] = '<option value="'.$k.'">'.$v.'</option>';
+        $optionsOrderBy[] = $this->elements->addOption($k, $v);
       }
     }   
     for($i = 1; $i <= $numPages; $i++)
     {    
       if($i == $this->tablePage)
       {
-        $optionsPages[] = '<option value="'.$i.'" selected>'.$i.' / '.$numPages.'</option>';
+        $optionsPages[] = $this->elements->addOption($i, $i.' / '.$numPages, true);
       } else {
-        $optionsPages[] = '<option value="'.$i.'">'.$i.' / '.$numPages.'</option>';
+        $optionsPages[] = $this->elements->addOption($i, $i.' / '.$numPages);
       }
     }      
     
@@ -17433,7 +17882,9 @@ class SkynetRendererHtmlDatabaseRenderer
     }
     
     return '<form method="GET" action="">
-    Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
+    Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> 
+    Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> 
+    <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
     <input type="submit" value="Execute"/> '.$allDeleteLink.'
     <input type="hidden" name="_skynetView" value="database"/>
     <input type="hidden" name="_skynetDatabase" value="'.$this->selectedTable.'"/>
@@ -17454,10 +17905,48 @@ class SkynetRendererHtmlDatabaseRenderer
     {     
       $td[] = '<th>'.$v.'</th>';         
     }
-    $td[] = '<th>Save as TXT / Delete</th>';         
+    $td[] = '<th>Save as TXT / Edit / Delete</th>';         
     return '<tr>'.implode('', $td).'</tr>';    
   }
 
+ /**
+  * Decorates data
+  *  
+  * @param string $rowName
+  * @param string $rowValue
+  *
+  * @return string Decorated value
+  */  
+  private function decorateData($rowName, $rowValue)
+  {
+    $typesTime = ['created_at', 'updated_at', 'last_connect'];
+    $typesSkynetId = ['skynet_id'];
+    $typesUrl = ['sender_url', 'receiver_url', 'ping_from', 'url', 'remote_cluster'];
+    $typesData = [];
+    
+    if(in_array($rowName, $typesTime) && is_numeric($rowValue))
+    {
+      $rowValue = date(SkynetConfig::get('core_date_format'), $rowValue);
+    }
+    
+    if(in_array($rowName, $typesUrl) && !empty($rowValue))
+    {
+      $rowValue = $this->elements->addUrl(SkynetConfig::get('core_connection_protocol').$rowValue, $rowValue);
+    }
+    
+    if(in_array($rowName, $typesSkynetId) && !empty($rowValue))
+    {
+      $rowValue = $this->elements->addSpan($rowValue, 'marked');
+    }
+    
+    if(empty($rowValue)) 
+    {
+      $rowValue = '-';
+    }
+    
+    return $rowValue;
+  }
+  
  /**
   * Renders and returns single record
   *  
@@ -17474,36 +17963,13 @@ class SkynetRendererHtmlDatabaseRenderer
       return false;
     }
     
-    $typesTime = ['created_at', 'updated_at', 'last_connect'];
-    $typesSkynetId = ['skynet_id'];
-    $typesUrl = ['sender_url', 'receiver_url', 'ping_from', 'url', 'remote_cluster'];
-    $typesData = [];
-    
     foreach($fields as $k => $v)
     {
       if(array_key_exists($k, $rowData))
       {
-        $data = htmlentities($rowData[$k]);
+        $data = htmlentities($rowData[$k]);       
         
-        if(in_array($k, $typesTime))
-        {
-          $data = date(SkynetConfig::get('core_date_format'), $data);
-        }
-        
-        if(in_array($k, $typesUrl) && !empty($data))
-        {
-          $data = $this->elements->addUrl(SkynetConfig::get('core_connection_protocol').$data, $data);
-        }
-        
-        if(in_array($k, $typesSkynetId) && !empty($data))
-        {
-          $data = $this->elements->addSpan($data, 'marked');
-        }
-        
-        if(empty($data)) 
-        {
-          $data = '-';
-        }
+        $data = $this->decorateData($k, $data);
         
         $td[] = '<td>'.$data.'</td>';
       }     
@@ -17511,12 +17977,14 @@ class SkynetRendererHtmlDatabaseRenderer
     $deleteStr = '';
     $txtLink = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetGenerateTxtFromId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteRecordId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
+    $editLink = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetEditId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteLink = 'javascript:if(confirm(\'Delete record from database?\')) window.location.assign(\''.$deleteHref.'\');';
     if($this->selectedTable != 'skynet_chain')
     {
       $deleteStr = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete');
     }
-    $td[] = '<td>'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$deleteStr.'</td>';
+    $editStr = $this->elements->addUrl($editLink, $this->elements->addBold('Edit'), false, 'aTxtGen'); 
+    $td[] = '<td class="tdActions">'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$editStr.' '.$deleteStr.'</td>';
     
     return '<tr>'.implode('', $td).'</tr>';    
   }
@@ -17778,7 +18246,7 @@ class SkynetRendererHtmlElements
     return $this->separator;
   } 
   
-  /**
+ /**
   * Adds bold
   * 
   * @param string $html Text to decorate
@@ -17796,6 +18264,25 @@ class SkynetRendererHtmlElements
     return '<b'.$cls.'>'.$html.'</b>';
   }
  
+ /**
+  * Adds select option
+  * 
+  * @param string $value Option value
+  * @param string $title Option name
+  * @param bool $selected Selected
+  *
+  * @return string HTML code
+  */    
+  public function addOption($value, $title, $isSelected = false)
+  {
+    $selected = '';
+    if($isSelected === true) 
+    {
+      $selected = ' selected';
+    }
+    return '<option value="'.$value.'"'.$selected.'>'.$title.'</option>';
+  }
+  
  /**
   * Adds span
   * 
@@ -18024,6 +18511,66 @@ class SkynetRendererHtmlElements
   }
  
  /**
+  * Adds table key => value row
+  * 
+  * @param string $key TD 1
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addFormRow($key, $val)
+  {
+    return '<tr><td class="tdFormKey">'.$key.'</td><td class="tdFormVal">'.$val.'</td></tr>';
+  }
+ 
+ /**
+  * Adds monit
+  * 
+  * @param string $msg
+  *
+  * @return string HTML code
+  */  
+ public function addMonitOk($msg)
+ {
+    $output = [];
+    $output[] = $this->addSectionClass('monitOK');
+    $output[] = $this->addBold('Result: [OK] ');
+    $output[] = $msg;    
+    $output[] = $this->addSectionEnd(); 
+    return implode('', $output);
+ }
+ 
+ /**
+  * Adds monit
+  * 
+  * @param string $msg
+  *
+  * @return string HTML code
+  */  
+ public function addMonitError($msg)
+ {
+    $output = [];
+    $output[] = $this->addSectionClass('monitError');
+    $output[] = $this->addBold('Result: [ERROR] ');
+    $output[] = $msg;    
+    $output[] = $this->addSectionEnd(); 
+    return implode('', $output);
+ }
+ 
+ /**
+  * Adds table key => value row
+  * 
+  * @param string $key TD 1
+  * @param string $val TD 1
+  *
+  * @return string HTML code
+  */   
+  public function addFormActionsRow($val)
+  {
+    return '<tr><td class="tdFormActions" colspan="2">'.$val.'</td></tr>';
+  }
+  
+ /**
   * Adds table header row
   * 
   * @param string $val TD 1
@@ -18042,9 +18589,9 @@ class SkynetRendererHtmlElements
   *
   * @return string HTML code
   */   
-  public function addHeaderRow($val)
+  public function addHeaderRow($val, $colspan = 2)
   {
-    return '<tr><th class="tdHeader" colspan="2">'.$val.'</th></tr>';
+    return '<tr><th class="tdHeader" colspan="'.$colspan.'">'.$val.'</th></tr>';
   } 
  
  /**
@@ -18054,9 +18601,9 @@ class SkynetRendererHtmlElements
   *
   * @return string HTML code
   */   
-  public function addRow($val)
+  public function addRow($val, $colspan = 2)
   {
-    return '<tr><td colspan="2">'.$val.'</td></tr>';
+    return '<tr><td colspan="'.$colspan.'">'.$val.'</td></tr>';
   } 
   
  /**
@@ -18067,7 +18614,7 @@ class SkynetRendererHtmlElements
   public function addHeader()
   {
     $html = '<html><head>';
-    $html.= '<title>SKYNET '.SkynetVersion::VERSION.'</title>';
+    $html.= '<title>'.pathinfo($_SERVER['PHP_SELF'], PATHINFO_FILENAME).' ('.SkynetVersion::VERSION.')</title>';
     $html.= $this->css;
     $html.= '<meta charset="utf-8">';
     $html.= '<link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,">';
@@ -19185,18 +19732,23 @@ class SkynetRendererHtmlThemes
     #header { height: 10%;  }
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
-    .main { height: 90%; }
-    #dbSwitch { height: 15%; max-height:15%; min-height:90px; width:100%; overflow:auto; }
-    #dbRecords { height: 70%; max-height:70%; overflow:auto; }
-    .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
-    .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }
+    #authMain { text-align: center; }    
+    #dbSwitch { height: 10%; max-height:10%; min-height:90px; width:100%; overflow:auto; }
+    #dbRecords { height: 80%; max-height:80%; overflow:auto; }    
     #console { width: 100%; height: 15%; }    
     #loginSection { text-align:center; margin: auto }
     #loginSection input[type="password"] { width:400px; }
-    #dbTable { table-layout: auto; }
-    #authMain { text-align: center; }
+    
+    .main { height: 90%; }
+    .dbTable { table-layout: auto; }
+    .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
+    .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }    
     
     .monits { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; background:#03312f;}
+    
+    .monitOK { padding:8px; font-size:1.1em; border: 1px solid #d7ffff; color: #32c434; background:#113112; text-align:center;}
+    .monitError { padding:8px; font-size:1.1em; border: 1px solid #fdf6f7; color:#df888a; background:#4c1819; text-align:center;}
+    
     .reconnectArea { font-size:0.8rem; }
     .reconnectArea input { width: 30px; }
     .hide { display:none; }
@@ -19240,13 +19792,17 @@ class SkynetRendererHtmlThemes
     
     a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
     a.btn:hover { background:#3ffb6e; color:#000; }
-      
-   
+    
+    .tdFormKey { width:20%; vertical-align:middle; text-align:center; }
+    .tdFormVal { width:80%; vertical-align:top; }
+    .tdFormVal textarea { width:100%; height:150px; }
+    .tdFormActions { vertical-align:middle; text-align:center; }
     
     .sectionStatus { height:75%; max-height:75%; overflow-y:auto; }
     .sectionConsole { height:20%; max-height:20%; }
     .tdKey { width:30%; }
     .tdVal { width:70%; }
+    .tdActions { width:150px; }
     .tdHeader { border:0px; padding-top:30px; }
     .marked { color: #5ba15f; } 
     .exception { color: #ae3516; }
@@ -20097,7 +20653,7 @@ class SkynetLauncher
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.1.2-alpha';
+   const VERSION = '1.1.3-alpha';
    
    /** @var string build */
    const BUILD = '2017.04.24';

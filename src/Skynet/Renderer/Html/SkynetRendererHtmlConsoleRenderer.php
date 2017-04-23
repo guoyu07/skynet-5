@@ -204,7 +204,7 @@ class SkynetRendererHtmlConsoleRenderer
     
     return '<form method="post" action="#console'.md5(time()).'" name="_skynetCmdConsole">
     '.$submit.$this->renderConsoleHelpers().' See '.$this->elements->addUrl(SkynetVersion::WEBSITE, 'documentation').' for information about console usage 
-    <textarea autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
+    <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
     <input type="hidden" name="_skynetCmdCommandSend" value="1" />
     </form>';
   }

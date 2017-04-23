@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlDatabaseRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.3
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -15,6 +15,7 @@
 namespace Skynet\Renderer\Html;
 
 use Skynet\Database\SkynetDatabase;
+use Skynet\Database\SkynetDatabaseSchema;
 
  /**
   * Skynet Renderer HTML Database Renderer
@@ -34,6 +35,9 @@ class SkynetRendererHtmlDatabaseRenderer
   /** @var SkynetDatabase DB Instance */
   protected $database;
   
+  /** @var SkynetDatabaseSchema DB Schema */
+  protected $databaseSchema;
+  
   /** @var PDO Connection instance */
   protected $db;
   
@@ -45,6 +49,9 @@ class SkynetRendererHtmlDatabaseRenderer
   
   /** @var string Sort order */
   protected $tableSortOrder;
+  
+  /** @var int EditID */
+  protected $tableEditId = 0;
   
   /** @var int Current pagination */
   protected $tablePage;
@@ -58,9 +65,10 @@ class SkynetRendererHtmlDatabaseRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererHtmlElements();
-    $this->database = SkynetDatabase::getInstance();    
-    $this->dbTables = $this->database->getDbTables();   
-    $this->tablesFields = $this->database->getTablesFields();
+    $this->database = SkynetDatabase::getInstance();  
+    $this->databaseSchema = new SkynetDatabaseSchema;    
+    $this->dbTables = $this->databaseSchema->getDbTables();   
+    $this->tablesFields = $this->databaseSchema->getTablesFields();
     $this->tablePerPageLimit = 20;
     
     $this->db = $this->database->connect();
@@ -93,20 +101,12 @@ class SkynetRendererHtmlDatabaseRenderer
     if(isset($_REQUEST['_skynetSortOrder']) && !empty($_REQUEST['_skynetSortOrder']))
     {
       $this->tableSortOrder = $_REQUEST['_skynetSortOrder'];
-    }    
-    
-    if($this->selectedTable != 'skynet_chain')
-    {
-      if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
-      {
-        $this->database->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId']));
-      }    
-
-      if(isset($_REQUEST['_skynetDeleteAllRecords']) && $_REQUEST['_skynetDeleteAllRecords'] == 1)
-      {
-        $this->database->deleteAllRecords($this->selectedTable);
-      }   
     }
+    
+    if(isset($_REQUEST['_skynetEditId']) && !empty($_REQUEST['_skynetEditId']) && is_numeric($_REQUEST['_skynetEditId']))
+    {
+      $this->tableEditId = intval($_REQUEST['_skynetEditId']);
+    }    
     
     /* Set defaults */   
     if($this->tableSortBy === null)
@@ -133,6 +133,106 @@ class SkynetRendererHtmlDatabaseRenderer
     $this->elements = $elements;   
   }  
   
+ /**
+  * Delete controller
+  *
+  * @return string HTML code
+  */   
+  private function deleteRecord()
+  {
+    $output = [];
+    
+    if($this->selectedTable != 'skynet_chain')
+    {
+      if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
+      {
+        if($this->database->ops->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId'])))
+        {
+          $output[] = $this->elements->addMonitOk('Record deleted.');
+        } else {
+          $output[] = $this->elements->addMonitError('Record delete error.');
+        }
+      }    
+
+      if(isset($_REQUEST['_skynetDeleteAllRecords']) && $_REQUEST['_skynetDeleteAllRecords'] == 1)
+      {
+        if($this->database->ops->deleteAllRecords($this->selectedTable))
+        {
+          $output[] = $this->elements->addMonitOk('All records deleted.');
+        } else {
+          $output[] = $this->elements->addMonitError('All records delete error.');
+        }
+      }   
+    }    
+    
+    return implode('', $output);
+  }
+
+ /**
+  * Inserts record
+  *
+  * @return string HTML result
+  */    
+  private function newRecord()
+  {
+    $output = [];
+    
+    $data = [];
+    $fields = $this->tablesFields[$this->selectedTable];
+    
+    foreach($fields as $k => $v)
+    {
+      if($k != 'id')
+      {
+        $data[$k] = '';
+        if(isset($_POST['record_'.$k]))
+        {
+          $data[$k] = $_POST['record_'.$k];
+        }        
+      }      
+    }     
+   
+    if($this->database->ops->newRow($this->selectedTable, $data))
+    {     
+      $output[] = $this->elements->addMonitOk('Record inserted');
+    } else {
+      $output[] = $this->elements->addMonitError('Record insert error.');
+    } 
+    return implode('', $output);
+  }
+  
+ /**
+  * Updates record
+  *
+  * @return string HTML result
+  */    
+  private function updateRecord()
+  {
+    $output = [];
+    
+    $data = [];
+    $fields = $this->tablesFields[$this->selectedTable];
+    
+    foreach($fields as $k => $v)
+    {
+      if($k != 'id')
+      {
+        $data[$k] = '';
+        if(isset($_POST['record_'.$k]))
+        {
+          $data[$k] = $_POST['record_'.$k];
+        }        
+      }      
+    }     
+   
+    if($this->database->ops->updateRow($this->selectedTable, $this->tableEditId, $data))
+    {     
+      $output[] = $this->elements->addMonitOk('Record updated');
+    } else {
+      $output[] = $this->elements->addMonitError('Record update error.');
+    } 
+    return implode('', $output);
+  }  
     
  /**
   * Renders and returns records
@@ -141,6 +241,8 @@ class SkynetRendererHtmlDatabaseRenderer
   */  
   public function renderDatabaseView()
   {
+    $output = [];
+    
     $recordRows = [];    
     $start = 0;
     if($this->tablePage > 1)
@@ -149,7 +251,27 @@ class SkynetRendererHtmlDatabaseRenderer
       $start = $min * $this->tablePerPageLimit;
     }
     
-    $rows = $this->database->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
+    $output[] = $this->deleteRecord();    
+    $rows = $this->database->ops->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
+    
+    if(isset($_REQUEST['_skynetSaveRecord']))
+    {
+      $output[] = $this->updateRecord();
+    }   
+
+    if(isset($_REQUEST['_skynetInsertRecord']))
+    {
+      $output[] = $this->newRecord();
+    }     
+    
+    if(!empty($this->tableEditId))
+    {
+      $output[] = $this->renderEditForm();
+    } elseif(isset($_REQUEST['_skynetNewRecord']))
+    {
+      $output[] = $this->renderEditForm(true);
+    }
+    
     if($rows !== false && count($rows) > 0)
     {
       $fields = $this->tablesFields[$this->selectedTable];   
@@ -162,10 +284,28 @@ class SkynetRendererHtmlDatabaseRenderer
         $i++;
       }        
       $recordRows[] = $header;
-      return '<table id="dbTable">'.implode('', $recordRows).'</table>';
+      
+      $allRecords = $this->database->ops->countTableRows($this->selectedTable);
+      
+      $output[] = $this->elements->beginTable('dbTable');   
+      $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle($this->selectedTable.' ('.$i.'/'.$allRecords.')').$this->getNewButton(), count($fields) + 1);      
+      $output[] = implode('', $recordRows);
+      $output[] = $this->elements->endTable();
+      
+      return implode('', $output);
       
     } else {
-      return 'No records.';
+      
+      $fields = $this->tablesFields[$this->selectedTable];   
+      $header = $this->renderTableHeader($fields);      
+     
+      $output[] = $this->elements->beginTable('dbTable'); 
+      $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle($this->selectedTable).$this->getNewButton(), count($fields) + 1);
+      $output[] = $header;           
+      $output[] = $this->elements->addRow('No records', count($fields) + 1);
+      $output[] = $this->elements->endTable();
+      
+      return implode('', $output);
     }    
   }
   
@@ -180,13 +320,13 @@ class SkynetRendererHtmlDatabaseRenderer
     foreach($this->dbTables as $k => $v)
     {
       $numRecords = 0;
-      $numRecords = $this->database->countTableRows($k);
+      $numRecords = $this->database->ops->countTableRows($k);
       
       if($k == $this->selectedTable)
       {
-        $options[] = '<option value="'.$k.'" selected>'.$v.' ('.$numRecords.')</option>';
+        $options[] = $this->elements->addOption($k, $v.' ('.$numRecords.')', true);
       } else {
-        $options[] = '<option value="'.$k.'">'.$v.' ('.$numRecords.')</option>';
+        $options[] = $this->elements->addOption($k, $v.' ('.$numRecords.')');
       }
     }   
       
@@ -198,6 +338,89 @@ class SkynetRendererHtmlDatabaseRenderer
   }
 
  /**
+  * Renders new record btn
+  *
+  * @return string HTML code
+  */ 
+  private function getNewButton()
+  {
+    $newHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetNewRecord=1&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;    
+    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('New record'), false, 'aDelete').$this->elements->getNl().$this->elements->getNl();
+  }  
+  
+ /**
+  * Renders edit form
+  *
+  * @return string HTML code
+  */   
+  public function renderEditForm($new = false)
+  {  
+    $output = [];
+    $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteRecordId='.$this->tableEditId.'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
+    $deleteLink = 'javascript:if(confirm(\'Delete record from database?\')) window.location.assign(\''.$deleteHref.'\');';
+    $saveBtn = '<input type="submit" value="Save record"/>';    
+    $deleteBtn = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete');
+    $actionsEdit = $saveBtn.' '.$deleteBtn;
+    $actionsNew = '<input type="submit" value="Add record"/>';
+    
+    $formAction = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
+    $output[] = '<form method="POST" action="'.$formAction.'">';
+    $output[] = $this->elements->beginTable('dbTable'); 
+    
+    if($new)
+    {
+       $title = $this->elements->addSubtitle($this->selectedTable.' | CREATING NEW RECORD');
+    } else {
+       $title = $this->elements->addSubtitle($this->selectedTable.' | EDITING RECORD ID: '.$this->tableEditId);
+    }
+   
+    $output[] = $this->elements->addHeaderRow($title, 2);
+    
+    if($new)
+    {
+      $output[] = $this->elements->addFormActionsRow($actionsNew);  
+    } else{
+      $output[] = $this->elements->addFormActionsRow($actionsEdit);  
+    }      
+    
+    $fields = $this->tablesFields[$this->selectedTable]; 
+    
+    foreach($fields as $k => $v)
+    {
+      if($new)
+      {
+        if($k != 'id')
+        {
+          $output[] = $this->elements->addFormRow($this->elements->addSubtitle($v).'<br>('.$k.')', '<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="record_'.$k.'"></textarea>'); 
+        } 
+        
+      } else {
+        $row = $this->database->ops->getTableRow($this->selectedTable, $this->tableEditId);
+        if($k == 'id')
+        {
+          $output[] = $this->elements->addFormRow($this->elements->addSubtitle($v).'<br>('.$k.')', '<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="record_'.$k.'" readonly>'.htmlentities($row[$k]).'</textarea>'); 
+        } else {
+          $output[] = $this->elements->addFormRow($this->elements->addSubtitle($v).'<br>('.$k.')', '<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="record_'.$k.'">'.htmlentities($row[$k]).'</textarea>');    
+        }
+      }
+    }    
+    
+    if($new)
+    {
+      $output[] = $this->elements->addFormActionsRow($actionsNew);
+      $output[] = $this->elements->addFormActionsRow('<input type="hidden" name="_skynetInsertRecord" value="1">');      
+    } else {
+      $output[] = $this->elements->addFormActionsRow($actionsEdit);  
+      $output[] = $this->elements->addFormActionsRow('<input type="hidden" name="_skynetSaveRecord" value="1">');      
+    }
+    
+    $output[] = $this->elements->endTable();
+    $output[] = '</form>';
+    
+    return implode('', $output); 
+  }
+  
+ /**
   * Renders and returns table form switcher
   *
   * @return string HTML code
@@ -208,7 +431,7 @@ class SkynetRendererHtmlDatabaseRenderer
     $optionsOrderBy = [];
     $optionsPages = [];    
    
-    $numRecords = $this->database->countTableRows($this->selectedTable);
+    $numRecords = $this->database->ops->countTableRows($this->selectedTable);
     $numPages = (int)ceil($numRecords / $this->tablePerPageLimit);    
     $order = ['ASC' => 'Ascending', 'DESC' => 'Descending'];    
     
@@ -216,9 +439,9 @@ class SkynetRendererHtmlDatabaseRenderer
     {     
       if($k == $this->tableSortBy)
       {
-        $optionsSortBy[] = '<option value="'.$k.'" selected>'.$v.'</option>';
+        $optionsSortBy[] = $this->elements->addOption($k, $v, true);
       } else {
-        $optionsSortBy[] = '<option value="'.$k.'">'.$v.'</option>';
+        $optionsSortBy[] = $this->elements->addOption($k, $v);
       }
     }   
     
@@ -226,18 +449,18 @@ class SkynetRendererHtmlDatabaseRenderer
     {     
       if($k == $this->tableSortOrder)
       {
-        $optionsOrderBy[] = '<option value="'.$k.'" selected>'.$v.'</option>';
+        $optionsOrderBy[] = $this->elements->addOption($k, $v, true);
       } else {
-        $optionsOrderBy[] = '<option value="'.$k.'">'.$v.'</option>';
+        $optionsOrderBy[] = $this->elements->addOption($k, $v);
       }
     }   
     for($i = 1; $i <= $numPages; $i++)
     {    
       if($i == $this->tablePage)
       {
-        $optionsPages[] = '<option value="'.$i.'" selected>'.$i.' / '.$numPages.'</option>';
+        $optionsPages[] = $this->elements->addOption($i, $i.' / '.$numPages, true);
       } else {
-        $optionsPages[] = '<option value="'.$i.'">'.$i.' / '.$numPages.'</option>';
+        $optionsPages[] = $this->elements->addOption($i, $i.' / '.$numPages);
       }
     }      
     
@@ -251,7 +474,9 @@ class SkynetRendererHtmlDatabaseRenderer
     }
     
     return '<form method="GET" action="">
-    Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
+    Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> 
+    Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> 
+    <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
     <input type="submit" value="Execute"/> '.$allDeleteLink.'
     <input type="hidden" name="_skynetView" value="database"/>
     <input type="hidden" name="_skynetDatabase" value="'.$this->selectedTable.'"/>
@@ -272,10 +497,48 @@ class SkynetRendererHtmlDatabaseRenderer
     {     
       $td[] = '<th>'.$v.'</th>';         
     }
-    $td[] = '<th>Save as TXT / Delete</th>';         
+    $td[] = '<th>Save as TXT / Edit / Delete</th>';         
     return '<tr>'.implode('', $td).'</tr>';    
   }
 
+ /**
+  * Decorates data
+  *  
+  * @param string $rowName
+  * @param string $rowValue
+  *
+  * @return string Decorated value
+  */  
+  private function decorateData($rowName, $rowValue)
+  {
+    $typesTime = ['created_at', 'updated_at', 'last_connect'];
+    $typesSkynetId = ['skynet_id'];
+    $typesUrl = ['sender_url', 'receiver_url', 'ping_from', 'url', 'remote_cluster'];
+    $typesData = [];
+    
+    if(in_array($rowName, $typesTime) && is_numeric($rowValue))
+    {
+      $rowValue = date(\SkynetUser\SkynetConfig::get('core_date_format'), $rowValue);
+    }
+    
+    if(in_array($rowName, $typesUrl) && !empty($rowValue))
+    {
+      $rowValue = $this->elements->addUrl(\SkynetUser\SkynetConfig::get('core_connection_protocol').$rowValue, $rowValue);
+    }
+    
+    if(in_array($rowName, $typesSkynetId) && !empty($rowValue))
+    {
+      $rowValue = $this->elements->addSpan($rowValue, 'marked');
+    }
+    
+    if(empty($rowValue)) 
+    {
+      $rowValue = '-';
+    }
+    
+    return $rowValue;
+  }
+  
  /**
   * Renders and returns single record
   *  
@@ -292,36 +555,13 @@ class SkynetRendererHtmlDatabaseRenderer
       return false;
     }
     
-    $typesTime = ['created_at', 'updated_at', 'last_connect'];
-    $typesSkynetId = ['skynet_id'];
-    $typesUrl = ['sender_url', 'receiver_url', 'ping_from', 'url', 'remote_cluster'];
-    $typesData = [];
-    
     foreach($fields as $k => $v)
     {
       if(array_key_exists($k, $rowData))
       {
-        $data = htmlentities($rowData[$k]);
+        $data = htmlentities($rowData[$k]);       
         
-        if(in_array($k, $typesTime))
-        {
-          $data = date(\SkynetUser\SkynetConfig::get('core_date_format'), $data);
-        }
-        
-        if(in_array($k, $typesUrl) && !empty($data))
-        {
-          $data = $this->elements->addUrl(\SkynetUser\SkynetConfig::get('core_connection_protocol').$data, $data);
-        }
-        
-        if(in_array($k, $typesSkynetId) && !empty($data))
-        {
-          $data = $this->elements->addSpan($data, 'marked');
-        }
-        
-        if(empty($data)) 
-        {
-          $data = '-';
-        }
+        $data = $this->decorateData($k, $data);
         
         $td[] = '<td>'.$data.'</td>';
       }     
@@ -329,12 +569,14 @@ class SkynetRendererHtmlDatabaseRenderer
     $deleteStr = '';
     $txtLink = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetGenerateTxtFromId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteRecordId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
+    $editLink = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetEditId='.$rowData['id'].'&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $deleteLink = 'javascript:if(confirm(\'Delete record from database?\')) window.location.assign(\''.$deleteHref.'\');';
     if($this->selectedTable != 'skynet_chain')
     {
       $deleteStr = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'aDelete');
     }
-    $td[] = '<td>'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$deleteStr.'</td>';
+    $editStr = $this->elements->addUrl($editLink, $this->elements->addBold('Edit'), false, 'aTxtGen'); 
+    $td[] = '<td class="tdActions">'.$this->elements->addUrl($txtLink, $this->elements->addBold('Generate TXT'), false, 'aTxtGen').' '.$editStr.' '.$deleteStr.'</td>';
     
     return '<tr>'.implode('', $td).'</tr>';    
   }
