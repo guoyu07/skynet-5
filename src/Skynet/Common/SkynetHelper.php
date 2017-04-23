@@ -147,8 +147,8 @@ class SkynetHelper
     $titles['core_renderer_theme'] = 'Renderer theme';
     $titles['core_date_format'] = 'Date format';
     
-    $titles['translate_config'] = 'Translate config keys to titles';
-    $titles['translate_params'] = 'Translate internal params to titles';
+    $titles['translator_config'] = 'Translate config keys to titles';
+    $titles['translator_params'] = 'Translate internal params to titles';
     
     $titles['core_connection_mode'] = 'Connection by host or IP';
     $titles['core_connection_type'] = 'Connection provider';
