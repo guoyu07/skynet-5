@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.24 00:50:18 (1492995018) */
+/* Skynet Standalone | version compiled: 2017.04.24 00:59:57 (1492995597) */
 
 namespace Skynet;
 
@@ -12118,11 +12118,11 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
   {    
     $cli = [];
     $console = [];
-    $console[] = ['@exec', 'cmd:commands_to_execute', '']; 
-    $console[] = ['@shellexec', 'cmd:commands_to_execute', ''];
-    $console[] = ['@system', 'cmd:commands_to_execute', '']; 
-    $console[] = ['@proc', 'proc:proccess_to_open', ''];
-    $console[] = ['@eval', 'php:code_to_execute', 'no args=TO ALL'];    
+    $console[] = ['@exec', 'cmd:"commands_to_execute"', '']; 
+    $console[] = ['@shellexec', 'cmd:"commands_to_execute"', ''];
+    $console[] = ['@system', 'cmd:"commands_to_execute"', '']; 
+    $console[] = ['@proc', 'proc:"proccess_to_open"', ''];
+    $console[] = ['@eval', 'php:"code_to_execute"', 'no args=TO ALL'];    
     
     return array('cli' => $cli, 'console' => $console);    
   }  
@@ -12423,9 +12423,9 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {    
     $cli = [];
     $console = [];  
-    $console[] = ['@fget', 'path:/path/to', ''];
-    $console[] = ['@fput', 'path:/path/to,data:data_to_save', '']; 
-    $console[] = ['@fdel', 'path:/path/to', ''];    
+    $console[] = ['@fget', 'path:"/path/to"', ''];
+    $console[] = ['@fput', 'path:"/path/to",data:"data_to_save"', '']; 
+    $console[] = ['@fdel', 'path:"/path/to"', ''];    
     
     return array('cli' => $cli, 'console' => $console);    
   }  
@@ -12660,8 +12660,8 @@ class SkynetEventListenerOptions extends SkynetEventListenerAbstract implements 
     $cli = [];
     $console = [];    
     
-    $console[] = ['@opt_set', ['key: value', 'key1: value1, key2: value2...'], 'no @to=TO ALL'];   
-    $console[] = ['@opt_get', ['key', 'key1,key2, key3...'], 'no @to=TO ALL'];   
+    $console[] = ['@opt_set', ['key: "value"', 'key1: "value1", key2: "value2"...'], 'no @to=TO ALL'];   
+    $console[] = ['@opt_get', ['key', 'key1, key2, key3...'], 'no @to=TO ALL'];   
     
     return array('cli' => $cli, 'console' => $console);    
   }  
@@ -12902,8 +12902,8 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
     $cli = [];
     $console = [];    
    
-    $console[] = ['@reg_set', ['key: value', 'key1: value1, key2: value2...'], 'no @to=TO ALL'];   
-    $console[] = ['@reg_get', ['key', 'key1,key2, key3...'], 'no @to=TO ALL'];  
+    $console[] = ['@reg_set', ['key: "value"', 'key1: "value1", key2: "value2"...'], 'no @to=TO ALL'];   
+    $console[] = ['@reg_get', ['key', 'key1, key2, key3...'], 'no @to=TO ALL'];  
     
     return array('cli' => $cli, 'console' => $console);    
   }  
@@ -14043,7 +14043,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
     $cli = [];
     $console = [];
     
-    $console[] = ['@self_update', 'source:source_cluster_address', 'TO ALL'];   
+    $console[] = ['@self_update', 'source:"source_cluster_address"', 'TO ALL'];   
     
     return array('cli' => $cli, 'console' => $console);    
   }

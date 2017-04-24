@@ -358,7 +358,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
     $cli = [];
     $console = [];
     
-    $console[] = ['@self_update', 'source:source_cluster_address', 'TO ALL'];   
+    $console[] = ['@self_update', 'source:"source_cluster_address"', 'TO ALL'];   
     
     return array('cli' => $cli, 'console' => $console);    
   }

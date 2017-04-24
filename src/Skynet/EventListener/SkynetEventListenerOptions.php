@@ -216,8 +216,8 @@ class SkynetEventListenerOptions extends SkynetEventListenerAbstract implements 
     $cli = [];
     $console = [];    
     
-    $console[] = ['@opt_set', ['key: value', 'key1: value1, key2: value2...'], 'no @to=TO ALL'];   
-    $console[] = ['@opt_get', ['key', 'key1,key2, key3...'], 'no @to=TO ALL'];   
+    $console[] = ['@opt_set', ['key: "value"', 'key1: "value1", key2: "value2"...'], 'no @to=TO ALL'];   
+    $console[] = ['@opt_get', ['key', 'key1, key2, key3...'], 'no @to=TO ALL'];   
     
     return array('cli' => $cli, 'console' => $console);    
   }  

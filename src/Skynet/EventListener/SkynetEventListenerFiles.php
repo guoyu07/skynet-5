@@ -282,9 +282,9 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {    
     $cli = [];
     $console = [];  
-    $console[] = ['@fget', 'path:/path/to', ''];
-    $console[] = ['@fput', 'path:/path/to,data:data_to_save', '']; 
-    $console[] = ['@fdel', 'path:/path/to', ''];    
+    $console[] = ['@fget', 'path:"/path/to"', ''];
+    $console[] = ['@fput', 'path:"/path/to",data:"data_to_save"', '']; 
+    $console[] = ['@fdel', 'path:"/path/to"', ''];    
     
     return array('cli' => $cli, 'console' => $console);    
   }  
