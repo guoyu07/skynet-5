@@ -45,6 +45,8 @@ Skynet clusters works on request-response architecture as peer-to-peer clusters.
 - Full API documentation in PHPDOC
 - It's all in one
 
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/diagram1.png)
+
 **Skynet Framework is under GNU/GPL license, so it's absolutely free to use but if you like it and think that Skynet is helpful to you - you can donate to the project with BTC.
 Ok, so let's start with Skynet.**
 
