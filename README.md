@@ -273,7 +273,7 @@ When you connects to cluster or another cluster is connects with your cluster th
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/clusters.png)
 
-Every cluster entry has 3 fields:
+Every cluster entry has 4 fields:
 
 A) status icon (colored square on left whitch shows actual state: GREY icon - idle, GREEN icon - connected, RED icon - connection error.
 B) address - this is the cluster remote address (you can click on address to launch its Control Panel)
