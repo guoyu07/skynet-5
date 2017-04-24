@@ -129,7 +129,10 @@ http://localhost/skynet/skynet.php
 
 (compiled version)
 
-At now you will see the same on both of them - Skynet Control Panel.
+At now you will see the same on both of them - Skynet Control Panel:
+
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/skynet.png)
+
 This panel shows you informations about Skynet status and connections to another clusters. This panel also allows you to easy browse stored in database connections logs.
 As you see, Skynet is not connected to any cluster and shows you 2 warnings - about empty password and empty *SkynetKeyID*. By default, after you download Skynet these two fields are set to start values - you will need to configure them itself.
 At first, let's try to generate *SkynetKey ID* - this is the unique identifier of your clusters network. All of your clusters must have SAME KEY ID to allow connections between them. For security reasons Skynet cluster is checking this key in every connection. If requested key not match to cluster key then response is not generated.
