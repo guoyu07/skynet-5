@@ -392,7 +392,7 @@ class Skynet
     $output->setSuccessConnections($this->successConnections);
     $output->setConsoleOutput($this->consoleOutput);
     $output->setCliOutput($this->cliOutput);
-    return $output;
+    return (string)$output;
   }
 
  /**

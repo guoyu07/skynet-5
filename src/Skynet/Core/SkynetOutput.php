@@ -326,6 +326,6 @@ class SkynetOutput
   */
   public function __toString()
   {   
-    return $this->renderOutput();
+    return (string)$this->renderOutput();
   }  
 }

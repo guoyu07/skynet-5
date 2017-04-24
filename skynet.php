@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.24 00:59:57 (1492995597) */
+/* Skynet Standalone | version compiled: 2017.04.24 01:15:14 (1492996514) */
 
 namespace Skynet;
 
@@ -6244,7 +6244,7 @@ class Skynet
     $output->setSuccessConnections($this->successConnections);
     $output->setConsoleOutput($this->consoleOutput);
     $output->setCliOutput($this->cliOutput);
-    return $output;
+    return (string)$output;
   }
 
  /**
@@ -7660,7 +7660,7 @@ class SkynetOutput
   */
   public function __toString()
   {   
-    return $this->renderOutput();
+    return (string)$this->renderOutput();
   }  
 }
 
@@ -11929,6 +11929,28 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
     
     if($context == 'afterReceive')
     {
+             
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+      
+    }
+
+    if($context == 'beforeSend')
+    {      
       /* exec() */
       if($this->request->get('@exec') !== null)
       {
@@ -11940,7 +11962,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
         $cmd = $this->request->get('@exec')[0]['cmd'];
         $return = null;
         $output = [];                
-        $result = exec($cmd, $output, $return);
+        $result = @exec($cmd, $output, $return);
         $this->response->set('@<<execResult', $result);
         $this->response->set('@<<execReturn', $return); 
         $this->response->set('@<<execOutput', $output); 
@@ -11956,7 +11978,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
           return false;
         }
         $cmd = $this->request->get('@shellexec')[0]['cmd'];     
-        $result = exec($cmd);
+        $result = @exec($cmd);
         $this->response->set('@<<shellexecResult', $result); 
         $this->response->set('@<<shellexec', $this->request->get('@shellexec')[0]['cmd']);
       }   
@@ -11971,7 +11993,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
         }
         $cmd = $this->request->get('@system')[0]['cmd']; 
         $return = null;        
-        $result = system($cmd, $return);
+        $result = @system($cmd, $return);
         $this->response->set('@<<systemResult', $result);
         $this->response->set('@<<systemReturn', $return);        
         $this->response->set('@<<system', $this->request->get('@system')[0]['cmd']);
@@ -12023,29 +12045,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
         $result = @eval($php);
         $this->response->set('@<<evalReturn', $result); 
         $this->response->set('@<<eval', $this->request->get('@eval')[0]['php']);
-      }        
-    }
-  }
-
- /**
-  * onResponse Event
-  *
-  * Actions executes when onResponse event is fired.
-  * Context: beforeSend - executes in responder when creating response for request.
-  * Context: afterReceive - executes in sender when response for request is received from responder.
-  *
-  * @param string $context Context - beforeSend | afterReceive
-  */
-  public function onResponse($context = null)
-  {
-    if($context == 'afterReceive')
-    {
-      
-    }
-
-    if($context == 'beforeSend')
-    {      
-      
+      } 
     }
   }
 
