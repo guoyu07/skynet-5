@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.24 01:32:03 (1492997523) */
+/* Skynet Standalone | version compiled: 2017.04.24 20:05:38 (1493064338) */
 
 namespace Skynet;
 
@@ -514,6 +514,9 @@ abstract class SkynetEventListenerAbstract
   
   /** @var SkynetConsole HTML Console */
   protected $console;
+  
+  /** @var SkynetDebug Debugger */
+  protected $debug;
 
  /**
   * Constructor
@@ -532,6 +535,7 @@ abstract class SkynetEventListenerAbstract
     $this->paramsParser = new SkynetParams();
     $this->options = new SkynetOptions();
     $this->registry = new SkynetRegistry();
+    $this->debug = new SkynetDebug();
   }
 
  /**
@@ -12118,8 +12122,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
   {    
     $cli = [];
     $console = [];
-    $console[] = ['@exec', 'cmd:"commands_to_execute"', '']; 
-    $console[] = ['@shellexec', 'cmd:"commands_to_execute"', ''];
+    $console[] = ['@exec', 'cmd:"commands_to_execute"', ''];     
     $console[] = ['@system', 'cmd:"commands_to_execute"', '']; 
     $console[] = ['@proc', 'proc:"proccess_to_open"', ''];
     $console[] = ['@eval', 'php:"code_to_execute"', 'no args=TO ALL'];    

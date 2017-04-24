@@ -248,8 +248,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
   {    
     $cli = [];
     $console = [];
-    $console[] = ['@exec', 'cmd:"commands_to_execute"', '']; 
-    $console[] = ['@shellexec', 'cmd:"commands_to_execute"', ''];
+    $console[] = ['@exec', 'cmd:"commands_to_execute"', ''];     
     $console[] = ['@system', 'cmd:"commands_to_execute"', '']; 
     $console[] = ['@proc', 'proc:"proccess_to_open"', ''];
     $console[] = ['@eval', 'php:"code_to_execute"', 'no args=TO ALL'];    
