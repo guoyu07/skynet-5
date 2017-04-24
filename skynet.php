@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.24 01:15:14 (1492996514) */
+/* Skynet Standalone | version compiled: 2017.04.24 01:32:03 (1492997523) */
 
 namespace Skynet;
 
@@ -19983,7 +19983,7 @@ class SkynetRendererHtmlJavascript
     }
     
     xhttp.open('POST', skynetCluster, true);
-    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=utf-8');
     xhttp.send(params);
     return false;    
   },

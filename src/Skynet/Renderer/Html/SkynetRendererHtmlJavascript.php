@@ -297,7 +297,7 @@ class SkynetRendererHtmlJavascript
     }
     
     xhttp.open('POST', skynetCluster, true);
-    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=utf-8');
     xhttp.send(params);
     return false;    
   },
