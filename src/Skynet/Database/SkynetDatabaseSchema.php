@@ -58,18 +58,24 @@ class SkynetDatabaseSchema
     
     foreach($this->eventListeners as $listener)
     {
-      $data = $listener->registerDatabase();  
-      if(is_array($data) && isset($data['queries']) && isset($data['tables']) && isset($data['fields']))
+      if(method_exists($listener, 'registerDatabase'))
       {
-        $listenersData[] = $data;
+        $data = $listener->registerDatabase();  
+        if(is_array($data) && isset($data['queries']) && isset($data['tables']) && isset($data['fields']))
+        {
+          $listenersData[] = $data;
+        }
       }
     }
     foreach($this->eventLoggers as $listener)
     {
-      $data = $listener->registerDatabase(); 
-      if(is_array($data) && isset($data['queries']) && isset($data['tables']) && isset($data['fields']))
+      if(method_exists($listener, 'registerDatabase'))
       {
-        $listenersData[] = $data;
+        $data = $listener->registerDatabase(); 
+        if(is_array($data) && isset($data['queries']) && isset($data['tables']) && isset($data['fields']))
+        {
+          $listenersData[] = $data;
+        }
       }
     } 
     

@@ -72,7 +72,10 @@ class SkynetConsole
   {
     foreach($this->eventListeners as $listener)
     {
-      $tmpCommands = $listener->registerCommands();      
+      if(method_exists($listener, 'registerCommands'))
+      {
+        $tmpCommands = $listener->registerCommands();      
+      }
       
       if(is_array($tmpCommands) && isset($tmpCommands['console']) && is_array($tmpCommands['console']))
       {

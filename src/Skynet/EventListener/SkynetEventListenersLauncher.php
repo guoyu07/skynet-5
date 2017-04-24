@@ -140,15 +140,24 @@ class SkynetEventListenersLauncher
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
-          $listener->onResponse('afterReceive');
+          if(method_exists($listener, 'onResponse'))
+          {
+            $listener->onResponse('afterReceive');
+          }
           $requests = $this->request->getRequestsData();
           if(isset($requests['@echo'])) 
           {
-            $listener->onEcho('afterReceive');
+            if(method_exists($listener, 'onEcho'))
+            {
+              $listener->onEcho('afterReceive');
+            }
           }
           if(isset($requests['@broadcast'])) 
           {
-            $listener->onBroadcast('afterReceive');
+            if(method_exists($listener, 'onBroadcast'))
+            {
+              $listener->onBroadcast('afterReceive');
+            }
           }
         }
       break;
@@ -162,7 +171,10 @@ class SkynetEventListenersLauncher
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
           $listener->setReceiverClusterUrl($this->clusterUrl);
-          $listener->onRequest('beforeSend');
+          if(method_exists($listener, 'onRequest'))
+          {
+            $listener->onRequest('beforeSend');
+          }
           $requests = $this->request->getRequestsData();
         }
 
@@ -182,15 +194,24 @@ class SkynetEventListenersLauncher
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
-          $listener->onResponse('afterReceive');
+          if(method_exists($listener, 'onResponse'))
+          {
+            $listener->onResponse('afterReceive');
+          }
           $requests = $this->request->getRequestsData();
           if(isset($requests['@echo'])) 
           {
-            $listener->onEcho('afterReceive');
+            if(method_exists($listener, 'onEcho'))
+            {
+              $listener->onEcho('afterReceive');
+            }
           }
           if(isset($requests['@broadcast'])) 
           {
-            $listener->onBroadcast('afterReceive');
+            if(method_exists($listener, 'onBroadcast'))
+            {
+              $listener->onBroadcast('afterReceive');
+            }
           }
         }
       break;
@@ -204,7 +225,10 @@ class SkynetEventListenersLauncher
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
           $listener->setReceiverClusterUrl($this->clusterUrl);
-          $listener->onRequest('beforeSend');
+          if(method_exists($listener, 'onRequest'))
+          {
+            $listener->onRequest('beforeSend');
+          }
           $requests = $this->request->getRequestsData();
         }
       break;
@@ -214,7 +238,10 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->assignCli($this->cli);
-          $output = $listener->onCli();
+          if(method_exists($listener, 'onCli'))
+          {
+            $output = $listener->onCli();
+          }
           if($output !== null)
           {
             $this->cliOutput[] = $output;
@@ -227,7 +254,10 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->assignConsole($this->console);
-          $output = $listener->onConsole();
+          if(method_exists($listener, 'onConsole'))
+          {
+            $output = $listener->onConsole();
+          }
           if($output !== null)
           {
             $this->consoleOutput[] = $output;
@@ -268,14 +298,23 @@ class SkynetEventListenersLauncher
             && isset($requests['_skynet_sender_url']) 
             && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
-            $listener->onResponse('beforeSend');
+            if(method_exists($listener, 'onResponse'))
+            {
+              $listener->onResponse('beforeSend');
+            }
             if(isset($requests['@echo'])) 
             {
-              $listener->onEcho('beforeSend');
+              if(method_exists($listener, 'onEcho'))
+              {
+                $listener->onEcho('beforeSend');
+              }
             }
             if(isset($requests['@broadcast'])) 
             {
-              $listener->onBroadcast('beforeSend');
+              if(method_exists($listener, 'onBroadcast'))
+              {
+                $listener->onBroadcast('beforeSend');
+              }
             }
           }
         }
@@ -297,7 +336,10 @@ class SkynetEventListenersLauncher
             && isset($requests['_skynet_sender_url']) 
             && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
-            $listener->onRequest('afterReceive');
+            if(method_exists($listener, 'onRequest'))
+            {
+              $listener->onRequest('afterReceive');
+            }
           }
         }
       break;
@@ -318,14 +360,23 @@ class SkynetEventListenersLauncher
             && isset($requests['_skynet_sender_url']) 
             && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
-            $listener->onResponse('beforeSend');
+            if(method_exists($listener, 'onResponse'))
+            {
+              $listener->onResponse('beforeSend');
+            }
             if(isset($requests['@echo'])) 
             {
-              $listener->onEcho('beforeSend');
+              if(method_exists($listener, 'onEcho'))
+              {
+                $listener->onEcho('beforeSend');
+              }
             }
             if(isset($requests['@broadcast'])) 
             {
-              $listener->onBroadcast('beforeSend');
+              if(method_exists($listener, 'onBroadcast'))
+              {
+                $listener->onBroadcast('beforeSend');
+              }
             }
           }
         }
@@ -347,7 +398,10 @@ class SkynetEventListenersLauncher
             && isset($requests['_skynet_sender_url']) 
             && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
-            $listener->onRequest('afterReceive');
+            if(method_exists($listener, 'onRequest'))
+            {
+              $listener->onRequest('afterReceive');
+            }
           }
         }
       break;

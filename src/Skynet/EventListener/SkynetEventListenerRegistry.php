@@ -119,8 +119,8 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
       if($this->request->get('@reg_get') !== null)
       {
         $return = [];
-        $params = $this->request->get('@reg_get');        
-        
+       
+        $params = $this->request->get('@reg_get');           
         if(is_array($params))
         {
           foreach($params as $param)
@@ -138,8 +138,8 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
           {
             $this->response->set($k, $v);
           }
-        }
-      }
+        }        
+      }      
     }
   }
 

@@ -136,6 +136,7 @@ class SkynetConsoleInput
       
       /* Other listeners Commands */
       $toAll = false;
+      $areAddresses = false;
       if($this->console->isAnyConsoleCommand())
       {
         $consoleCommands = $this->console->getConsoleCommands();
@@ -149,21 +150,24 @@ class SkynetConsoleInput
               if(is_string($param) && $param == 'me')
               {
                 //$this->console->clear();
-                
+                $areAddresses = true;
                 /* Launch Console commands listeners */
                 $this->prepareListeners();
                 $this->eventListenersLauncher->launch('onConsole');
                 $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                  
                 
               } elseif(is_string($param) && $param != 'all')
-              {
-                $this->startBroadcast = false;
+              {                
                 if($this->verifier->isAddressCorrect($param))
                 {                 
+                  $this->startBroadcast = false;
                   $this->addresses[] = $param;
+                  $areAddresses = true;
                 }  
               } elseif(is_string($param) && $param == 'all')
               {
+                $toAll = true;
+              } else {
                 $toAll = true;
               }
             }           
@@ -173,6 +177,10 @@ class SkynetConsoleInput
       if($toAll)
       {
         $this->startBroadcast = true;
+      }
+      if($areAddresses)
+      {
+        $this->startBroadcast = false;
       }
     } 
     
