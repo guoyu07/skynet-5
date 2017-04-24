@@ -3650,7 +3650,7 @@ Your old config and listeners will be included into new version of Skynet's core
 # 15. Contact and donate
 Link to GitHub: [http://github.com/szczyglinski/skynet](http://github.com/szczyglinski/skynet)
 Link to website: [http://skynetframework.blogspot.com](http://skynetframework.blogspot.com)
-Email to author: [mailto:szczyglis83@gmail.com](szczyglis83@gmail.com)
+Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
