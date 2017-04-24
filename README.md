@@ -2115,7 +2115,7 @@ public function onResponse($context)
 {
   if($context == "afterReceive")
   {    
-    $this->debug->txt('Im in response istener');
+    $this->debug->txt('Im in response listener');
   } 
 }
 
@@ -2971,7 +2971,7 @@ ClassNameTrait
 This is for compilation reason - files with abstract classes, interfaces and trait are compiling at the beginning of compiled file (when you inherits from non-existing yet class PHP generates error), so remember of this.
 You can create files structure as you want - it will all be compiled into standalone file. 
 
-**Notice:** when compiling - all *use* (expect traits use in class definition) and *namespace* directives will be erased.
+**Notice:** when compiling - all *use* (excepts traits use in class definition) and *namespace* directives will be erased.
 
 
 # 8. Console
