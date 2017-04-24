@@ -280,7 +280,7 @@ B) address - this is the cluster remote address (you can click on address to lau
 C) ping - ping in miliseconds (if there is no connection then 0 wil be shown)
 D) connect icon - if you click on "CONNECT" then command for connect to selected cluster will be placed in webconsole and next if you send this command via "Send request" then single connection with cluster will be executed.
 
-![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/CLUSTER.png)
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/cluster.png)
 
 **4) Status and debugger**
 You have 5 tabs here:
@@ -2089,6 +2089,7 @@ $this->debug
 
 
 **Example:**
+
 */src/SkynetUser/MyListener.php*
 ```php
 public function onResponse($context)
@@ -2122,13 +2123,14 @@ public function onResponse($context)
 Both of this methods: dump() and txt() adds debug data to debugger registry.
 All of this data will be displayed in Skynet Control Panel in "Debug" tab:
 
-[debug tab]
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/dbg.png)
 
 
 # 6. Event Listeners
 Skynet's architecture is based on objects called Event Listeners. They are most important part of every cluster business logic. An idea is that every functionality of cluster is served by appropriate Event Listener. Those listeners are fired when Skynet launchs event like response to request, or request generation/send. Depends on event, listeners functions are called. With Skynet you have some default Event Listeners but the idea is that you will create new ones, depend on your needs.
 
 **Example:**
+
 When Skynet preparing response to request, event *onResponse()* is called:
 
 */src/SkynetUser/MyListener.php*
@@ -2167,9 +2169,9 @@ They are used for logging data like storing data and results from all Event List
 # 6.1. Event: onConnect
 Event is calling just after connection to another cluster was opened. It passes *connector object* whitch is instance of *SkynetConnectionInterface* as an argument. With this event you can get raw encrypted data (response) from connection.
 
+*/src/SkynetUser/MyListener.php*
 ```php
 
-*/src/SkynetUser/MyListener.php*
 public function onConnect($conn = null)  
 {   
   /* code executed after connection to cluster */  
@@ -2443,6 +2445,7 @@ $command->getParams()
 whitch returns array with params passed to command.
 
 **Example:**
+
 */src/SkynetUser/MyListener.php*
 ```php
 
