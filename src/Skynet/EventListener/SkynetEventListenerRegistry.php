@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerRegistry.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -81,26 +81,19 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
       {
         $returnSuccess = [];
         $returnError = [];
-        $params = $this->request->get('@reg_set');         
-       
+        $params = $this->request->get('@reg_set');   
        
         if(is_array($params))
         {          
-          foreach($params as $param)
+          foreach($params as $key => $value)
           {
-            if(is_array($param))
+            if($this->reg_set($key, $value))
             {
-              foreach($param as $key => $value)
-              {               
-                if($this->reg_set($key, $value))
-                {
-                  $returnSuccess[] = $key;   
-                } else {
-                  $returnError[] = $key; 
-                  $this->addError(SkynetTypes::REGISTRY, 'UPDATE ERROR: '.$key);                  
-                }
-              }              
-            }            
+              $returnSuccess[] = $key;   
+            } else {
+              $returnError[] = $key; 
+              $this->addError(SkynetTypes::REGISTRY, 'UPDATE ERROR: '.$key);                  
+            }                 
           }
           
           if(count($returnSuccess) > 0)

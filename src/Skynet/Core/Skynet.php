@@ -280,20 +280,7 @@ class Skynet
     /* Get clusters saved in db */
     if($this->areClusters())
     {
-      $clustersNum = 0;
-      $tmpRequest = new SkynetRequest();
-      
-     
-      $to = $tmpRequest->get('@to');      
-    
-      $this->debugger->dump($to);
-      if($to !== null)
-      {
-         //$this->doConnect = false;
-         $to = $tmpRequest->get('@to');
-         $this->debugger->dump($to);
-      }
-      
+      $clustersNum = 0;      
       foreach($this->clusters as $cluster)
       {
         $clustersNum++;

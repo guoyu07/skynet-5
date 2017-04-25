@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerFiles.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -69,7 +69,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
           return false;
         }      
         
-        $params = $this->request->get('@fget')[0];
+        $params = $this->request->get('@fget');
         if(isset($params['path']) && !empty($params['path']))
         {
           $file = $params['path'];
@@ -110,9 +110,9 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         }      
         
         $params = $this->request->get('@fput');
-        if(isset($params[0]['path']) && !empty($params[0]['path']))
+        if(isset($params['path']) && !empty($params['path']))
         {
-           $file = $params[0]['path'];
+           $file = $params['path'];
         } else {
            $result = 'NO PATH IN PARAM';
            $this->response->set('@<<fputStatus', $result);  
@@ -121,9 +121,9 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         
         $result = 'TRYING';
         $data = null;
-        if(isset($params[1]['data']))
+        if(isset($params['data']))
         {
-          $data = $params[1]['data'];
+          $data = $params['data'];
         }
         
         if(@file_put_contents($file, $data))
@@ -145,7 +145,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
           return false;
         }      
         
-        $params = $this->request->get('@fdel')[0];
+        $params = $this->request->get('@fdel');
         if(isset($params['path']) && !empty($params['path']))
         {
           $file = $params['path'];

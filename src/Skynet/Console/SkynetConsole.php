@@ -4,7 +4,7 @@
  * Skynet/Console/SkynetConsole.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -564,7 +564,7 @@ class SkynetConsole
       }      
       $cleanValue = $this->unQuoteValue($value);
       $ary = [$key => $cleanValue];
-      $this->debugger->dump($ary); 
+     
       $this->addParserState('KEY_VALUE: '.$key.' => '.$cleanValue);
       return $ary;
     } 
@@ -778,6 +778,10 @@ class SkynetConsole
     $input = str_replace("\r\n", "\n", trim($input));  
     $input = $this->parseMultipleSpacesIntoSingle($input);
     
+    if(substr($input, -1) != ';')
+    {
+      $input.= ';';
+    }
     /* explode by ";" separator */
     $querys = $this->explodeQuery($input);
     
@@ -790,10 +794,9 @@ class SkynetConsole
       $i = 1;
       foreach($querys as $query)
       {
-        $this->actualQueryNumber = $i;   
+        $this->actualQueryNumber = $i;  
         
         $cleanQuery = trim($query);
-       // $this->isQuoted($cleanQuery);
         $queryType = $this->getQueryType($cleanQuery);
         
         /* switch query type */
@@ -819,7 +822,7 @@ class SkynetConsole
         /* query counter */
         $i++;
       }
-      $this->debugger->dump($this->consoleCommands); 
+      //$this->debugger->dump($this->consoleCommands); 
       return true;
       
     } else {

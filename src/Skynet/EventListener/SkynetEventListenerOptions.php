@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerOptions.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -67,21 +67,15 @@ class SkynetEventListenerOptions extends SkynetEventListenerAbstract implements 
        
         if(is_array($params))
         {          
-          foreach($params as $param)
+          foreach($params as $key => $value)
           {
-            if(is_array($param))
+            if($this->opt_set($key, $value))
             {
-              foreach($param as $key => $value)
-              {
-                if($this->opt_set($key, $value))
-                {
-                  $returnSuccess[] = $key;   
-                } else {
-                  $returnError[] = $key; 
-                  $this->addError(SkynetTypes::OPTIONS, 'UPDATE ERROR: '.$key);                  
-                }
-              }              
-            }            
+              $returnSuccess[] = $key;   
+            } else {
+              $returnError[] = $key; 
+              $this->addError(SkynetTypes::OPTIONS, 'UPDATE ERROR: '.$key);                  
+            }                   
           }
           
           if(count($returnSuccess) > 0)

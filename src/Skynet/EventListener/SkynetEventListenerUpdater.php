@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerEcho.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -91,9 +91,9 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
       if($this->request->get('@self_update') !== null)
       { 
         
-        if(isset($this->request->get('@self_update')[0]['source']))
+        if(isset($this->request->get('@self_update')['source']))
         {
-          $address = $this->request->get('@self_update')[0]['source'];
+          $address = $this->request->get('@self_update')['source'];
         } else {
            $this->response->set('@<<self_update_error', 'NO SOURCE: '.SkynetHelper::getMyUrl());           
            return false;
