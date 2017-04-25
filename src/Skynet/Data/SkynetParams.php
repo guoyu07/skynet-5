@@ -42,10 +42,13 @@ class SkynetParams
     if(!is_array($params))
     {
       return $params;
+      
     } else {
+      
       if(count($params) == 1)
       {        
         $key = key($params);
+        
         if(!is_array($params[$key]) && is_numeric($key))
         {         
           return $params[$key];

@@ -82,7 +82,8 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
               $cliParams = $this->cli->getParam('send');
               if(!empty($cliParams))
               {
-                $this->console->parseConsoleInput($cliParams);
+                $cliParams = str_replace(array("'", "; "), array("\"", ";\n"), $cliParams);
+                $this->console->parseConsoleInput($cliParams);               
                 $this->inputReceived = true;
               }
             } else {
@@ -92,7 +93,7 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
         }
         /* get data from console */
         $commands = $this->console->getConsoleCommands();
-        $requests = $this->console->getConsoleRequests();       
+        $requests = $this->console->getConsoleRequests();  
         
         /* add param requests */
         if(count($requests) > 0)
@@ -114,8 +115,9 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
            foreach($commands as $command)
            {
               $cmdName = '@'.$command->getCode();
-              $params = $command->getParams();              
-              $this->request->set($cmdName, $params); 
+              $params = $command->getParams(); 
+              
+              $this->request->set($cmdName, $this->packParams($params)); 
            }            
         }        
       }
@@ -236,7 +238,7 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
     $cli[] = ['-dbg', '', 'Displays connections full debug (alias)'];
     $cli[] = ['-cfg', '', 'Displays configuration'];
     $cli[] = ['-status', '', 'Displays status'];
-    $cli[] = ['-out', ['field', 'field1, field2...'], 'Displays only specified fields returned from response'];
+    $cli[] = ['-out', ['"field"', '"field1, field2..."'], 'Displays only specified fields returned from response'];
     $cli[] = ['-connect', 'address', 'Connects to single specified address'];
     $cli[] = ['-c', 'address', 'Connects to single specified address (alias)'];
     $cli[] = ['-broadcast', '', 'Broadcasts all addresses (starts Skynet)'];

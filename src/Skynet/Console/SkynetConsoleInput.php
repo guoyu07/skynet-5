@@ -142,36 +142,39 @@ class SkynetConsoleInput
         $consoleCommands = $this->console->getConsoleCommands();
         foreach($consoleCommands as $command)
         {         
-          $params = $command->getParams();        
-          if(count($params) > 0)
-          {    
-            foreach($params as $param)
-            {
-              if(is_string($param) && $param == 'me')
+          if(!$this->console->isConsoleCommand('to') && $command != 'to')
+          {
+            $params = $command->getParams();        
+            if(count($params) > 0)
+            {    
+              foreach($params as $param)
               {
-                //$this->console->clear();
-                $areAddresses = true;
-                /* Launch Console commands listeners */
-                $this->prepareListeners();
-                $this->eventListenersLauncher->launch('onConsole');
-                $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                  
-                
-              } elseif(is_string($param) && $param != 'all')
-              {                
-                if($this->verifier->isAddressCorrect($param))
-                {                 
-                  $this->startBroadcast = false;
-                  $this->addresses[] = $param;
+                if(is_string($param) && $param == 'me')
+                {
+                  //$this->console->clear();
                   $areAddresses = true;
-                }  
-              } elseif(is_string($param) && $param == 'all')
-              {
-                $toAll = true;
-              } else {
-                $toAll = true;
-              }
-            }           
-          }  
+                  /* Launch Console commands listeners */
+                  $this->prepareListeners();
+                  $this->eventListenersLauncher->launch('onConsole');
+                  $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                  
+                  
+                } elseif(is_string($param) && $param != 'all')
+                {                
+                  if($this->verifier->isAddressCorrect($param))
+                  {                 
+                    $this->startBroadcast = false;
+                    $this->addresses[] = $param;
+                    $areAddresses = true;
+                  }  
+                } elseif(is_string($param) && $param == 'all')
+                {
+                  $toAll = true;
+                } else {
+                  $toAll = true;
+                }
+              }           
+            } 
+          }
         }        
       } 
       if($toAll)

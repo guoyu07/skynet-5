@@ -548,8 +548,7 @@ class SkynetClustersRegistry
     if($cluster !== null) 
     {
       $url = $cluster->getUrl();
-      $url = SkynetHelper::cleanUrl($url);
-      var_dump($url);
+      $url = SkynetHelper::cleanUrl($url);     
     }   
 
     try
@@ -596,8 +595,13 @@ class SkynetClustersRegistry
       return false;        
     }
     
-   $url = SkynetHelper::cleanUrl($url);
+    $url = SkynetHelper::cleanUrl($url);
     
+    if(!$this->verifier->isAddressCorrect($url))
+    {
+      return false;
+    }
+    echo 'aaaaaa'.SkynetHelper::getMyUrl();
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
     {
@@ -682,6 +686,11 @@ class SkynetClustersRegistry
     {
       return false;
     }  
+    
+    if(!$this->verifier->isAddressCorrect($url))
+    {
+      return false;
+    }
     
     try
     {      

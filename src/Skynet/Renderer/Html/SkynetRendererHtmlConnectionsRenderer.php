@@ -230,6 +230,10 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
   */ 
   public function parseConnection($connData)
   {
+    if(!isset($connData['id']))
+    {
+      return 'Connection data is NULL';
+    }
     $rows = [];
     $rows[] = 
       $this->elements->addHtml('<a name="_connection'.$connData['id'].'"></a>').

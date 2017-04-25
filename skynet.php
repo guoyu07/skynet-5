@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.24 20:05:38 (1493064338) */
+/* Skynet Standalone | version compiled: 2017.04.25 19:29:55 (1493148595) */
 
 namespace Skynet;
 
@@ -3098,8 +3098,7 @@ class SkynetClustersRegistry
     if($cluster !== null) 
     {
       $url = $cluster->getUrl();
-      $url = SkynetHelper::cleanUrl($url);
-      var_dump($url);
+      $url = SkynetHelper::cleanUrl($url);     
     }   
 
     try
@@ -4898,6 +4897,9 @@ class SkynetConsole
   /** @var SkynetVerifier Verifier instance */
   private $verifier;
   
+  /** @var SkynetDebug Debugger */
+  private $debugger;
+  
 
  /**
   * Constructor
@@ -4908,6 +4910,7 @@ class SkynetConsole
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();    
     $this->registerListenersCommands();
     $this->verifier = new SkynetVerifier();
+    $this->debugger = new SkynetDebug();
   }
 
  /**
@@ -5298,7 +5301,8 @@ class SkynetConsole
     /* if param is quoted */
     if($this->isQuoted($paramsStr))
     {
-      return array(0 => $this->unQuote($paramsStr));
+      $data = $this->unQuote($paramsStr);      
+      return array(0 => $data);
     }
     
     //var_dump($paramsStr);
@@ -5314,7 +5318,8 @@ class SkynetConsole
         $e = $matches[0];
       } 
     }
-
+   
+    
     foreach($e as $param)
     {
       $params[] = trim($param);
@@ -5366,6 +5371,7 @@ class SkynetConsole
     
     
     $e = explode(':', $paramStr);
+    
     $parts = count($e);
     if($parts < 2)
     {
@@ -5374,21 +5380,24 @@ class SkynetConsole
       
     } else {
       
-      $key = trim($e[0]);
+      $key = trim($e[0], '" ');
       if($parts == 2)
       {
-        $value = trim($e[1]);
+        $value = trim($e[1], '" ');
       } else {
         $valueParts = [];
         $value = '';
         for($i = 1; $i < $parts; $i++)
         {
-          $valueParts[] = trim($e[$i]);
+          $valueParts[] = trim($e[$i], '" ');
         }
         $value.= implode(':', $valueParts);
       }
-      $ary = [$key => $this->unQuote($value)];
-      $this->addParserState('KEY_VALUE: '.$key.' => '.$value);
+      // $this->debugger->dump($value); 
+      $cleanValue = $this->unQuoteValue($value);
+      $ary = [$key => $cleanValue];
+      $this->debugger->dump($ary); 
+      $this->addParserState('KEY_VALUE: '.$key.' => '.$cleanValue);
       return $ary;
     } 
   }
@@ -5404,12 +5413,15 @@ class SkynetConsole
   {
     $haveParams = false;
     $paramsFromPos = null;
-    $paramsStr = '';        
+    $paramsStr = '';    
       
     $str = ltrim($query, '@');
     /* get command name */
     $cmdName = strstr($str, ' ', true);
     /* no space after command == no params */
+    
+    
+    
     if($cmdName === false)
     {
       /* no params */
@@ -5420,8 +5432,12 @@ class SkynetConsole
       $paramsStr = trim(substr($str, $paramsFromPos, strlen($str)));
       $haveParams = true;
     }
+    
+    
     /* gets params as array */
     $paramsAry = $this->parseCmdParams($paramsStr);
+    
+    
     $data = [];
     $data['command'] = $cmdName;
     $data['params'] = $paramsAry;
@@ -5441,10 +5457,12 @@ class SkynetConsole
   private function createCommand($query)
   {
      /* parse command data */
-    $data = $this->getCommandFromQuery($query);      
+    $data = $this->getCommandFromQuery($query);     
+
+       
     $numOfParams = count($data['params']);
-    $this->addParserState('COMMAND:'.$data['command']);
-    $this->addParserState('NUM OF PARAMS:'.$numOfParams);   
+    $this->addParserState('COMMAND: '.$data['command']);
+    $this->addParserState('NUM OF PARAMS: '.$numOfParams);       
     
     /* new command */
     $command = new SkynetCommand($data['command']);
@@ -5457,8 +5475,8 @@ class SkynetConsole
       foreach($data['params'] as $param)
       {                    
         $paramType = $this->getParamType($param);
-        $this->addParserState('PARAM:'.$param);
-        $this->addParserState('PARAM_TYPE:'.$paramType);
+        $this->addParserState('PARAM: '.$param);
+        $this->addParserState('PARAM_TYPE: '.$paramType);
         
         /* switch param type */
         switch($paramType)
@@ -5475,6 +5493,7 @@ class SkynetConsole
         }
       }
       /* set parsed param to command */
+      
       $command->setParams($tmpParams);           
     }  
     
@@ -5538,6 +5557,19 @@ class SkynetConsole
     return $input;
   }
   
+  private function unQuoteValue($input)
+  {
+    $len = strlen($input);    
+    if(strpos($input, '"') === 0)
+    {
+      $input = trim($input, '"');
+    }
+    if(strpos($input, '\'') === 0)
+    {
+     $input = trim($input, '\'');
+    } 
+    return $input;
+  }
   
  /**
   * Parses input
@@ -5557,8 +5589,6 @@ class SkynetConsole
     
     $numOfQueries = count($querys);
     
-    
-    
     /* if queries */
     if($numOfQueries > 0)
     {
@@ -5566,9 +5596,7 @@ class SkynetConsole
       $i = 1;
       foreach($querys as $query)
       {
-        $this->actualQueryNumber = $i;    
-        
-        
+        $this->actualQueryNumber = $i;   
         
         $cleanQuery = trim($query);
        // $this->isQuoted($cleanQuery);
@@ -5582,7 +5610,7 @@ class SkynetConsole
           switch($queryType)
           {
               case 'cmd': 
-                $command = $this->createCommand($cleanQuery); 
+                $command = $this->createCommand($cleanQuery);                 
                 $this->consoleCommands[$command->getCode()] = $command;                
               break;              
               
@@ -5597,7 +5625,7 @@ class SkynetConsole
         /* query counter */
         $i++;
       }
-     
+      $this->debugger->dump($this->consoleCommands); 
       return true;
       
     } else {
@@ -5746,36 +5774,39 @@ class SkynetConsoleInput
         $consoleCommands = $this->console->getConsoleCommands();
         foreach($consoleCommands as $command)
         {         
-          $params = $command->getParams();        
-          if(count($params) > 0)
-          {    
-            foreach($params as $param)
-            {
-              if(is_string($param) && $param == 'me')
+          if(!$this->console->isConsoleCommand('to') && $command != 'to')
+          {
+            $params = $command->getParams();        
+            if(count($params) > 0)
+            {    
+              foreach($params as $param)
               {
-                //$this->console->clear();
-                $areAddresses = true;
-                /* Launch Console commands listeners */
-                $this->prepareListeners();
-                $this->eventListenersLauncher->launch('onConsole');
-                $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                  
-                
-              } elseif(is_string($param) && $param != 'all')
-              {                
-                if($this->verifier->isAddressCorrect($param))
-                {                 
-                  $this->startBroadcast = false;
-                  $this->addresses[] = $param;
+                if(is_string($param) && $param == 'me')
+                {
+                  //$this->console->clear();
                   $areAddresses = true;
-                }  
-              } elseif(is_string($param) && $param == 'all')
-              {
-                $toAll = true;
-              } else {
-                $toAll = true;
-              }
-            }           
-          }  
+                  /* Launch Console commands listeners */
+                  $this->prepareListeners();
+                  $this->eventListenersLauncher->launch('onConsole');
+                  $this->consoleOutput[] = $this->eventListenersLauncher->getConsoleOutput();                  
+                  
+                } elseif(is_string($param) && $param != 'all')
+                {                
+                  if($this->verifier->isAddressCorrect($param))
+                  {                 
+                    $this->startBroadcast = false;
+                    $this->addresses[] = $param;
+                    $areAddresses = true;
+                  }  
+                } elseif(is_string($param) && $param == 'all')
+                {
+                  $toAll = true;
+                } else {
+                  $toAll = true;
+                }
+              }           
+            } 
+          }
         }        
       } 
       if($toAll)
@@ -6021,6 +6052,9 @@ class Skynet
   
   /** @var bool If true checks header before connect */
   private $checkHeader = false;
+  
+  /** @var SkynetDebug Debugger */
+  private $debugger;
 
  /**
   * Constructor
@@ -6045,6 +6079,7 @@ class Skynet
     $this->options = new SkynetOptions();
     $this->detector = new SkynetDetector();
     $this->skynetConnect = new SkynetConnect();
+    $this->debugger = new SkynetDebug();
 
     $this->eventListenersLauncher = new SkynetEventListenersLauncher();
     $this->eventListenersLauncher->setSender(true);
@@ -6119,8 +6154,7 @@ class Skynet
   * @return Skynet $this Instance of this
   */
   public function broadcast()
-  {
-    /* Disable broadcast when cluster is sleeped */
+  {    
     if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || !$this->auth->isAuthorized())
     {
       return false;
@@ -6128,11 +6162,24 @@ class Skynet
 
     $this->isBroadcast = true;
     $this->loadChain();
-
+   
     /* Get clusters saved in db */
     if($this->areClusters())
     {
       $clustersNum = 0;
+      $tmpRequest = new SkynetRequest();
+      
+     
+      $to = $tmpRequest->get('@to');      
+    
+      $this->debugger->dump($to);
+      if($to !== null)
+      {
+         //$this->doConnect = false;
+         $to = $tmpRequest->get('@to');
+         $this->debugger->dump($to);
+      }
+      
       foreach($this->clusters as $cluster)
       {
         $clustersNum++;
@@ -6200,12 +6247,17 @@ class Skynet
 
     try
     {
-      if($connect->connect($remote_cluster, $chain))
+      $connResult = $connect->connect($remote_cluster, $chain);
+      if($connResult)
       {
         $this->successConnections++;
         $this->clusters[$this->connectId - 1] = $connect->getCluster();
         $this->isConnected = true;
-      } else {
+      } elseif($connResult === null) 
+      {
+        $this->clusters[$this->connectId - 1]->getHeader()->setResult(0);
+      } elseif(!$connResult) 
+      {
         $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
       }      
 
@@ -6968,6 +7020,12 @@ class SkynetConnect
   /** @var string[] Array with connections debug */ 
   private $connectionData = [];
   
+  /** @var SkynetDebug Debugger */
+  private $debugger;
+  
+  /** @var bool Execute connection or not */
+  private $doConnect;
+  
 
  /**
   * Constructor
@@ -6982,7 +7040,7 @@ class SkynetConnect
     $this->connection = SkynetConnectionsFactory::getInstance()->getConnector(SkynetConfig::get('core_connection_type'));
     $this->verifier = new SkynetVerifier();
     $this->clustersRegistry = new SkynetClustersRegistry();
-    
+    $this->debugger = new SkynetDebug();
   }  
 
  /**
@@ -6998,6 +7056,7 @@ class SkynetConnect
   public function connect($remote_cluster = null, $chain = null)
   {
     $result = false;
+    $this->doConnect = true;
     
     $this->init();   
     $this->cluster = $this->prepareCluster($remote_cluster);   
@@ -7016,6 +7075,12 @@ class SkynetConnect
     $this->prepareListeners();    
    
     $this->prepareRequest($chain);
+    
+    if(!$this->doConnect)
+    {
+      return null;
+    }
+    
     $this->responseData = $this->sendRequest();
 
     if($this->responseData === null || $this->responseData === false)
@@ -7148,18 +7213,35 @@ class SkynetConnect
 
     /* Try to connect and get response, launch pre-request listeners */
     $this->eventListenersLauncher->launch('onRequest');
-
-    /* If specified receiver via [@to] */
+   
     $requests = $this->request->getRequestsData();      
     
-    if(isset($requests['@to']) && !isset($_REQUEST['@peer']))
+     /* If specified receiver via [@to] */
+    if(isset($requests['@to']))
     {
-      $this->cluster = new SkynetCluster();
-      $this->cluster->setUrl($requests['@to']);
-      $this->clusterUrl = $requests['@to'];
-      $this->connection->setCluster($this->cluster);
-      $this->breakConnections = true;
-    } 
+       $to = $this->request->get('@to');
+       if(is_string($to))
+       {
+         if($this->verifier->isAddressCorrect($to))
+         {
+           if($this->clusterUrl != $to)
+           {             
+             $this->doConnect = false;
+           }           
+         }
+       } elseif(is_array($to))
+       {        
+          if(!in_array($this->clusterUrl, $to))
+          {
+            $this->doConnect = false;
+          }        
+       }       
+      
+       $to = $this->request->get('@to');      
+      // $this->debugger->dump($to);
+       //$this->debugger->dump($this->clusterUrl);      
+    }
+   
     $this->eventListenersLauncher->launch('onRequestLoggers');
   }
 
@@ -10297,7 +10379,7 @@ class SkynetDebug
     {
       foreach($_SESSION['_skynetDebugger'] as $k => $v)
       {
-        $output[$k] = $this->decorate($v);
+        $output[$k] = ['title' => $v['title'], 'data' => $this->decorate($v['data'])];
       }    
     }
     
@@ -10389,12 +10471,17 @@ class SkynetDebug
   */   
   private function addDebugField($debug, $name = null)
   {
+    $data = ['title' => $name, 'data' => $debug];
+    $_SESSION['_skynetDebugger'][] = $data;
+    
+    /*
     if($name === null)
     {
       $_SESSION['_skynetDebugger'][] = $debug;
     } else {
       $_SESSION['_skynetDebugger'][$name] = $debug;
-    }    
+    }   
+    */
   }
 
  /**
@@ -11933,28 +12020,6 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
     
     if($context == 'afterReceive')
     {
-             
-    }
-  }
-
- /**
-  * onResponse Event
-  *
-  * Actions executes when onResponse event is fired.
-  * Context: beforeSend - executes in responder when creating response for request.
-  * Context: afterReceive - executes in sender when response for request is received from responder.
-  *
-  * @param string $context Context - beforeSend | afterReceive
-  */
-  public function onResponse($context = null)
-  {
-    if($context == 'afterReceive')
-    {
-      
-    }
-
-    if($context == 'beforeSend')
-    {      
       /* exec() */
       if($this->request->get('@exec') !== null)
       {
@@ -12050,6 +12115,28 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
         $this->response->set('@<<evalReturn', $result); 
         $this->response->set('@<<eval', $this->request->get('@eval')[0]['php']);
       } 
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+      
+    }
+
+    if($context == 'beforeSend')
+    {      
+      
     }
   }
 
@@ -17868,6 +17955,10 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
   */ 
   public function parseConnection($connData)
   {
+    if(!isset($connData['id']))
+    {
+      return 'Connection data is NULL';
+    }
     $rows = [];
     $rows[] = 
       $this->elements->addHtml('<a name="_connection'.$connData['id'].'"></a>').
@@ -18864,7 +18955,7 @@ class SkynetRendererHtmlDebugParser
     $rows = [];
     foreach($fields as $k => $v)
     {
-      $rows[] = $this->elements->addValRow($k, $v);
+      $rows[] = $this->elements->addValRow($v['title'], $v['data']);
     }    
     if(count($rows) == 0) 
     {
@@ -19506,8 +19597,8 @@ class SkynetRendererHtmlElements
   */
   public function addFooter($successed = 0)
   {
-    //$html = '<script src="skynet.js"></script>';
-    $html = '<script>'.$this->js->getJavascript().'</script>';
+    $html = '<script src="skynet.js"></script>';
+    //$html = '<script>'.$this->js->getJavascript().'</script>';
     $html.= '<script>skynetControlPanel.setFavIcon('.$successed.');</script>';
     $html.= '</body></html>';
     return $html;

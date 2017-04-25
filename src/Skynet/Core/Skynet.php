@@ -39,6 +39,7 @@ use Skynet\Console\SkynetConsoleInput;
 use Skynet\Console\SkynetCliInput;
 use Skynet\Common\SkynetTypes;
 use Skynet\Common\SkynetHelper;
+use Skynet\Debug\SkynetDebug;
 
  /**
   * Skynet Main Launcher Class
@@ -165,6 +166,9 @@ class Skynet
   
   /** @var bool If true checks header before connect */
   private $checkHeader = false;
+  
+  /** @var SkynetDebug Debugger */
+  private $debugger;
 
  /**
   * Constructor
@@ -189,6 +193,7 @@ class Skynet
     $this->options = new SkynetOptions();
     $this->detector = new SkynetDetector();
     $this->skynetConnect = new SkynetConnect();
+    $this->debugger = new SkynetDebug();
 
     $this->eventListenersLauncher = new SkynetEventListenersLauncher();
     $this->eventListenersLauncher->setSender(true);
@@ -263,8 +268,7 @@ class Skynet
   * @return Skynet $this Instance of this
   */
   public function broadcast()
-  {
-    /* Disable broadcast when cluster is sleeped */
+  {    
     if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || !$this->auth->isAuthorized())
     {
       return false;
@@ -272,11 +276,24 @@ class Skynet
 
     $this->isBroadcast = true;
     $this->loadChain();
-
+   
     /* Get clusters saved in db */
     if($this->areClusters())
     {
       $clustersNum = 0;
+      $tmpRequest = new SkynetRequest();
+      
+     
+      $to = $tmpRequest->get('@to');      
+    
+      $this->debugger->dump($to);
+      if($to !== null)
+      {
+         //$this->doConnect = false;
+         $to = $tmpRequest->get('@to');
+         $this->debugger->dump($to);
+      }
+      
       foreach($this->clusters as $cluster)
       {
         $clustersNum++;
@@ -344,12 +361,17 @@ class Skynet
 
     try
     {
-      if($connect->connect($remote_cluster, $chain))
+      $connResult = $connect->connect($remote_cluster, $chain);
+      if($connResult)
       {
         $this->successConnections++;
         $this->clusters[$this->connectId - 1] = $connect->getCluster();
         $this->isConnected = true;
-      } else {
+      } elseif($connResult === null) 
+      {
+        $this->clusters[$this->connectId - 1]->getHeader()->setResult(0);
+      } elseif(!$connResult) 
+      {
         $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
       }      
 

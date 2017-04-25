@@ -17,6 +17,8 @@ namespace Skynet\Console;
 use Skynet\EventListener\SkynetEventListenersFactory;
 use Skynet\EventLogger\SkynetEventLoggersFactory;
 use Skynet\Secure\SkynetVerifier;
+use Skynet\Debug\SkynetDebug;
+
 
  /**
   * Skynet Console 
@@ -53,6 +55,9 @@ class SkynetConsole
   /** @var SkynetVerifier Verifier instance */
   private $verifier;
   
+  /** @var SkynetDebug Debugger */
+  private $debugger;
+  
 
  /**
   * Constructor
@@ -63,6 +68,7 @@ class SkynetConsole
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();    
     $this->registerListenersCommands();
     $this->verifier = new SkynetVerifier();
+    $this->debugger = new SkynetDebug();
   }
 
  /**
@@ -383,6 +389,13 @@ class SkynetConsole
     return false;
   }
 
+ /**
+  * Checks if param is pair key=val
+  *
+  * @param string $input
+  *
+  * @return bool True if is param key-value
+  */ 
   private function isParamKeyVal($input)
   {
     if(!empty($input) && preg_match('/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}.+"{0,1}$/', $input))
@@ -390,6 +403,7 @@ class SkynetConsole
       return true;
     }
   }
+  
  /**
   * Removes multiple spaces
   *
@@ -402,9 +416,15 @@ class SkynetConsole
     return preg_replace("/ {2,}/", " ", $str);    
   }
  
- 
- private function areAddresses($input)
- {
+ /**
+  * Checks if there are addresses in input
+  *
+  * @param string $input
+  *
+  * @return bool
+  */ 
+  private function areAddresses($input)
+  {
    $urls = false;
    $e = explode(',', $input);
    $c = count($e);
@@ -419,7 +439,7 @@ class SkynetConsole
      }     
    }
    return $urls;   
- } 
+  } 
  
  /**
   * Removes last ; char
@@ -428,10 +448,10 @@ class SkynetConsole
   *
   * @return string
   */  
- private function removeLastSemicolon($input)
- {
-   return rtrim($input, ';');   
- }
+  private function removeLastSemicolon($input)
+  {
+    return rtrim($input, ';');   
+  }
  
  /**
   * Parses and returns params from params string
@@ -453,10 +473,10 @@ class SkynetConsole
     /* if param is quoted */
     if($this->isQuoted($paramsStr))
     {
-      return array(0 => $this->unQuote($paramsStr));
-    }
-    
-    //var_dump($paramsStr);
+      $data = $this->unQuote($paramsStr);      
+      return array(0 => $data);
+    }    
+   
     /* if not quoted explode for params */
     $e = explode(',', $paramsStr);
     $numOfParams = count($e); 
@@ -468,8 +488,8 @@ class SkynetConsole
       {
         $e = $matches[0];
       } 
-    }
-
+    }   
+    
     foreach($e as $param)
     {
       $params[] = trim($param);
@@ -517,10 +537,10 @@ class SkynetConsole
     if(empty($paramStr))
     {
       return false;
-    }
-    
+    }    
     
     $e = explode(':', $paramStr);
+    
     $parts = count($e);
     if($parts < 2)
     {
@@ -529,21 +549,23 @@ class SkynetConsole
       
     } else {
       
-      $key = trim($e[0]);
+      $key = trim($e[0], '" ');
       if($parts == 2)
       {
-        $value = trim($e[1]);
+        $value = trim($e[1], '" ');
       } else {
         $valueParts = [];
         $value = '';
         for($i = 1; $i < $parts; $i++)
         {
-          $valueParts[] = trim($e[$i]);
+          $valueParts[] = trim($e[$i], '" ');
         }
         $value.= implode(':', $valueParts);
-      }
-      $ary = [$key => $this->unQuote($value)];
-      $this->addParserState('KEY_VALUE: '.$key.' => '.$value);
+      }      
+      $cleanValue = $this->unQuoteValue($value);
+      $ary = [$key => $cleanValue];
+      $this->debugger->dump($ary); 
+      $this->addParserState('KEY_VALUE: '.$key.' => '.$cleanValue);
       return $ary;
     } 
   }
@@ -559,12 +581,14 @@ class SkynetConsole
   {
     $haveParams = false;
     $paramsFromPos = null;
-    $paramsStr = '';        
+    $paramsStr = '';    
       
     $str = ltrim($query, '@');
+    
     /* get command name */
     $cmdName = strstr($str, ' ', true);
     /* no space after command == no params */
+    
     if($cmdName === false)
     {
       /* no params */
@@ -574,15 +598,14 @@ class SkynetConsole
       $paramsFromPos = strpos($str, ' ');        
       $paramsStr = trim(substr($str, $paramsFromPos, strlen($str)));
       $haveParams = true;
-    }
+    }    
+    
     /* gets params as array */
-    $paramsAry = $this->parseCmdParams($paramsStr);
+    $paramsAry = $this->parseCmdParams($paramsStr);    
+    
     $data = [];
     $data['command'] = $cmdName;
-    $data['params'] = $paramsAry;
-    
-    //var_dump($data);
-    
+    $data['params'] = $paramsAry;    
     return $data;          
   } 
   
@@ -596,10 +619,11 @@ class SkynetConsole
   private function createCommand($query)
   {
      /* parse command data */
-    $data = $this->getCommandFromQuery($query);      
+    $data = $this->getCommandFromQuery($query);    
+       
     $numOfParams = count($data['params']);
-    $this->addParserState('COMMAND:'.$data['command']);
-    $this->addParserState('NUM OF PARAMS:'.$numOfParams);   
+    $this->addParserState('COMMAND: '.$data['command']);
+    $this->addParserState('NUM OF PARAMS: '.$numOfParams);       
     
     /* new command */
     $command = new SkynetCommand($data['command']);
@@ -612,8 +636,8 @@ class SkynetConsole
       foreach($data['params'] as $param)
       {                    
         $paramType = $this->getParamType($param);
-        $this->addParserState('PARAM:'.$param);
-        $this->addParserState('PARAM_TYPE:'.$paramType);
+        $this->addParserState('PARAM: '.$param);
+        $this->addParserState('PARAM_TYPE: '.$paramType);
         
         /* switch param type */
         switch($paramType)
@@ -629,7 +653,7 @@ class SkynetConsole
           break;
         }
       }
-      /* set parsed param to command */
+      /* set parsed param to command */      
       $command->setParams($tmpParams);           
     }  
     
@@ -648,7 +672,13 @@ class SkynetConsole
     return $this->getParamKeyVal($query);   
   }
   
-  
+ /**
+  * Explodes queries
+  *
+  * @param string $input
+  *
+  * @return string[] Queries
+  */   
   private function explodeQuery($input)
   {
     if($this->isEndQuoted($input))
@@ -658,7 +688,14 @@ class SkynetConsole
       return explode(";\n", $input);  
     }      
   }
-  
+
+ /**
+  * Checks if input is quoted
+  *
+  * @param string $input
+  *
+  * @return bool True if quoted
+  */    
   private function isQuoted($input)
   {  
      if(preg_match('/^"{1}[^"]+"{1}$/', $input))
@@ -666,7 +703,14 @@ class SkynetConsole
        return true;
      }     
   }
-  
+ 
+ /**
+  * Checks if input is endquoted
+  *
+  * @param string $input
+  *
+  * @return bool True if quoted
+  */  
   private function isEndQuoted($input)
   {
     if(substr($input, -1) === '"' || substr($input, -1) === '\'' || substr($input, -1) === '";' || substr($input, -1) === '\';')
@@ -674,7 +718,14 @@ class SkynetConsole
       return true;
     }
   }
-  
+
+ /**
+  * Unquotes input
+  *
+  * @param string $input
+  *
+  * @return string Cleaned string
+  */   
   private function unQuote($input)
   {
     $len = strlen($input);
@@ -692,7 +743,27 @@ class SkynetConsole
     } 
     return $input;
   }
-  
+
+ /**
+  * Unquotes value
+  *
+  * @param string $input
+  *
+  * @return string Cleaned string
+  */     
+  private function unQuoteValue($input)
+  {
+    $len = strlen($input);    
+    if(strpos($input, '"') === 0)
+    {
+      $input = trim($input, '"');
+    }
+    if(strpos($input, '\'') === 0)
+    {
+     $input = trim($input, '\'');
+    } 
+    return $input;
+  }
   
  /**
   * Parses input
@@ -712,8 +783,6 @@ class SkynetConsole
     
     $numOfQueries = count($querys);
     
-    
-    
     /* if queries */
     if($numOfQueries > 0)
     {
@@ -721,9 +790,7 @@ class SkynetConsole
       $i = 1;
       foreach($querys as $query)
       {
-        $this->actualQueryNumber = $i;    
-        
-        
+        $this->actualQueryNumber = $i;   
         
         $cleanQuery = trim($query);
        // $this->isQuoted($cleanQuery);
@@ -737,7 +804,7 @@ class SkynetConsole
           switch($queryType)
           {
               case 'cmd': 
-                $command = $this->createCommand($cleanQuery); 
+                $command = $this->createCommand($cleanQuery);                 
                 $this->consoleCommands[$command->getCode()] = $command;                
               break;              
               
@@ -752,7 +819,7 @@ class SkynetConsole
         /* query counter */
         $i++;
       }
-     
+      $this->debugger->dump($this->consoleCommands); 
       return true;
       
     } else {

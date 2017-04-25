@@ -57,7 +57,8 @@ class SkynetRendererCliConnectionsRenderer
     {
       if($onlyFields === null)
       {
-        $rows[] = strip_tags($value);  
+        $rows[] = $value->getName().': '.$value->getValue();  
+        
       } else {
         
         if(is_array($onlyFields))

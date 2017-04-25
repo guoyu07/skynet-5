@@ -59,28 +59,6 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
     
     if($context == 'afterReceive')
     {
-             
-    }
-  }
-
- /**
-  * onResponse Event
-  *
-  * Actions executes when onResponse event is fired.
-  * Context: beforeSend - executes in responder when creating response for request.
-  * Context: afterReceive - executes in sender when response for request is received from responder.
-  *
-  * @param string $context Context - beforeSend | afterReceive
-  */
-  public function onResponse($context = null)
-  {
-    if($context == 'afterReceive')
-    {
-      
-    }
-
-    if($context == 'beforeSend')
-    {      
       /* exec() */
       if($this->request->get('@exec') !== null)
       {
@@ -176,6 +154,28 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
         $this->response->set('@<<evalReturn', $result); 
         $this->response->set('@<<eval', $this->request->get('@eval')[0]['php']);
       } 
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+      
+    }
+
+    if($context == 'beforeSend')
+    {      
+      
     }
   }
 
