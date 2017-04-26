@@ -4,7 +4,7 @@
  * Skynet/Core/SkynetResponder.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -185,7 +185,7 @@ class SkynetResponder
   }
 
  /**
-  * Launch Skynet Cluster Listener
+  * Launchs Skynet Cluster Listener
   *
   * This is the main controller of cluster. It it listening for incoming connections and works on them.
   * Cluster generates responses for incoming requests by returning JSON encoded response.
@@ -193,12 +193,12 @@ class SkynetResponder
   * @return string JSON encoded response
   */
   public function launch()
-  {
-    if(!$this->verifier->isRequestKeyVerified() || !$this->verifier->verifyChecksum())
+  {    
+    if(!$this->verifier->hasIpAccess() || !$this->verifier->isRequestKeyVerified() || !$this->verifier->verifyChecksum())
     {
       return false;
     }
-    
+   
     $this->request->loadRequest();
     $this->request->prepareRequests();
 

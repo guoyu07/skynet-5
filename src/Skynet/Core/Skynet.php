@@ -4,7 +4,7 @@
  * Skynet/Core/Skynet.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -164,9 +164,6 @@ class Skynet
   /** @var SkynetConnect Connect object */
   private $skynetConnect;
   
-  /** @var bool If true checks header before connect */
-  private $checkHeader = false;
-  
   /** @var SkynetDebug Debugger */
   private $debugger;
 
@@ -285,23 +282,16 @@ class Skynet
       {
         $clustersNum++;
         $this->cluster = $cluster;
-        $this->assignConnId();
-        if($this->checkHeader)
-        {
-          $this->getRemoteHeader();
-        }
+        $this->assignConnId();        
 
         /* Prepare address */
         $address = \SkynetUser\SkynetConfig::get('core_connection_protocol').$this->cluster->getUrl();
         $this->clusterUrl = $address;
 
         /* If Key ID is verified and remote shows chain and we are not under other connection */
-        if(!$this->verifier->isPing() && ($this->cluster->getHeader()->getChain() !== null || !$this->checkHeader) && $this->verifier->isAddressCorrect($address))
-        {
-          if(!$this->checkHeader || $this->isDifferentChain())
-          {
-            $this->connect($address, $this->skynetChain->getChain());
-          }
+        if(!$this->verifier->isPing() && $this->verifier->isAddressCorrect($address))
+        {         
+          $this->connect($address, $this->skynetChain->getChain());         
           $this->storeCluster();
 
         } else {
@@ -372,8 +362,6 @@ class Skynet
     $this->breakConnections = $connect->getBreakConnections();
 
     $data = $connect->getConnectionData();
-    $data['SENDED HEADER PARAMS (broadcast)'] = $this->sendedHeaderDataParams;
-    $data['RECEIVED RAW HEADER (broadcast)'] = $this->responseHeaderData;
     $this->connectionsData[] = $data;
 
     return $this;
@@ -411,18 +399,35 @@ class Skynet
   */
   private function modeController()
   {
-    if(isset($_REQUEST['_skynetSetConnMode']))
+    if(!isset($_SESSION))
     {
-      if(!isset($_SESSION))
-      {
-        session_start();
-      }
-      $_SESSION['_skynetConnMode'] = $_REQUEST['_skynetSetConnMode'];
+      session_start();
+    }
+    if(!isset($_SESSION['_skynetOptions']))
+    {
+      $_SESSION['_skynetOptions'] = [];
+      $_SESSION['_skynetOptions']['viewInternal'] = \SkynetUser\SkynetConfig::get('debug_internal');
+      $_SESSION['_skynetOptions']['viewEcho'] = \SkynetUser\SkynetConfig::get('debug_echo');
+    }
+    
+    if(isset($_REQUEST['_skynetSetConnMode']))
+    {      
+      $_SESSION['_skynetConnMode'] = (int)$_REQUEST['_skynetSetConnMode'];
     }
 
     if(isset($_SESSION['_skynetConnMode']))
     {
       $this->connMode = $_SESSION['_skynetConnMode'];
+    }
+    
+    if(isset($_REQUEST['_skynetOptionViewInternalParams']))
+    {      
+      $_SESSION['_skynetOptions']['viewInternal'] = ($_REQUEST['_skynetOptionViewInternalParams'] == 1) ? true : false;
+    }
+    
+    if(isset($_REQUEST['_skynetOptionViewEchoParams']))
+    {      
+      $_SESSION['_skynetOptions']['viewEcho'] = ($_REQUEST['_skynetOptionViewEchoParams'] == 1) ? true : false;
     }
   }
 

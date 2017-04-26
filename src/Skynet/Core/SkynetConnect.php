@@ -403,7 +403,7 @@ class SkynetConnect
       'request_encypted' => $this->request->getEncryptedFields(),
       'response_raw' => $this->response->getRawFields()
       ],
-    'SENDED PARAMS' => $this->adapter['params'],    
+    'SENDED RAW DATA' => $this->adapter['params'],    
     'RECEIVED RAW DATA' => $this->responseData    
     ];
   }

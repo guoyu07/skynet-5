@@ -57,9 +57,9 @@ class SkynetConfig
     'core_check_new_versions' => true,
 
 
-    /* core_encryptor -> string:[base64|...]
+    /* core_encryptor -> string:[mcrypt|base64|...]
     Name of registered class used for encrypting data */
-    'core_encryptor' => 'base64',
+    'core_encryptor' => 'mcrypt',
     
     /* core_renderer_theme -> string:[dark|light|raw|...]
     Theme CSS configuration for HTML Renderer */
@@ -107,7 +107,11 @@ class SkynetConfig
     
     /* core_connection_curl_cli_echo -> bool:[true|false]
     If true CURL will display connection output in CLI mode (VERBOSE OPTION) */
-    'core_connection_curl_output' => false,
+    'core_connection_curl_output' => true,
+    
+    /* core_connection_ip_whitelist -> string[]
+    IP Whitelist for accepting requests from, if empty then all IP's has access to response */
+    'core_connection_ip_whitelist' => [],
 
 
 /*
@@ -224,7 +228,15 @@ class SkynetConfig
     
     /* debug_internal -> bool:[true|false]
      If TRUE, internal params will be show in debug data */
-    'debug_internal' => true,
+    'debug_internal' => true,  
+    
+    /* debug_echo-> bool:[true|false]
+     If TRUE, internal @echo params will be show in debug data */
+    'debug_echo' => true,
+    
+     /* debug_key-> bool:[true|false]
+     If TRUE, KEY ID will be in debug data */
+    'debug_key' => true
 
 /*
  -------- end of config.

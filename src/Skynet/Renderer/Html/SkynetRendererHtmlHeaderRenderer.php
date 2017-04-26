@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlHeaderRenderer.php
  *
  * @package Skynet
- * @version 1.1.0
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -15,6 +15,8 @@
 namespace Skynet\Renderer\Html;
 
 use Skynet\Renderer\SkynetRendererAbstract;
+use Skynet\Database\SkynetDatabaseSchema;
+use Skynet\Secure\SkynetAuth;
 
  /**
   * Skynet Renderer Mode Renderer
@@ -33,6 +35,12 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
   
   /** @var SkynetRendererHtmlConnectionsRenderer Connections Renderer */
   private $connectionsRenderer;
+  
+  /** @var SkynetDatabaseSchema DB Schema */
+  protected $databaseSchema;
+  
+  /** @var SkynetAuth Authorization */
+  private $auth;
 
  /**
   * Constructor
@@ -42,6 +50,8 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $this->elements = new SkynetRendererHtmlElements();  
     $this->summaryRenderer = new  SkynetRendererHtmlSummaryRenderer();
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();
+    $this->databaseSchema = new SkynetDatabaseSchema;    
+    $this->auth = new SkynetAuth();
   }  
  
  /**
@@ -53,7 +63,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
   {    
     $modes = [];
     $modes['connections'] = 'CONNECTIONS (<span class="numConnections">'.$this->connectionsCounter.'</span>)';
-    $modes['database'] = 'DATABASE';   
+    $modes['database'] = 'DATABASE ('.$this->databaseSchema->countTables().')';   
     
     $links = [];
     foreach($modes as $k => $v)
@@ -91,8 +101,11 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $output[] = $this->summaryRenderer->renderService($this->fields);
     $output[] = $this->elements->addSectionEnd();
     
-    
     $output[] = $this->elements->addSectionClass('hdrColumn2');
+    $output[] = $this->summaryRenderer->renderServer($this->fields);
+    $output[] = $this->elements->addSectionEnd();
+    
+    $output[] = $this->elements->addSectionClass('hdrColumn3');
     $output[] = $this->summaryRenderer->renderSummary($this->fields);
     $output[] = $this->elements->addSectionEnd();
     
@@ -123,7 +136,9 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
   */    
   public function renderLogoutLink()
   {
-    return $this->elements->addUrl('?_skynetLogout=1', $this->elements->addBold('LOGOUT'), false, 'aLogout');    
-  }
- 
+    if($this->auth->isPasswordGenerated())
+    {
+      return $this->elements->addUrl('?_skynetLogout=1', $this->elements->addBold('LOGOUT'), false, 'aLogout'); 
+    }      
+  } 
 }

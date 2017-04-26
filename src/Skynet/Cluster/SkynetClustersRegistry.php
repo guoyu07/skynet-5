@@ -190,12 +190,37 @@ class SkynetClustersRegistry
       
     } catch(\PDOException $e)
     {
-      $this->addError(SkynetTypes::PDO, 'Getting records from database table: '.$table.' failed', $e);
+      $this->addError(SkynetTypes::PDO, 'Getting records from database table: clusters failed', $e);
       return false;
     }    
     return $counter;   
   }
 
+ /**
+  * Returns number of blocked clusters in database
+  * 
+  * @return int
+  */  
+  public function countBlockedClusters()
+  {
+    $counter = 0;
+    try
+    {
+      $stmt = $this->db->query(
+        'SELECT count(*) as c FROM skynet_clusters_blocked');     
+      $stmt->execute();
+      $row = $stmt->fetch();
+      $counter = $row['c'];
+      $stmt->closeCursor();
+      
+    } catch(\PDOException $e)
+    {
+      $this->addError(SkynetTypes::PDO, 'Getting records from database table: clusters_blocked failed', $e);
+      return false;
+    }    
+    return $counter;   
+  }
+  
  /**
   * Parse clusters from database into clusters chain
   *

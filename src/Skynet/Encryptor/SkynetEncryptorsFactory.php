@@ -4,7 +4,7 @@
  * Skynet/Encryptor/SkynetEncryptorsFactory.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -46,6 +46,7 @@ class SkynetEncryptorsFactory
   */
   private function registerEncryptors()
   {
+    $this->register('mcrypt', new SkynetEncryptorMcrypt());
     $this->register('base64', new SkynetEncryptorBase64());
   }
 

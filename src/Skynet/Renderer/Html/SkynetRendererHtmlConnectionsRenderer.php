@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlConnectionsRenderer.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -52,6 +52,61 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $this->elements = $elements;   
   } 
 
+  
+  private function renderOptions()
+  {
+    $options = [];
+    $paramsOptions = [];
+    $paramsEchoOptions = [];
+    
+    if(!isset($_SESSION))
+    {
+      session_start();
+    }
+    $debugInternal = \SkynetUser\SkynetConfig::get('debug_internal');
+    $debugEcho = \SkynetUser\SkynetConfig::get('debug_echo');
+    
+    if(isset($_SESSION['_skynetOptions']['viewInternal']))
+    {
+      $debugInternal = $_SESSION['_skynetOptions']['viewInternal'];
+    }
+    
+    if(isset($_SESSION['_skynetOptions']['viewEcho']))
+    {
+      $debugEcho = $_SESSION['_skynetOptions']['viewEcho'];
+    }    
+    
+    if($debugInternal)
+    {
+      $paramsOptions[] = '<option value="1" selected>YES</option>';
+      $paramsOptions[] = '<option value="0">NO</option>';
+    } else {
+      $paramsOptions[] = '<option value="1">YES</option>';
+      $paramsOptions[] = '<option value="0" selected>NO</option>';
+    }
+    
+    if($debugEcho)
+    {
+      $paramsEchoOptions[] = '<option value="1" selected>YES</option>';
+      $paramsEchoOptions[] = '<option value="0">NO</option>';
+    } else {
+      $paramsEchoOptions[] = '<option value="1">YES</option>';
+      $paramsEchoOptions[] = '<option value="0" selected>NO</option>';
+    }
+    
+    $options[] = '<form method="GET" action="" class="formConnectionDataOptions">';
+    $options[] = 'Auto-reconnect interval: <input value="0" type="text" id="connIntervalValue" name="connectionInterval"> seconds <input type="button" onclick="skynetControlPanel.setConnectInterval(\''.basename($_SERVER['PHP_SELF']).'\')" value="OK"> (<span id="connIntervalStatus">disabled</span>)<br>';    
+    
+    $options[] = 'Display internal params: <select id="_skynetViewInternalParamsOption" onchange="skynetControlPanel.switchViewInternalParams(\''.basename($_SERVER['PHP_SELF']).'\');" name="_skynetViewInternalParamsOption">'.implode('', $paramsOptions).'</select> ';
+    $options[] = 'Display @echo: <select id="_skynetViewEchoParamsOption" onchange="skynetControlPanel.switchViewEchoParams(\''.basename($_SERVER['PHP_SELF']).'\');" name="_skynetViewEchoParamsOption">'.implode('', $paramsEchoOptions).'</select>';
+    
+    $options[] = '</form>';  
+    
+    return implode('', $options);
+  }
+  
+  
+  
  /**
   * Renders go to connection form
   *
@@ -123,8 +178,23 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
   */    
   public function parseParamsArray($fields)
   {
-    $rows = [];    
+    $rows = [];  
+    if(!isset($_SESSION))
+    {
+      session_start();
+    }
     $debugInternal = \SkynetUser\SkynetConfig::get('debug_internal');
+    $debugEcho = \SkynetUser\SkynetConfig::get('debug_echo');
+    
+    if(isset($_SESSION['_skynetOptions']['viewInternal']))
+    {
+      $debugInternal = $_SESSION['_skynetOptions']['viewInternal'];
+    }
+    
+    if(isset($_SESSION['_skynetOptions']['viewEcho']))
+    {
+      $debugEcho = $_SESSION['_skynetOptions']['viewEcho'];
+    }
     
     foreach($fields as $key => $field)
     {
@@ -143,6 +213,18 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
         if($debugInternal)
         {
           $render = true;
+        }
+      }
+      
+      if($this->verifier->isInternalEchoParameter($field->getName()))
+      {
+        if($debugInternal)
+        {
+          $render = false;
+          if($debugEcho)
+          {
+            $render = true;
+          }
         }
       }
       
@@ -260,38 +342,30 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $rows[] = 
       $this->elements->addHtml('<a name="_connection'.$connData['id'].'"></a>').
       $this->elements->addH2('@'.$connData['id'].' Connection {').
-      $this->elements->addH3('@ClusterAddress: '.$this->elements->addUrl($connData['CLUSTER URL']));
-    
+      $this->elements->addH3('@ClusterAddress: '.$this->elements->addUrl($connData['CLUSTER URL']));    
     
     $rows[] = $this->renderConnectionTabs($connData['id']);
       
-    $paramsFields = ['SENDED PARAMS', 'SENDED HEADER PARAMS (broadcast)'];  
-    $rawDataFields = ['RECEIVED RAW DATA', 'RECEIVED RAW HEADER (broadcast)'];
+    $paramsFields = ['SENDED RAW DATA'];  
+    $rawDataFields = ['RECEIVED RAW DATA'];
     
     $rows[] = $this->elements->beginTable();
     $parsedValue = $this->elements->addUrl($connData['CLUSTER URL']);
     $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('CLUSTER URL').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);    
     $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Connection number').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['id']);    
     $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Ping').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['Ping']);   
-    $rows[] = $this->elements->endTable();  
+    $rows[] = $this->elements->endTable();      
     
-    
-    $rows[] = $this->parseConnectionFields($connData['FIELDS'], $connData['CLUSTER URL'], $connData['id']);
-    
+    $rows[] = $this->parseConnectionFields($connData['FIELDS'], $connData['CLUSTER URL'], $connData['id']);    
     
     $rows[] = $this->elements->addSectionClass('hide tabConnRaw'.$connData['id']);
     $rows[] = $this->elements->beginTable();
-    $parsedValue = $this->parseDebugParams($connData['SENDED PARAMS']);
-    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('SENDED PARAMS').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
-    
-    $parsedValue = $this->parseDebugParams($connData['SENDED HEADER PARAMS (broadcast)']);
-    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('SENDED HEADER PARAMS (broadcast)').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    $parsedValue = $this->parseDebugParams($connData['SENDED RAW DATA']);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('SENDED RAW DATA').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);  
     
     $parsedValue = $this->parseResponseRawData($connData['RECEIVED RAW DATA']);
-    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW DATA').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
-    
-    $parsedValue = $this->parseResponseRawData($connData['RECEIVED RAW HEADER (broadcast)']);
-    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW HEADER (broadcast)').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);
+    $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('RECEIVED RAW DATA').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);    
+   
     $rows[] = $this->elements->endTable();  
     $rows[] = $this->elements->addSectionEnd();   
     
@@ -373,7 +447,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     
     $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
     $output[] = $this->elements->addSectionClass('reconnectArea'); 
-    $output[] = '@Auto-reconnect interval: <input value="0" type="text" id="connIntervalValue" name="connectionInterval"> seconds <input type="button" onclick="skynetControlPanel.setConnectInterval(\''.basename($_SERVER['PHP_SELF']).'\')" value="OK"> (<span id="connIntervalStatus">disabled</span>)';
+    $output[] = $this->renderOptions();
     $output[] = $this->elements->addSectionEnd();
     $output[] = $this->elements->addSectionEnd();
     

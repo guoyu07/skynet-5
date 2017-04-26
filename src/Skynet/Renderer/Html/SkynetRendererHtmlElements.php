@@ -65,8 +65,7 @@ class SkynetRendererHtmlElements
   public function setCss($styles)
   {
     $this->css = $styles;    
-  }
-  
+  }  
     
  /**
   * Checks for new version on GitHub

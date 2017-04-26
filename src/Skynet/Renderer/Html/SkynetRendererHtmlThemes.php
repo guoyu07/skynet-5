@@ -63,8 +63,9 @@ class SkynetRendererHtmlThemes
     #loginSection { text-align:center; margin: auto; font-size:1.2rem; }
     #loginSection input[type="password"] { width:400px; }
     
-    .debugListenerMy { color: #3ffb6e; }
+    .formConnectionDataOptions { padding:0; margin:0; line-height:1.2; }
     
+    .debugListenerMy { color: #3ffb6e; }    
     .debuggerField { padding:5px; background:#fff; color: #000; font-size:1.2rem; }
     
     .main { height: 90%; }
@@ -87,13 +88,15 @@ class SkynetRendererHtmlThemes
     .innerMode { width:100%; height:10%; max-height:24px; overflow-y:auto; }
     .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; }    
    
-    .innerConnectionsOptions { width:100%; height:5%; max-height:5%; overflow-y:auto; }
+    .innerConnectionsOptions { width:100%; height:5%; max-height:5%; min-height:38px; overflow-y:auto; }
     .innerConnectionsData { width:100%; height:95%; max-height:95%; overflow-y:auto; }
     
-    .hdrLogo { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
+    .hdrLogo { width:15%; height:100%; max-height:100%; max-width:284px; min-width:284px; float:left; overflow-y:auto; }
     .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
-    .hdrColumn2 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
-    .hdrSwitch { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; text-align:right; }
+    .hdrColumn2 { width:15%; height:100%;  max-height:100%; float:left; overflow-y:auto; }
+    .hdrColumn3 { width:15%; height:100%; max-height:100%; float:left; overflow-y:auto; }    
+    .hdrSwitch { width:25%; height:100%; max-height:100%; float:right; overflow-y:auto; text-align:right; }
+    
     .hdrConnection { margin-top:5px; font-size: 1.0rem; }
     .hdrConnection .active { background-color: #3ffb6e; color: #000; }
     

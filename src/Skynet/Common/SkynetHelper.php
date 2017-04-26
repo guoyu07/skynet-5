@@ -4,7 +4,7 @@
  * Skynet/Common/SkynetHelper.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -67,9 +67,41 @@ class SkynetHelper
   */
   public static function getServerIp()
   {
-   return $_SERVER['SERVER_ADDR'];
+    if(isset($_SERVER['SERVER_ADDR']))
+    {
+      return $_SERVER['SERVER_ADDR'];
+    }
   }
 
+ /**
+  * Returns remote client IP address
+  *
+  * @return string
+  */
+  public static function getRemoteIp()
+  {
+    if(!isset($_SERVER['REMOTE_ADDR']))
+    {
+      return '-';
+    }
+    
+    $client  = @$_SERVER['HTTP_CLIENT_IP'];
+    $forward = @$_SERVER['HTTP_X_FORWARDED_FOR'];
+    $remote  = $_SERVER['REMOTE_ADDR'];     
+
+    if(filter_var($client, FILTER_VALIDATE_IP))
+    {
+      $ip = $client;
+    } elseif(filter_var($forward, FILTER_VALIDATE_IP))
+    {
+      $ip = $forward;
+    } else
+    {
+      $ip = $remote;
+    }
+    return $ip;
+  }
+  
  /**
   * Returns cluster filename
   *
@@ -156,6 +188,8 @@ class SkynetHelper
     $titles['core_connection_ssl_verify'] = 'Verify SSL if https connection';
     $titles['core_connection_curl_output'] = 'Output full CURL data in CLI';
     
+    $titles['core_connection_ip_whitelist'] = 'IP Whitelist (accepts requests only from list)';
+    
     $titles['emailer_responses'] = 'Log responses via email';
     $titles['emailer_requests'] = 'Log requests via email';
     $titles['emailer_email_address'] = 'Emails receiver address';
@@ -200,8 +234,9 @@ class SkynetHelper
     
     $titles['console_debug'] = 'Enable console commands debugger';
     $titles['debug_exceptions'] = 'Debug errors with full exceptions';
-    
     $titles['debug_internal'] = 'Debug internal skynet params';
+    $titles['debug_echo'] = 'Debug internal @echo skynet params';
+    $titles['debug_key'] = 'Show KEY ID in Control Panel';
     
     if(array_key_exists($key, $titles))
     {

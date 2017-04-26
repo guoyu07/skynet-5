@@ -68,7 +68,7 @@ class SkynetConsole
     $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();    
     $this->registerListenersCommands();
     $this->verifier = new SkynetVerifier();
-    $this->debugger = new SkynetDebug();
+    $this->debug = new SkynetDebug();
   }
 
  /**

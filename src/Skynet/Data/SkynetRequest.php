@@ -196,8 +196,9 @@ class SkynetRequest
     foreach($this->fields as $field)
     {
       $key = $field->getName();
-      $value = $field->getValue();
-      $fields[$key] = new SkynetField($key, $value, false);
+      $value = $field->getValue();     
+      $fields[$key] = new SkynetField($key, $value);
+      $fields[$key]->setIsEncrypted(false);
     }
     return $fields;
   }

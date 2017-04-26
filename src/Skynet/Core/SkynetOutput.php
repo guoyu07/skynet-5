@@ -173,16 +173,26 @@ class SkynetOutput
       $renderer->setConnectionMode(0);
     }
     
+    $key = \SkynetUser\SkynetConfig::KEY_ID;
+    if(!\SkynetUser\SkynetConfig::get('debug_key'))
+    {
+      $key = '****';
+    }
+    
     $renderer->setInAjax($this->inAjax);
     $renderer->setClustersData($this->clusters);
     $renderer->setConnectionsCounter($this->successConnections);
     $renderer->addField('My address', SkynetHelper::getMyUrl());
+    $renderer->addField('Cluster IP', SkynetHelper::getServerIp());
+    $renderer->addField('Your IP', SkynetHelper::getRemoteIp());
+    $renderer->addField('Encryption', \SkynetUser\SkynetConfig::get('core_encryptor'));
+    $renderer->addField('Connections', \SkynetUser\SkynetConfig::get('core_connection_type').' | By '.\SkynetUser\SkynetConfig::get('core_connection_mode').' | '.\SkynetUser\SkynetConfig::get('core_connection_protocol'));    
     $renderer->addField('Broadcasting Clusters', $this->broadcastNum);
-    $renderer->addField('Clusters in DB', $this->clustersRegistry->countClusters()); 
+    $renderer->addField('Clusters in DB', $this->clustersRegistry->countClusters().' / '.$this->clustersRegistry->countBlockedClusters()); 
     $renderer->addField('Connection attempts', $this->connectId);
     $renderer->addField('Succesful connections', $this->successConnections);
     $renderer->addField('Chain', $chainData['chain'] . ' (updated: '.date('H:i:s d.m.Y', $chainData['updated_at']).')');
-    $renderer->addField('Skynet Key ID', \SkynetUser\SkynetConfig::KEY_ID);
+    $renderer->addField('Skynet Key ID', $key);
     $renderer->addField('Time now', date('H:i:s d.m.Y').' ['.time().']');  
     $renderer->addField('Sleeped', ($this->options->getOptionsValue('sleep') == 1) ? true : false);
     

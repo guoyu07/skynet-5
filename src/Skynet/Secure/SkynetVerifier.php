@@ -6,7 +6,7 @@
  * Checking and veryfing access to skynet
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -23,6 +23,7 @@ use Skynet\Common\SkynetTypes;
 use Skynet\Common\SkynetHelper;
 use Skynet\Database\SkynetDatabase;
 use Skynet\Filesystem\SkynetLogFile;
+use Skynet\Debug\SkynetDebug;
 
  /**
   * Skynet Verifier
@@ -33,6 +34,12 @@ class SkynetVerifier
 {
   /** @var string Remote cluster key */
   private $requestKey;
+  
+  /** @var string Remote cluster hash */
+  private $requestHash;
+  
+  /** @var string Remote request sender */
+  private $requestSenderUrl;
 
   /** @var string This cluster key */
   private $packageKey;
@@ -45,6 +52,9 @@ class SkynetVerifier
   
   /** @var string Checksum */
   private $checksum;
+  
+  /** @var SkynetDebug Debugger */
+  private $debug;
 
  /**
   * Constructor
@@ -53,6 +63,7 @@ class SkynetVerifier
   {
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->packageKey = \SkynetUser\SkynetConfig::KEY_ID;    
+    $this->debug = new SkynetDebug();
   }
   
  /**
@@ -84,6 +95,46 @@ class SkynetVerifier
   {
     if(isset($_REQUEST['_skynet_id']) && !empty($_REQUEST['_skynet_id'])) 
     {
+      return true;
+    }
+  }
+ 
+ /**
+  * Checks for request sender URL
+  *
+  * @return bool True if exists
+  */
+  private function isRequestSenderUrl()
+  {
+    if(isset($_REQUEST['_skynet_sender_url']) && !empty($_REQUEST['_skynet_sender_url'])) 
+    {
+      if(\SkynetUser\SkynetConfig::get('core_raw'))
+      {
+        $this->requestSenderUrl = $_REQUEST['_skynet_sender_url'];
+      } else {
+        $this->requestSenderUrl = $this->encryptor->decrypt($_REQUEST['_skynet_sender_url']);
+      }
+      
+      return true;
+    }
+  }
+  
+ /**
+  * Checks for hsh
+  *
+  * @return bool True if exists
+  */
+  private function isRequestHash()
+  {
+    if(isset($_REQUEST['_skynet_hash']) && !empty($_REQUEST['_skynet_hash'])) 
+    {   
+      if(\SkynetUser\SkynetConfig::get('core_raw'))
+      {
+        $this->requestHash = $_REQUEST['_skynet_hash'];
+      } else {
+        $this->requestHash = $this->encryptor->decrypt($_REQUEST['_skynet_hash']);
+      } 
+      
       return true;
     }
   }
@@ -147,6 +198,26 @@ class SkynetVerifier
   }
  
  /**
+  * Checks IP from whitelist
+  *
+  * @return bool True if have access
+  */ 
+  public function hasIpAccess()
+  {
+    $ips = \SkynetUser\SkynetConfig::get('core_connection_ip_whitelist');
+    $myIp = SkynetHelper::getRemoteIp();
+    
+    if(is_array($ips) && count($ips) > 0)
+    {
+      if(!in_array($myIp, $ips))
+      {
+        return false;
+      }
+    }
+    return true;
+  } 
+ 
+ /**
   * Checks data integrity
   *
   * @param string $mode Request or response
@@ -159,16 +230,7 @@ class SkynetVerifier
     if($this->isChecksum())
     {
       $this->getChecksum();
-    }
-    
-    $ary = [];
-    switch($mode)
-    {
-      case 'request':
-      
-      break;
-      
-    }
+    }       
     
     if($this->checksum !== null && !empty($this->checksum))
     {
@@ -206,7 +268,7 @@ class SkynetVerifier
   */
   public function isRequestKeyVerified($key = null)
   {
-    $success = false;
+    $success = false;    
     
     if($this->isRequestKey() || $key !== null)
     {
@@ -224,7 +286,17 @@ class SkynetVerifier
       
       if(password_verify($this->packageKey, $this->requestKey))
       {
-        $success = true;
+        if($this->isRequestHash() && $this->isRequestSenderUrl())
+        {
+          $strToVerify = $this->requestSenderUrl.$this->packageKey;
+          if(password_verify($strToVerify, $this->requestHash))
+          {
+            if(strcmp(SkynetHelper::getMyUrl(), $this->requestSenderUrl) !== 0)
+            {
+              $success = true;
+            }
+          }
+        }   
       }     
       
       if($success === true)
@@ -243,8 +315,10 @@ class SkynetVerifier
   */
   public function generateHash()
   {
-    $hash = sha1(SkynetHelper::getMyUrl().\SkynetUser\SkynetConfig::KEY_ID);
-    return $hash;
+    $url = SkynetHelper::getMyUrl();    
+    $str = $url.\SkynetUser\SkynetConfig::KEY_ID;    
+    $hashed = password_hash($str, PASSWORD_BCRYPT);
+    return $hashed;
   }
 
  /**
@@ -336,6 +410,34 @@ class SkynetVerifier
      {
        return true;
      }
+  }
+
+ /**
+  * Checks for parameter is internal echo Skynet core param
+  *
+  * @param string $key Key to check
+  *
+  * @return bool True if internal echo param
+  */
+  public function isInternalEchoParameter($key)
+  {
+     if(strpos($key, '@_skynet') === 0)
+     {
+       return true;
+     }
+  }
+  
+ /**
+  * Checks if KEY is set
+  * 
+  * @return bool True if set
+  */   
+  public function isKeyGenerated()
+  {
+     if(!empty(\SkynetUser\SkynetConfig::KEY_ID) && \SkynetUser\SkynetConfig::KEY_ID != '1234567890')
+     {
+       return true;
+     }    
   }
   
  /**

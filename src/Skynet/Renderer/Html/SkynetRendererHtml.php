@@ -83,6 +83,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['tabErrors'] = $this->statusRenderer->renderErrors(true);
     $output['tabConfig'] = $this->statusRenderer->renderConfig(true);
     $output['tabDebug'] = $this->statusRenderer->renderDebug(true);
+    $output['tabListeners'] = $this->statusRenderer->renderListeners(true);
     $output['tabConsole'] = $this->statusRenderer->renderConsoleDebug(true);
     
     $output['numStates'] = count($this->statesFields);
@@ -90,6 +91,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['numConfig'] = count($this->configFields);
     $output['numDebug'] = $this->debugger->countDebug();
     $output['numConsole'] = count($this->consoleOutput);
+    $output['numListeners'] = $this->statusRenderer->countListeners();
     
     $output['numConnections'] = $this->connectionsCounter;
     
@@ -97,6 +99,11 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['sumClusters'] = $this->fields['Clusters in DB']->getValue();
     $output['sumAttempts'] = $this->fields['Connection attempts']->getValue();
     $output['sumSuccess'] = $this->fields['Succesful connections']->getValue();
+    
+    $output['sumClusterIP'] = $this->fields['Cluster IP']->getValue();
+    $output['sumYourIP'] = $this->fields['Your IP']->getValue();
+    $output['sumEncryption'] = $this->fields['Encryption']->getValue();
+    $output['sumConnections'] = $this->fields['Connections']->getValue();
     
     $output['sumChain'] = $this->fields['Chain']->getValue();
     $output['sumSleeped'] = $this->fields['Sleeped']->getValue();

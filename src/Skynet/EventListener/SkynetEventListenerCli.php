@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerCli.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -21,6 +21,7 @@ use Skynet\Common\SkynetHelper;
 use Skynet\Tools\SkynetCompiler;
 use Skynet\Tools\SkynetKeyGen;
 use Skynet\Tools\SkynetPwdGen;
+use Skynet\SkynetVersion;
 
  /**
   * Skynet Event Listener - CLI
@@ -208,6 +209,12 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
       $pwdGen = new SkynetPwdGen;    
       return $pwdGen->show('cli');
     }
+    
+    /* if check */
+    if($this->cli->isCommand('check'))
+    {       
+      return 'Newest version available on GitHub: '.$this->checkNewestVersion().' | Your version: '.SkynetVersion::VERSION;
+    }
   }
 
  /**
@@ -252,6 +259,7 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
     $cli[] = ['-pwdgen', 'your password', 'Generates new password hash from plain password'];
     $cli[] = ['-keygen', '', 'Generates new SKYNET ID KEY'];
     $cli[] = ['-compile', '', 'Compiles Skynet sources to standalone file'];
+    $cli[] = ['-check', '', 'Checks for new version on GitHub'];
     
     return array('cli' => $cli, 'console' => $console);    
   }  
@@ -272,5 +280,20 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
     $tables = [];
     $fields = [];
     return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
+  
+ /**
+  * Checks for new version on GitHub
+  *
+  * @return string Version
+  */ 
+  private function checkNewestVersion()
+  {   
+    $url = 'https://raw.githubusercontent.com/szczyglinski/skynet/master/VERSION';
+    $version = @file_get_contents($url);
+    if($version !== null)
+    {
+      return ' ('.$version.')';
+    }   
   }
 }

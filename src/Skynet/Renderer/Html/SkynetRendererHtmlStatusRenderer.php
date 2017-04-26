@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlStatusRenderer.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -16,6 +16,8 @@ namespace Skynet\Renderer\Html;
 
 use Skynet\Renderer\SkynetRendererAbstract;
 use Skynet\Debug\SkynetDebug;
+use Skynet\Secure\SkynetAuth;
+use Skynet\Secure\SkynetVerifier;
 
  /**
   * Skynet Renderer Status Renderer
@@ -52,6 +54,12 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   
   /** @var SkynetDebug Debugger */
   private $debugger;
+  
+  /** @var SkynetAuth Authorization */
+  private $auth;
+  
+  /** @var SkynetVerifier Verificationn */
+  private $verifier;
 
  /**
   * Constructor
@@ -67,6 +75,8 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $this->consoleRenderer = new  SkynetRendererHtmlConsoleRenderer(); 
     $this->listenersRenderer = new  SkynetRendererHtmlListenersRenderer();      
     $this->debugger = new SkynetDebug();
+    $this->auth = new SkynetAuth();
+    $this->verifier = new SkynetVerifier();
   }  
    
  /**
@@ -106,11 +116,21 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addTabBtn('Config (<span class="numConfig">'.count($this->configFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
     $output[] = $this->elements->addTabBtn('Console (<span class="numConsole">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
     $output[] = $this->elements->addTabBtn('Debug (<span class="numDebug">'.$this->debugger->countDebug().'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabDebug\');', 'tabDebugBtn');
-    $output[] = $this->elements->addTabBtn('Listeners (<span class="numListeners">'.$this->listenersRenderer->countListeners().'/'.$this->listenersRenderer->countLoggers().'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabListeners\');', 'tabListenersBtn');
+    $output[] = $this->elements->addTabBtn('Listeners (<span class="numListeners">'.$this->countListeners().'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabListeners\');', 'tabListenersBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
-  
+
+ /**
+  * Counts and Renders listeners
+  *
+  * @return string HTML code
+  */ 
+   public function countListeners()
+   {
+     return $this->listenersRenderer->countListeners().'/'.$this->listenersRenderer->countLoggers();     
+   }
+ 
  /**
   * Renders errors
   *
@@ -290,13 +310,13 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output = [];
     
     /* Empty password warning */
-    if(empty(\SkynetUser\SkynetConfig::PASSWORD))
+    if(!$this->auth->isPasswordGenerated())
     {
       $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Access password is not set yet. Use [pwdgen.php] to generate your password and place generated password into [/src/SkynetUser/SkynetConfig.php]', 'error').$this->elements->getNl().$this->elements->getNl();
     }
     
     /* Default ID warning */
-    if(empty(\SkynetUser\SkynetConfig::KEY_ID) || \SkynetUser\SkynetConfig::KEY_ID == '1234567890')
+    if(!$this->verifier->isKeyGenerated())
     {
       $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Skynet ID KEY is empty or set to default value. Use [keygen.php] to generate new random ID KEY and place generated key into [/src/SkynetUser/SkynetConfig.php]', 'error');
     }

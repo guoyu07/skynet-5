@@ -4,7 +4,7 @@
  * Skynet/Secure/SkynetAuth.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -137,13 +137,26 @@ class SkynetAuth
   }
   
  /**
+  * Checks if password is set
+  * 
+  * @return bool True if set
+  */   
+  public function isPasswordGenerated()
+  {
+     if(!empty(\SkynetUser\SkynetConfig::PASSWORD))
+     {
+       return true;
+     }    
+  }
+  
+ /**
   * Checks if user is authorizes
   * 
   * @return bool True if authorized
   */ 
   public function isAuthorized()
   {     
-    if(empty(\SkynetUser\SkynetConfig::PASSWORD) || $this->cli->isCli())
+    if(!$this->isPasswordGenerated() || $this->cli->isCli())
     {
       return true;
     }

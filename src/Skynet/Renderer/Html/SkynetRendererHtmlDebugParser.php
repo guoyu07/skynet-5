@@ -173,8 +173,13 @@ class SkynetRendererHtmlDebugParser
     {
       $key = $field->getName();
       $keyTitle = SkynetHelper::translateCfgKey($key);
+      $val = $field->getValue();
+      if(is_array($val))
+      {
+        $val = implode('<br>', $val);
+      }
       
-      $rows[] = $this->elements->addVal3Row($this->elements->addBold($keyTitle), $this->parseConfigValue($field->getValue()), $key);  
+      $rows[] = $this->elements->addVal3Row($this->elements->addBold($keyTitle), $this->parseConfigValue($val), $key);  
     }
     
     return implode('', $rows);
