@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlJavascript.php
  *
  * @package Skynet
- * @version 1.1.0
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
