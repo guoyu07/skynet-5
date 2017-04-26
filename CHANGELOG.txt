@@ -1,3 +1,9 @@
+1.1.4-stable (2017.04.25)
+
+- commands fixed
+- serialization added
+- listeners debug added
+
 1.1.3-alpha (2017.04.24)
 
 - database creation listener added

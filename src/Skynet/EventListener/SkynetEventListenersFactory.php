@@ -113,7 +113,10 @@ class SkynetEventListenersFactory
     if($instance === null)
     {
       $instance = new static();
-      if(!$instance->areRegistered()) $instance->registerEventListeners();
+      if(!$instance->areRegistered()) 
+      {
+        $instance->registerEventListeners();
+      }
     }
     return $instance;
   }

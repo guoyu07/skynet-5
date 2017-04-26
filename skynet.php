@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.25 22:59:02 (1493161142) */
+/* Skynet Standalone | version compiled: 2017.04.26 02:36:17 (1493174177) */
 
 namespace Skynet;
 
@@ -5416,7 +5416,7 @@ class SkynetConsole
       }      
       $cleanValue = $this->unQuoteValue($value);
       $ary = [$key => $cleanValue];
-      $this->debugger->dump($ary); 
+     
       $this->addParserState('KEY_VALUE: '.$key.' => '.$cleanValue);
       return $ary;
     } 
@@ -5630,6 +5630,10 @@ class SkynetConsole
     $input = str_replace("\r\n", "\n", trim($input));  
     $input = $this->parseMultipleSpacesIntoSingle($input);
     
+    if(substr($input, -1) != ';')
+    {
+      $input.= ';';
+    }
     /* explode by ";" separator */
     $querys = $this->explodeQuery($input);
     
@@ -5642,10 +5646,9 @@ class SkynetConsole
       $i = 1;
       foreach($querys as $query)
       {
-        $this->actualQueryNumber = $i;   
+        $this->actualQueryNumber = $i;  
         
         $cleanQuery = trim($query);
-       // $this->isQuoted($cleanQuery);
         $queryType = $this->getQueryType($cleanQuery);
         
         /* switch query type */
@@ -5671,7 +5674,7 @@ class SkynetConsole
         /* query counter */
         $i++;
       }
-      $this->debugger->dump($this->consoleCommands); 
+      //$this->debugger->dump($this->consoleCommands); 
       return true;
       
     } else {
@@ -6212,20 +6215,7 @@ class Skynet
     /* Get clusters saved in db */
     if($this->areClusters())
     {
-      $clustersNum = 0;
-      $tmpRequest = new SkynetRequest();
-      
-     
-      $to = $tmpRequest->get('@to');      
-    
-      $this->debugger->dump($to);
-      if($to !== null)
-      {
-         //$this->doConnect = false;
-         $to = $tmpRequest->get('@to');
-         $this->debugger->dump($to);
-      }
-      
+      $clustersNum = 0;      
       foreach($this->clusters as $cluster)
       {
         $clustersNum++;
@@ -8381,6 +8371,7 @@ class SkynetParams
           }
           
         } else {
+          
           if(is_numeric($p))
           {
             $paramsValues[$p] = str_replace(';', '', $param);
@@ -8392,7 +8383,7 @@ class SkynetParams
         }           
       }                
     }
-    //var_dump($paramsValues);
+    
     if($c > 0) 
     {
       $prefix = '$#';
@@ -13203,7 +13194,10 @@ class SkynetEventListenersFactory
     if($instance === null)
     {
       $instance = new static();
-      if(!$instance->areRegistered()) $instance->registerEventListeners();
+      if(!$instance->areRegistered()) 
+      {
+        $instance->registerEventListeners();
+      }
     }
     return $instance;
   }
@@ -13213,7 +13207,7 @@ class SkynetEventListenersFactory
  * Skynet/EventListener/SkynetEventListenersLauncher.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -13227,18 +13221,40 @@ class SkynetEventListenersFactory
   */
 class SkynetEventListenersLauncher
 {     
-  /** @var string[] HTML elements of output */
+  /** @var SkynetRequest Request object */
   private $request;
+  
+  /** @var SkynetResponse Response object */
   private $response; 
+  
+  /** @var int Connection Number */
   private $connectId = 1; 
+  
+  /** @var string Cluster UR */
   private $clusterUrl;
+  
+  /** @var SkynetCli CLI object */
   private $cli;
+  
+  /** @var SkynetConsole Console object */
   private $console;
+  
+  /** @var SkynetEventListenerInterface[] Lisetners */
   private $eventListeners;
+  
+  /** @var SkynetEventListenerInterface[] Loggers */
   private $eventLoggers;
+  
+  /** @var string[] Output from CLI */
   private $cliOutput = [];
+  
+  /** @var string[] Output from Console */
   private $consoleOutput = [];
+  
+  /** @var bool If sender */
   private $sender = true;
+  
+  /** @var string[] Tables data */
   private $dbTables = [];
 
  /**
@@ -13250,26 +13266,51 @@ class SkynetEventListenersLauncher
    $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();
   }  
   
+ /**
+  * Assigns request
+  *
+  * @param SkynetRequest $request
+  */  
   public function assignRequest($request)
   {
     $this->request = $request;
   }
-  
+
+ /**
+  * Assigns response
+  *
+  * @param SkynetResponse $response
+  */    
   public function assignResponse($response)
   {
     $this->response = $response;
   }
-  
+ 
+ /**
+  * Assigns connect ID
+  *
+  * @param int $connectId
+  */   
   public function assignConnectId($connectId)
   {
     $this->connectId = $connectId;
   }
-  
+ 
+ /**
+  * Assigns clusterURL
+  *
+  * @param string $clusterUrl
+  */   
   public function assignClusterUrl($clusterUrl)
   {
     $this->clusterUrl = $clusterUrl;
   }
-  
+ 
+ /**
+  * Assigns CLI
+  *
+  * @param SkynetCli CLI
+  */   
   public function assignCli($cli)
   {
     $this->cli = $cli;
@@ -13279,17 +13320,32 @@ class SkynetEventListenersLauncher
   {
     $this->console = $console;
   }
-  
+ 
+ /**
+  * Assigns Cli output data
+  *
+  * @param string[] Output from CLI
+  */  
   public function getCliOutput()
   {
     return $this->cliOutput;
   }
-  
+ 
+ /**
+  * Assigns Console output data
+  *
+  * @param string[] Output from Console
+  */   
   public function getConsoleOutput()
   {
     return $this->consoleOutput;
   }
-  
+
+ /**
+  * Sets if sender
+  *
+  * @param bool True if sender
+  */    
   public function setSender($sender)
   {
     $this->sender = $sender;
@@ -19702,8 +19758,8 @@ class SkynetRendererHtmlElements
   */
   public function addFooter($successed = 0)
   {
-    $html = '<script src="skynet.js"></script>';
-    //$html = '<script>'.$this->js->getJavascript().'</script>';
+    //$html = '<script src="skynet.js"></script>';
+    $html = '<script>'.$this->js->getJavascript().'</script>';
     $html.= '<script>skynetControlPanel.setFavIcon('.$successed.');</script>';
     $html.= '</body></html>';
     return $html;
@@ -19923,9 +19979,8 @@ class SkynetRendererHtmlJavascript
   public function getJavascript()
   {
     $js = "
-   var skynetControlPanel = 
-{
-  
+  var skynetControlPanel = 
+{  
   status: null,
   connectMode: 2,
   connectInterval: 0, 
@@ -19941,18 +19996,21 @@ class SkynetRendererHtmlJavascript
     var tabConfig = document.getElementsByClassName('tabConfig');
     var tabConsole = document.getElementsByClassName('tabConsole');
     var tabDebug = document.getElementsByClassName('tabDebug');
+    var tabListeners = document.getElementsByClassName('tabListeners');
     
     tabStates[0].style.display = 'none';
     tabErrors[0].style.display = 'none';
     tabConfig[0].style.display = 'none';
     tabConsole[0].style.display = 'none';
     tabDebug[0].style.display = 'none';
+    tabListeners[0].style.display = 'none';
     
     document.getElementsByClassName('tabStatesBtn')[0].className = document.getElementsByClassName('tabStatesBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabErrorsBtn')[0].className = document.getElementsByClassName('tabErrorsBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabConfigBtn')[0].className = document.getElementsByClassName('tabConfigBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabConsoleBtn')[0].className = document.getElementsByClassName('tabConsoleBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabDebugBtn')[0].className = document.getElementsByClassName('tabDebugBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabListenersBtn')[0].className = document.getElementsByClassName('tabListenersBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     
     var btnToActive = e + 'Btn';
     document.getElementsByClassName(btnToActive)[0].className += ' active';
@@ -20018,8 +20076,9 @@ class SkynetRendererHtmlJavascript
     }
   },
   
-  switchStatus: function(e)
+  switchStatus: function(status)
   {
+    this.status = status;
     var statusIdle = document.getElementsByClassName('statusIdle');
     var statusSingle  = document.getElementsByClassName('statusSingle');
     var statusBroadcast  = document.getElementsByClassName('statusBroadcast');
@@ -20028,7 +20087,7 @@ class SkynetRendererHtmlJavascript
     document.getElementsByClassName('statusSingle')[0].className = document.getElementsByClassName('statusSingle')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('statusBroadcast')[0].className = document.getElementsByClassName('statusBroadcast')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     
-    var toActive = 'status' + e;
+    var toActive = 'status' + status;
     document.getElementsByClassName(toActive)[0].className += ' active';
   },
   
@@ -20132,6 +20191,7 @@ class SkynetRendererHtmlJavascript
     }
     xhttp.onreadystatechange = function() 
     {
+      //console.debug(this);
       if(this.readyState == 4 && this.status == 200) 
       {  
        try
@@ -20176,12 +20236,12 @@ class SkynetRendererHtmlJavascript
     var params = '_skynetAjax=1';
     if(cmd == true)
     {
-      params+= '&_skynetCmdCommandSend=1&_skynetCmdConsoleInput='+document.getElementById('_skynetCmdConsoleInput').value;
+      params+= '&_skynetCmdCommandSend=1&_skynetCmdConsoleInput='+encodeURIComponent(document.getElementById('_skynetCmdConsoleInput').value);
     } else {
       params+= '&_skynetSetConnMode=' + connMode;
     }
     
-    xhttp.open('POST', skynetCluster, true);
+    xhttp.open('POST', skynetCluster, true);   
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=utf-8');
     xhttp.send(params);
     return false;    
@@ -20272,6 +20332,240 @@ class SkynetRendererHtmlJavascript
 }
 
 /**
+ * Skynet/Renderer/Html//SkynetRendererHtmlListenersRenderer.php
+ *
+ * @package Skynet
+ * @version 1.1.4
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.1.4
+ */
+
+ /**
+  * Skynet Renderer Mode Renderer
+  *
+  */
+class SkynetRendererHtmlListenersRenderer
+{
+  /** @var SkynetRendererHtmlElements HTML Tags generator */
+  private $elements;  
+  
+  /** @var SkynetEventListenerInterface[] Listeners */
+  private $eventListeners;
+  
+  /** @var SkynetEventListenerInterface[] Loggers */
+  private $eventLoggers;
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    $this->elements = new SkynetRendererHtmlElements();  
+    $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
+    $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();
+  }  
+  
+ /**
+  * Renders and returns listeners
+  *
+  * @return string HTML code
+  */  
+  public function render($ajax = false)
+  {    
+    $output = [];
+    $output[] = $this->elements->beginTable('tblStates');
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Event Listeners ('.$this->countListeners().')'));   
+    $output[] = $this->elements->addHeaderRow2('ID', 'Event Listener');
+    $output[] = $this->renderListenersList();
+    
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Event Loggers ('.$this->countLoggers().')'));   
+    $output[] = $this->elements->addHeaderRow2('ID', 'Event Loggers');
+    $output[] = $this->renderLoggersList();
+    
+    $output[] = $this->elements->endTable();
+    
+    return implode('', $output);
+  }
+
+ /**
+  * Counts listeners
+  *
+  * @return int Counter
+  */   
+  public function countListeners()
+  {
+    return count($this->eventListeners);
+  }
+ 
+ /**
+  * Counts loggers
+  *
+  * @return int Counter
+  */    
+  public function countLoggers()
+  {
+    return count($this->eventLoggers);
+  }
+
+ /**
+  * Checks for event methods
+  *
+  * @param \ReflectionClass $reflection
+  *
+  * @return int[] Event Methods count
+  */    
+  private function checkEvents($reflection)
+  {
+    $numEvents = 0;
+    $methods = $reflection->getMethods();      
+    $events = ['onRequest', 'onResponse', 'onEcho', 'onBroadcast', 'onConnect', 'onConsole', 'onCli'];
+    foreach($methods as $m)
+    {
+      $methodName = $m->getName();
+      if(in_array($methodName, $events))
+      {
+        $numEvents++;
+      }      
+    }
+    return $numEvents;
+  }  
+  
+ /**
+  * Gets commands count
+  *
+  * @param \ReflectionClass $reflection
+  * @param SkynetEventLoggersFactory $listener
+  *
+  * @return int[] Commands count
+  */   
+  private function checkCommands($reflection, $listener)
+  {
+    $cmds = [];
+    $cmds['console'] = 0;
+    $cmds['cli'] = 0;
+    
+    $isMethod = $reflection->hasMethod('registerCommands');
+    if($isMethod)
+    {
+      $method = $reflection->getMethod('registerCommands');
+      $closure = $reflection->getMethod('registerCommands')->getClosure($listener);
+      $ret = call_user_func($closure);
+      if(isset($ret['cli']))
+      {
+        $cmds['cli'] = count($ret['cli']);
+      }
+      if(isset($ret['console']))
+      {
+        $cmds['console'] = count($ret['console']);
+      }
+      return $cmds;
+    }
+  }
+  
+ /**
+  * Gets tables count
+  *
+  * @param \ReflectionClass $reflection
+  * @param SkynetEventLoggersFactory $listener
+  *
+  * @return int[] Tables count
+  */   
+  private function checkTables($reflection, $listener)
+  {
+    $cmds = [];
+    $cmds['tables'] = 0;    
+    
+    $isMethod = $reflection->hasMethod('registerDatabase');
+    if($isMethod)
+    {
+      $method = $reflection->getMethod('registerDatabase');
+      $closure = $reflection->getMethod('registerDatabase')->getClosure($listener);
+      $ret = call_user_func($closure);
+      if(isset($ret['tables']))
+      {
+        $cmds['tables'] = count($ret['tables']);
+      }      
+      return $cmds;
+    }
+  }
+ 
+ /**
+  * Renders listeners list
+  *
+  * @return string HTML
+  */  
+  private function renderListenersList()
+  {
+    $output = [];    
+    foreach($this->eventListeners as $k => $v)
+    {
+      $reflection = new \ReflectionClass(get_class($v));
+      $methods = $reflection->getMethods();      
+      $cmds = $this->checkCommands($reflection, $v);
+      $tables = $this->checkTables($reflection, $v);
+      
+      $listenerId = $k;
+      $listenerClass = $reflection->getShortName();
+      $listenerNamespace = $reflection->getNamespaceName();      
+      $cls = null;      
+      if($listenerNamespace == 'SkynetUser')
+      {
+        $cls = 'debugListenerMy';        
+      } else {
+        $cls = 'debugListenerCore';        
+      }      
+      
+      $listenerData = $this->elements->addSectionClass($cls);
+      $listenerData.= $this->elements->addBold($listenerClass, $cls);
+      $listenerData.= '<br>Events: '.$this->checkEvents($reflection).' | Console: '.$cmds['console'].' | CLI: '.$cmds['cli'].' | DB Tables: '.$tables['tables'];
+      $listenerData.= $this->elements->addSectionEnd();
+      
+      $output[] =  $this->elements->addValRow($this->elements->addBold($listenerId, $cls), $listenerData);
+    }
+    return implode('', $output);    
+  }
+  
+ /**
+  * Renders loggers list
+  *
+  * @return string HTML
+  */   
+  private function renderLoggersList()
+  {
+    $output = [];    
+    foreach($this->eventLoggers as $k => $v)
+    {
+      $reflection = new \ReflectionClass(get_class($v));
+      $methods = $reflection->getMethods();      
+      $cmds = $this->checkCommands($reflection, $v);
+      $tables = $this->checkTables($reflection, $v);
+      
+      $listenerId = $k;
+      $listenerClass = $reflection->getShortName();
+      $listenerNamespace = $reflection->getNamespaceName();      
+      $cls = null;      
+      if($listenerNamespace == 'SkynetUser')
+      {
+        $cls = 'debugListenerMy';        
+      } else {
+        $cls = 'debugListenerCore';        
+      }      
+      
+      $listenerData = $this->elements->addSectionClass($cls);
+      $listenerData.= $this->elements->addBold($listenerClass, $cls);
+      $listenerData.= '<br>Events: '.$this->checkEvents($reflection).' | Console: '.$cmds['console'].' | CLI: '.$cmds['cli'].' | DB Tables: '.$tables['tables'];
+      $listenerData.= $this->elements->addSectionEnd();
+      
+      $output[] =  $this->elements->addValRow($this->elements->addBold($listenerId, $cls), $listenerData);
+    }
+    return implode('', $output);    
+  }
+}
+
+/**
  * Skynet/Renderer/Html//SkynetRendererHtmlModeRenderer.php
  *
  * @package Skynet
@@ -20349,7 +20643,7 @@ class SkynetRendererHtmlModeRenderer extends SkynetRendererAbstract
       $output[] = '<a href="?_skynetSetConnMode=2"><span class="statusBroadcast'.$classes['broadcast'].'">Broadcast</span></a>';  
     }
     
-    return implode($output);
+    return '<div class="modeButtons">'.implode($output).'</div>';
   }
 }
 
@@ -20357,7 +20651,7 @@ class SkynetRendererHtmlModeRenderer extends SkynetRendererAbstract
  * Skynet/Renderer/Html//SkynetRendererHtmlStatusRenderer.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -20392,6 +20686,9 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   /** @var SkynetRendererHtmlConsoleRenderer Console Renderer */
   private $consoleRenderer;
   
+  /** @var SkynetRendererHtmlListenersenderer Event Listeners Renderer */
+  private $listenersRenderer;
+  
   /** @var SkynetRendererHtmlDebugParser Debug Parser */
   private $debugParser;
   
@@ -20409,7 +20706,8 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $this->modeRenderer = new  SkynetRendererHtmlModeRenderer();
     $this->clustersRenderer = new  SkynetRendererHtmlClustersRenderer();
     $this->debugParser = new SkynetRendererHtmlDebugParser();
-    $this->consoleRenderer = new  SkynetRendererHtmlConsoleRenderer();  
+    $this->consoleRenderer = new  SkynetRendererHtmlConsoleRenderer(); 
+    $this->listenersRenderer = new  SkynetRendererHtmlListenersRenderer();      
     $this->debugger = new SkynetDebug();
   }  
    
@@ -20450,6 +20748,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addTabBtn('Config (<span class="numConfig">'.count($this->configFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
     $output[] = $this->elements->addTabBtn('Console (<span class="numConsole">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
     $output[] = $this->elements->addTabBtn('Debug (<span class="numDebug">'.$this->debugger->countDebug().'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabDebug\');', 'tabDebugBtn');
+    $output[] = $this->elements->addTabBtn('Listeners (<span class="numListeners">'.$this->listenersRenderer->countListeners().'/'.$this->listenersRenderer->countLoggers().'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabListeners\');', 'tabListenersBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
@@ -20513,6 +20812,30 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     return implode($output);   
   }
   
+ /**
+  * Renders listeners debug
+  *
+  * @return string HTML code
+  */    
+  public function renderListeners($ajax = false)
+  {
+    $output = [];   
+    
+    /* Center Main : Left Column: states */
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionClass('tabListeners');
+    }
+    
+    $output[] = $this->listenersRenderer->render();
+    
+    if(!$ajax)
+    {      
+      $output[] = $this->elements->addSectionEnd();  
+    }
+    
+    return implode($output);   
+  }
   
  /**
   * Renders debug
@@ -20611,7 +20934,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     /* Empty password warning */
     if(empty(SkynetConfig::PASSWORD))
     {
-      $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Access password is not set yet. Use [pwdgen.php] to generate your password and place generated password into [/src/SkynetUser/SkynetConfig.php]', 'error').$this->elements->getNl();
+      $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Access password is not set yet. Use [pwdgen.php] to generate your password and place generated password into [/src/SkynetUser/SkynetConfig.php]', 'error').$this->elements->getNl().$this->elements->getNl();
     }
     
     /* Default ID warning */
@@ -20632,7 +20955,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   {   
     $output = [];
     
-    $output[] = $this->elements->addSectionClass('innerMode');
+    $output[] = $this->elements->addSectionClass('innerMode panel');
     $output[] = $this->elements->addSectionClass('hdrConnection');
     $output[] = $this->modeRenderer->render();
     $output[] = $this->elements->addSectionEnd();
@@ -20653,7 +20976,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     
     if(!$ajax)
     {
-      $output[] = $this->elements->addSectionClass('innerAddresses');  
+      $output[] = $this->elements->addSectionClass('innerAddresses panel');  
     }      
     $output[] = $this->elements->beginTable('tblClusters');
     $output[] = $this->clustersRenderer->render();    
@@ -20707,14 +21030,15 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
         
         $output[] = $this->elements->addSectionClass('sectionStates');   
         
-          $output[] = $this->elements->addSectionClass('innerStates');    
+          $output[] = $this->elements->addSectionClass('innerStates panel');    
           $output[] = $this->renderWarnings();      
           $output[] = $this->renderTabs();    
           $output[] = $this->renderErrors();
           $output[] = $this->renderConsoleDebug();
           $output[] = $this->renderStates();
           $output[] = $this->renderConfig(); 
-          $output[] = $this->renderDebug();          
+          $output[] = $this->renderDebug();  
+          $output[] = $this->renderListeners();          
           $output[] = $this->elements->addSectionEnd();     
           
         /* end sectionStates */
@@ -20877,7 +21201,7 @@ class SkynetRendererHtmlThemes
     html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px }    
     b { color:#87b989; } 
     h2 { color: #5ba15f; } 
-    h3 { color:#4f8553; } 
+    h3 { color:#4f8553; margin:0; } 
     a { color: #eef6ef; text-decoration: none; } 
     a:hover { color: #fff; text-decoration: underline; } 
     hr { height: 1px;  color: #222e22;  background-color: #222e22;  border: none; }
@@ -20895,11 +21219,13 @@ class SkynetRendererHtmlThemes
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
     #authMain { text-align: center; }    
-    #dbSwitch { height: 10%; max-height:10%; min-height:90px; width:100%; overflow:auto; }
+    #dbSwitch { height: 10%; max-height:56px; min-height:56px; width:100%; overflow:auto; }
     #dbRecords { height: 80%; max-height:80%; overflow:auto; }    
     #console { width: 100%; height: 15%; }    
     #loginSection { text-align:center; margin: auto; font-size:1.2rem; }
     #loginSection input[type="password"] { width:400px; }
+    
+    .debugListenerMy { color: #3ffb6e; }
     
     .debuggerField { padding:5px; background:#fff; color: #000; font-size:1.2rem; }
     
@@ -20919,9 +21245,9 @@ class SkynetRendererHtmlThemes
     .sectionAddresses { width:50%; float:left; height:100%; max-height:100%; }
     .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
     
-    .innerAddresses { width:100%; height:90%; max-height:90%; overflow-y:auto; }
-    .innerMode { width:100%; height:10%; max-height:10%; overflow-y:auto; }
-    .innerStates { width:100%; height:100%; max-height:100%; overflow-y:auto; }    
+    .innerAddresses { width:99%; height:90%; max-height:90%; overflow-y:auto; }
+    .innerMode { width:100%; height:10%; max-height:24px; overflow-y:auto; }
+    .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; }    
    
     .innerConnectionsOptions { width:100%; height:5%; max-height:5%; overflow-y:auto; }
     .innerConnectionsData { width:100%; height:95%; max-height:95%; overflow-y:auto; }
@@ -20930,11 +21256,11 @@ class SkynetRendererHtmlThemes
     .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
     .hdrColumn2 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
     .hdrSwitch { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; text-align:right; }
-    .hdrConnection { margin-top:5px; font-size: 1.1rem; }
+    .hdrConnection { margin-top:5px; font-size: 1.0rem; }
     .hdrConnection .active { background-color: #3ffb6e; color: #000; }
     
     .tabsHeader { border-bottom:1px solid #2e2e2e;  padding-top: 20px; padding-bottom:8px; }
-    .tabsHeader a { font-size:1.3em; background: #2e2e2e; padding: 8px; margin-top:8px; margin-bottom:8px; }
+    .tabsHeader a { font-size:1.1em; background: #2e2e2e; padding: 5px; margin-top:8px; margin-bottom:8px; }
     .tabsHeader a.active { background:#fff; color: #000; }
     
     .tabStates { display:block; }
@@ -20943,11 +21269,14 @@ class SkynetRendererHtmlThemes
     .tabErrors { display:none; }
     .tabConsole { display:none; }
     .tabDebug { display:none; }
+    .tabListeners { display:none; }
     
     .tdClusterStatus { width:10%; }
     .tdClusterUrl { width:60%; }
     .tdClusterPing { width:10%; }
     .tdClusterConn { width:20%; }
+    
+    .panel { }
     
     .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
     .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
@@ -20955,9 +21284,12 @@ class SkynetRendererHtmlThemes
     .tblStates .tdKey { width:15%; } .tblStates .tdValue { width:85%; }
     
     .statusIcon { padding: 1px; }
-    .statusConnected { background: #3ffb6e; }
-    .statusIdle { background: #2e2e2e; }
+    .statusConnected { background: #3ffb6e; }    
     .statusError { background: red; }
+    
+    .statusIdle, .statusSingle, .statusBroadcast { padding:3px; }
+    .modeButtons a { background:#09270b; border: 1px solid silver; }
+    .modeButtons a:hover { text-decoration:none; border: 1px solid #fff; }
     
     a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
     a.btn:hover { background:#3ffb6e; color:#000; }
@@ -20972,7 +21304,7 @@ class SkynetRendererHtmlThemes
     .tdKey { width:30%; }
     .tdVal { width:70%; }
     .tdActions { width:150px; }
-    .tdHeader { border:0px; padding-top:30px; }
+    .tdHeader { border:0px; padding-top:10px; }
     .marked { color: #5ba15f; } 
     .exception { color: #ae3516; }
     .exception b { color: red; }
@@ -21826,10 +22158,10 @@ class SkynetLauncher
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.1.3-alpha';
+   const VERSION = '1.1.4-stable';
    
    /** @var string build */
-   const BUILD = '2017.04.24';
+   const BUILD = '2017.04.25';
    
    /** @var string website */
    const WEBSITE = 'https://github.com/szczyglinski/skynet';

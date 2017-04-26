@@ -1,0 +1,240 @@
+<?php
+
+/**
+ * Skynet/Renderer/Html//SkynetRendererHtmlListenersRenderer.php
+ *
+ * @package Skynet
+ * @version 1.1.4
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.1.4
+ */
+
+namespace Skynet\Renderer\Html;
+
+use Skynet\EventListener\SkynetEventListenersFactory;
+use Skynet\EventLogger\SkynetEventLoggersFactory;
+
+ /**
+  * Skynet Renderer Mode Renderer
+  *
+  */
+class SkynetRendererHtmlListenersRenderer
+{
+  /** @var SkynetRendererHtmlElements HTML Tags generator */
+  private $elements;  
+  
+  /** @var SkynetEventListenerInterface[] Listeners */
+  private $eventListeners;
+  
+  /** @var SkynetEventListenerInterface[] Loggers */
+  private $eventLoggers;
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    $this->elements = new SkynetRendererHtmlElements();  
+    $this->eventListeners = SkynetEventListenersFactory::getInstance()->getEventListeners();
+    $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();
+  }  
+  
+ /**
+  * Renders and returns listeners
+  *
+  * @return string HTML code
+  */  
+  public function render($ajax = false)
+  {    
+    $output = [];
+    $output[] = $this->elements->beginTable('tblStates');
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Event Listeners ('.$this->countListeners().')'));   
+    $output[] = $this->elements->addHeaderRow2('ID', 'Event Listener');
+    $output[] = $this->renderListenersList();
+    
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Event Loggers ('.$this->countLoggers().')'));   
+    $output[] = $this->elements->addHeaderRow2('ID', 'Event Loggers');
+    $output[] = $this->renderLoggersList();
+    
+    $output[] = $this->elements->endTable();
+    
+    return implode('', $output);
+  }
+
+ /**
+  * Counts listeners
+  *
+  * @return int Counter
+  */   
+  public function countListeners()
+  {
+    return count($this->eventListeners);
+  }
+ 
+ /**
+  * Counts loggers
+  *
+  * @return int Counter
+  */    
+  public function countLoggers()
+  {
+    return count($this->eventLoggers);
+  }
+
+ /**
+  * Checks for event methods
+  *
+  * @param \ReflectionClass $reflection
+  *
+  * @return int[] Event Methods count
+  */    
+  private function checkEvents($reflection)
+  {
+    $numEvents = 0;
+    $methods = $reflection->getMethods();      
+    $events = ['onRequest', 'onResponse', 'onEcho', 'onBroadcast', 'onConnect', 'onConsole', 'onCli'];
+    foreach($methods as $m)
+    {
+      $methodName = $m->getName();
+      if(in_array($methodName, $events))
+      {
+        $numEvents++;
+      }      
+    }
+    return $numEvents;
+  }  
+  
+ /**
+  * Gets commands count
+  *
+  * @param \ReflectionClass $reflection
+  * @param SkynetEventLoggersFactory $listener
+  *
+  * @return int[] Commands count
+  */   
+  private function checkCommands($reflection, $listener)
+  {
+    $cmds = [];
+    $cmds['console'] = 0;
+    $cmds['cli'] = 0;
+    
+    $isMethod = $reflection->hasMethod('registerCommands');
+    if($isMethod)
+    {
+      $method = $reflection->getMethod('registerCommands');
+      $closure = $reflection->getMethod('registerCommands')->getClosure($listener);
+      $ret = call_user_func($closure);
+      if(isset($ret['cli']))
+      {
+        $cmds['cli'] = count($ret['cli']);
+      }
+      if(isset($ret['console']))
+      {
+        $cmds['console'] = count($ret['console']);
+      }
+      return $cmds;
+    }
+  }
+  
+ /**
+  * Gets tables count
+  *
+  * @param \ReflectionClass $reflection
+  * @param SkynetEventLoggersFactory $listener
+  *
+  * @return int[] Tables count
+  */   
+  private function checkTables($reflection, $listener)
+  {
+    $cmds = [];
+    $cmds['tables'] = 0;    
+    
+    $isMethod = $reflection->hasMethod('registerDatabase');
+    if($isMethod)
+    {
+      $method = $reflection->getMethod('registerDatabase');
+      $closure = $reflection->getMethod('registerDatabase')->getClosure($listener);
+      $ret = call_user_func($closure);
+      if(isset($ret['tables']))
+      {
+        $cmds['tables'] = count($ret['tables']);
+      }      
+      return $cmds;
+    }
+  }
+ 
+ /**
+  * Renders listeners list
+  *
+  * @return string HTML
+  */  
+  private function renderListenersList()
+  {
+    $output = [];    
+    foreach($this->eventListeners as $k => $v)
+    {
+      $reflection = new \ReflectionClass(get_class($v));
+      $methods = $reflection->getMethods();      
+      $cmds = $this->checkCommands($reflection, $v);
+      $tables = $this->checkTables($reflection, $v);
+      
+      $listenerId = $k;
+      $listenerClass = $reflection->getShortName();
+      $listenerNamespace = $reflection->getNamespaceName();      
+      $cls = null;      
+      if($listenerNamespace == 'SkynetUser')
+      {
+        $cls = 'debugListenerMy';        
+      } else {
+        $cls = 'debugListenerCore';        
+      }      
+      
+      $listenerData = $this->elements->addSectionClass($cls);
+      $listenerData.= $this->elements->addBold($listenerClass, $cls);
+      $listenerData.= '<br>Events: '.$this->checkEvents($reflection).' | Console: '.$cmds['console'].' | CLI: '.$cmds['cli'].' | DB Tables: '.$tables['tables'];
+      $listenerData.= $this->elements->addSectionEnd();
+      
+      $output[] =  $this->elements->addValRow($this->elements->addBold($listenerId, $cls), $listenerData);
+    }
+    return implode('', $output);    
+  }
+  
+ /**
+  * Renders loggers list
+  *
+  * @return string HTML
+  */   
+  private function renderLoggersList()
+  {
+    $output = [];    
+    foreach($this->eventLoggers as $k => $v)
+    {
+      $reflection = new \ReflectionClass(get_class($v));
+      $methods = $reflection->getMethods();      
+      $cmds = $this->checkCommands($reflection, $v);
+      $tables = $this->checkTables($reflection, $v);
+      
+      $listenerId = $k;
+      $listenerClass = $reflection->getShortName();
+      $listenerNamespace = $reflection->getNamespaceName();      
+      $cls = null;      
+      if($listenerNamespace == 'SkynetUser')
+      {
+        $cls = 'debugListenerMy';        
+      } else {
+        $cls = 'debugListenerCore';        
+      }      
+      
+      $listenerData = $this->elements->addSectionClass($cls);
+      $listenerData.= $this->elements->addBold($listenerClass, $cls);
+      $listenerData.= '<br>Events: '.$this->checkEvents($reflection).' | Console: '.$cmds['console'].' | CLI: '.$cmds['cli'].' | DB Tables: '.$tables['tables'];
+      $listenerData.= $this->elements->addSectionEnd();
+      
+      $output[] =  $this->elements->addValRow($this->elements->addBold($listenerId, $cls), $listenerData);
+    }
+    return implode('', $output);    
+  }
+}

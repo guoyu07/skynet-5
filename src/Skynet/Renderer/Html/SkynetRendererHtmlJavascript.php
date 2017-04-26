@@ -38,9 +38,8 @@ class SkynetRendererHtmlJavascript
   public function getJavascript()
   {
     $js = "
-   var skynetControlPanel = 
-{
-  
+  var skynetControlPanel = 
+{  
   status: null,
   connectMode: 2,
   connectInterval: 0, 
@@ -56,18 +55,21 @@ class SkynetRendererHtmlJavascript
     var tabConfig = document.getElementsByClassName('tabConfig');
     var tabConsole = document.getElementsByClassName('tabConsole');
     var tabDebug = document.getElementsByClassName('tabDebug');
+    var tabListeners = document.getElementsByClassName('tabListeners');
     
     tabStates[0].style.display = 'none';
     tabErrors[0].style.display = 'none';
     tabConfig[0].style.display = 'none';
     tabConsole[0].style.display = 'none';
     tabDebug[0].style.display = 'none';
+    tabListeners[0].style.display = 'none';
     
     document.getElementsByClassName('tabStatesBtn')[0].className = document.getElementsByClassName('tabStatesBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabErrorsBtn')[0].className = document.getElementsByClassName('tabErrorsBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabConfigBtn')[0].className = document.getElementsByClassName('tabConfigBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabConsoleBtn')[0].className = document.getElementsByClassName('tabConsoleBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('tabDebugBtn')[0].className = document.getElementsByClassName('tabDebugBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
+    document.getElementsByClassName('tabListenersBtn')[0].className = document.getElementsByClassName('tabListenersBtn')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     
     var btnToActive = e + 'Btn';
     document.getElementsByClassName(btnToActive)[0].className += ' active';
@@ -133,8 +135,9 @@ class SkynetRendererHtmlJavascript
     }
   },
   
-  switchStatus: function(e)
+  switchStatus: function(status)
   {
+    this.status = status;
     var statusIdle = document.getElementsByClassName('statusIdle');
     var statusSingle  = document.getElementsByClassName('statusSingle');
     var statusBroadcast  = document.getElementsByClassName('statusBroadcast');
@@ -143,7 +146,7 @@ class SkynetRendererHtmlJavascript
     document.getElementsByClassName('statusSingle')[0].className = document.getElementsByClassName('statusSingle')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     document.getElementsByClassName('statusBroadcast')[0].className = document.getElementsByClassName('statusBroadcast')[0].className.replace(/(?:^|\s)active(?!\S)/g, '');
     
-    var toActive = 'status' + e;
+    var toActive = 'status' + status;
     document.getElementsByClassName(toActive)[0].className += ' active';
   },
   
@@ -247,6 +250,7 @@ class SkynetRendererHtmlJavascript
     }
     xhttp.onreadystatechange = function() 
     {
+      //console.debug(this);
       if(this.readyState == 4 && this.status == 200) 
       {  
        try
@@ -291,12 +295,12 @@ class SkynetRendererHtmlJavascript
     var params = '_skynetAjax=1';
     if(cmd == true)
     {
-      params+= '&_skynetCmdCommandSend=1&_skynetCmdConsoleInput='+document.getElementById('_skynetCmdConsoleInput').value;
+      params+= '&_skynetCmdCommandSend=1&_skynetCmdConsoleInput='+encodeURIComponent(document.getElementById('_skynetCmdConsoleInput').value);
     } else {
       params+= '&_skynetSetConnMode=' + connMode;
     }
     
-    xhttp.open('POST', skynetCluster, true);
+    xhttp.open('POST', skynetCluster, true);   
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=utf-8');
     xhttp.send(params);
     return false;    

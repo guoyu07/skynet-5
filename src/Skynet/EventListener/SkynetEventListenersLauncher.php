@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenersLauncher.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -24,18 +24,40 @@ use Skynet\Common\SkynetHelper;
   */
 class SkynetEventListenersLauncher
 {     
-  /** @var string[] HTML elements of output */
+  /** @var SkynetRequest Request object */
   private $request;
+  
+  /** @var SkynetResponse Response object */
   private $response; 
+  
+  /** @var int Connection Number */
   private $connectId = 1; 
+  
+  /** @var string Cluster UR */
   private $clusterUrl;
+  
+  /** @var SkynetCli CLI object */
   private $cli;
+  
+  /** @var SkynetConsole Console object */
   private $console;
+  
+  /** @var SkynetEventListenerInterface[] Lisetners */
   private $eventListeners;
+  
+  /** @var SkynetEventListenerInterface[] Loggers */
   private $eventLoggers;
+  
+  /** @var string[] Output from CLI */
   private $cliOutput = [];
+  
+  /** @var string[] Output from Console */
   private $consoleOutput = [];
+  
+  /** @var bool If sender */
   private $sender = true;
+  
+  /** @var string[] Tables data */
   private $dbTables = [];
 
  /**
@@ -47,26 +69,51 @@ class SkynetEventListenersLauncher
    $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();
   }  
   
+ /**
+  * Assigns request
+  *
+  * @param SkynetRequest $request
+  */  
   public function assignRequest($request)
   {
     $this->request = $request;
   }
-  
+
+ /**
+  * Assigns response
+  *
+  * @param SkynetResponse $response
+  */    
   public function assignResponse($response)
   {
     $this->response = $response;
   }
-  
+ 
+ /**
+  * Assigns connect ID
+  *
+  * @param int $connectId
+  */   
   public function assignConnectId($connectId)
   {
     $this->connectId = $connectId;
   }
-  
+ 
+ /**
+  * Assigns clusterURL
+  *
+  * @param string $clusterUrl
+  */   
   public function assignClusterUrl($clusterUrl)
   {
     $this->clusterUrl = $clusterUrl;
   }
-  
+ 
+ /**
+  * Assigns CLI
+  *
+  * @param SkynetCli CLI
+  */   
   public function assignCli($cli)
   {
     $this->cli = $cli;
@@ -76,17 +123,32 @@ class SkynetEventListenersLauncher
   {
     $this->console = $console;
   }
-  
+ 
+ /**
+  * Assigns Cli output data
+  *
+  * @param string[] Output from CLI
+  */  
   public function getCliOutput()
   {
     return $this->cliOutput;
   }
-  
+ 
+ /**
+  * Assigns Console output data
+  *
+  * @param string[] Output from Console
+  */   
   public function getConsoleOutput()
   {
     return $this->consoleOutput;
   }
-  
+
+ /**
+  * Sets if sender
+  *
+  * @param bool True if sender
+  */    
   public function setSender($sender)
   {
     $this->sender = $sender;
