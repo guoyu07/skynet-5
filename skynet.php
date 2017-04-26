@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.26 02:36:17 (1493174177) */
+/* Skynet Standalone | version compiled: 2017.04.26 03:31:30 (1493177490) */
 
 namespace Skynet;
 
@@ -5413,7 +5413,12 @@ class SkynetConsole
           $valueParts[] = trim($e[$i], '" ');
         }
         $value.= implode(':', $valueParts);
-      }      
+      }       
+      if(substr($value, -1) == ';')
+      {
+        $value = rtrim($value, ';');
+      }
+      $this->debugger->dump($value);
       $cleanValue = $this->unQuoteValue($value);
       $ary = [$key => $cleanValue];
      
@@ -19947,7 +19952,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
  * Skynet/Renderer/Html//SkynetRendererHtmlJavascript.php
  *
  * @package Skynet
- * @version 1.1.0
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski

@@ -561,7 +561,12 @@ class SkynetConsole
           $valueParts[] = trim($e[$i], '" ');
         }
         $value.= implode(':', $valueParts);
-      }      
+      }       
+      if(substr($value, -1) == ';')
+      {
+        $value = rtrim($value, ';');
+      }
+      $this->debugger->dump($value);
       $cleanValue = $this->unQuoteValue($value);
       $ary = [$key => $cleanValue];
      
