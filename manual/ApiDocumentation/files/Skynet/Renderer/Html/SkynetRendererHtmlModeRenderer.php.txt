@@ -82,6 +82,6 @@ class SkynetRendererHtmlModeRenderer extends SkynetRendererAbstract
       $output[] = '<a href="?_skynetSetConnMode=2"><span class="statusBroadcast'.$classes['broadcast'].'">Broadcast</span></a>';  
     }
     
-    return implode($output);
+    return '<div class="modeButtons">'.implode($output).'</div>';
   }
 }

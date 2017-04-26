@@ -4,7 +4,7 @@
  * Skynet/Data/SkynetParams.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -31,7 +31,9 @@ class SkynetParams
   * Returns packed params
   *
   * @param mixed[] $params Params array
-  */
+  *
+  * @return string[]
+  */  
   public function packParams($params)
   {       
     if($params === null)
@@ -42,10 +44,13 @@ class SkynetParams
     if(!is_array($params))
     {
       return $params;
+      
     } else {
+      
       if(count($params) == 1)
       {        
         $key = key($params);
+        
         if(!is_array($params[$key]) && is_numeric($key))
         {         
           return $params[$key];
@@ -65,42 +70,48 @@ class SkynetParams
           foreach($param as $k => $v)
           {
             /* pack into key:value string */
-            $safeKey = str_replace(array(':', ';', '$#'), array('$$1$$', '$$2$$', '$$3$$'), $k);
-            $safeValue = str_replace(array(':', ';', '$#'), array('$$1$$', '$$2$$', '$$3$$'), $v);
-            $paramsValues[] = $safeKey.':'.$safeValue;
+            $safeKey = $this->sanitizeVal($k);
+            $safeValue = $this->sanitizeVal($v);
+            $paramsValues[$safeKey] = $safeValue;
           }
           
         } else {
+          
           if(is_numeric($p))
           {
-            $paramsValues[] = str_replace(';', '', $param);
+            $paramsValues[$p] = str_replace(';', '', $param);
           } else {
-            $safeKey = str_replace(array(':', ';', '$#'), array('$$1$$', '$$2$$', '$$3$$'), $p);
-            $safeValue = str_replace(array(':', ';', '$#'), array('$$1$$', '$$2$$', '$$3$$'), $param);
-            $paramsValues[] = $safeKey.':'.$safeValue;            
+            $safeKey = $this->sanitizeVal($p);
+            $safeValue = $this->sanitizeVal($param);
+            $paramsValues[$p] = $safeValue;            
           }
-        } 
-        //var_dump($param);        
+        }           
       }                
     }
+    
     if($c > 0) 
     {
       $prefix = '$#';
     }
-    return $prefix.implode(';', $paramsValues); 
+    return $prefix.serialize($paramsValues); 
   }
 
  /**
   * Returns unpacked params
   *
   * @param mixed $params Packed params string
+  *
+  * @return string[]
   */  
   public function unpackParams($params)
   {
-    $params = str_replace('$#', '', $params);
-    $e = explode(';', $params);
+    $params = preg_replace('/^\$#/', '', $params);
+    $e = unserialize($params);
     
-    if(count($e) < 1) return $params;
+    if(count($e) < 1) 
+    {
+      return $params;
+    }
     $fields = [];
     
     foreach($e as $element)
@@ -112,10 +123,10 @@ class SkynetParams
           /* key => val */
           $parts = explode(':', $element);
           $key = $parts[0];
-          $val = str_replace(array('$$1$$', '$$2$$', '$$3$$'), array(':', ';', '$#'), $parts[1]);
+          $val = $this->unsanitizeVal($parts[1]);
           $fields[] = [$key => $val];
         } else {
-          $val = str_replace(array('$$1$$', '$$2$$', '$$3$$'), array(':', ';', '$#'), $element);
+          $val = $this->unsanitizeVal($element);
           $fields[] = $val;
         }
         
@@ -127,7 +138,31 @@ class SkynetParams
     }
     
     //var_dump($fields);    
-    return $fields;
+    return $e;
+  }
+
+ /**
+  * Sanitizes val
+  *
+  * @param string $input
+  *
+  * @return string
+  */    
+  private function sanitizeVal($input)
+  {
+    return str_replace(array('$#'), array('$$1$$'), $input);
+  }
+  
+ /**
+  * Unsanitizes val
+  *
+  * @param string $input
+  *
+  * @return string
+  */    
+  private function unsanitizeVal($input)
+  {
+    return str_replace(array('$$1$$'), array('$#'), $input);
   }
   
  /**

@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenersLauncher.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -24,18 +24,40 @@ use Skynet\Common\SkynetHelper;
   */
 class SkynetEventListenersLauncher
 {     
-  /** @var string[] HTML elements of output */
+  /** @var SkynetRequest Request object */
   private $request;
+  
+  /** @var SkynetResponse Response object */
   private $response; 
+  
+  /** @var int Connection Number */
   private $connectId = 1; 
+  
+  /** @var string Cluster UR */
   private $clusterUrl;
+  
+  /** @var SkynetCli CLI object */
   private $cli;
+  
+  /** @var SkynetConsole Console object */
   private $console;
+  
+  /** @var SkynetEventListenerInterface[] Lisetners */
   private $eventListeners;
+  
+  /** @var SkynetEventListenerInterface[] Loggers */
   private $eventLoggers;
+  
+  /** @var string[] Output from CLI */
   private $cliOutput = [];
+  
+  /** @var string[] Output from Console */
   private $consoleOutput = [];
+  
+  /** @var bool If sender */
   private $sender = true;
+  
+  /** @var string[] Tables data */
   private $dbTables = [];
 
  /**
@@ -47,26 +69,51 @@ class SkynetEventListenersLauncher
    $this->eventLoggers = SkynetEventLoggersFactory::getInstance()->getEventListeners();
   }  
   
+ /**
+  * Assigns request
+  *
+  * @param SkynetRequest $request
+  */  
   public function assignRequest($request)
   {
     $this->request = $request;
   }
-  
+
+ /**
+  * Assigns response
+  *
+  * @param SkynetResponse $response
+  */    
   public function assignResponse($response)
   {
     $this->response = $response;
   }
-  
+ 
+ /**
+  * Assigns connect ID
+  *
+  * @param int $connectId
+  */   
   public function assignConnectId($connectId)
   {
     $this->connectId = $connectId;
   }
-  
+ 
+ /**
+  * Assigns clusterURL
+  *
+  * @param string $clusterUrl
+  */   
   public function assignClusterUrl($clusterUrl)
   {
     $this->clusterUrl = $clusterUrl;
   }
-  
+ 
+ /**
+  * Assigns CLI
+  *
+  * @param SkynetCli CLI
+  */   
   public function assignCli($cli)
   {
     $this->cli = $cli;
@@ -76,17 +123,32 @@ class SkynetEventListenersLauncher
   {
     $this->console = $console;
   }
-  
+ 
+ /**
+  * Assigns Cli output data
+  *
+  * @param string[] Output from CLI
+  */  
   public function getCliOutput()
   {
     return $this->cliOutput;
   }
-  
+ 
+ /**
+  * Assigns Console output data
+  *
+  * @param string[] Output from Console
+  */   
   public function getConsoleOutput()
   {
     return $this->consoleOutput;
   }
-  
+
+ /**
+  * Sets if sender
+  *
+  * @param bool True if sender
+  */    
   public function setSender($sender)
   {
     $this->sender = $sender;
@@ -140,15 +202,24 @@ class SkynetEventListenersLauncher
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
-          $listener->onResponse('afterReceive');
+          if(method_exists($listener, 'onResponse'))
+          {
+            $listener->onResponse('afterReceive');
+          }
           $requests = $this->request->getRequestsData();
           if(isset($requests['@echo'])) 
           {
-            $listener->onEcho('afterReceive');
+            if(method_exists($listener, 'onEcho'))
+            {
+              $listener->onEcho('afterReceive');
+            }
           }
           if(isset($requests['@broadcast'])) 
           {
-            $listener->onBroadcast('afterReceive');
+            if(method_exists($listener, 'onBroadcast'))
+            {
+              $listener->onBroadcast('afterReceive');
+            }
           }
         }
       break;
@@ -162,7 +233,10 @@ class SkynetEventListenersLauncher
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
           $listener->setReceiverClusterUrl($this->clusterUrl);
-          $listener->onRequest('beforeSend');
+          if(method_exists($listener, 'onRequest'))
+          {
+            $listener->onRequest('beforeSend');
+          }
           $requests = $this->request->getRequestsData();
         }
 
@@ -182,15 +256,24 @@ class SkynetEventListenersLauncher
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
-          $listener->onResponse('afterReceive');
+          if(method_exists($listener, 'onResponse'))
+          {
+            $listener->onResponse('afterReceive');
+          }
           $requests = $this->request->getRequestsData();
           if(isset($requests['@echo'])) 
           {
-            $listener->onEcho('afterReceive');
+            if(method_exists($listener, 'onEcho'))
+            {
+              $listener->onEcho('afterReceive');
+            }
           }
           if(isset($requests['@broadcast'])) 
           {
-            $listener->onBroadcast('afterReceive');
+            if(method_exists($listener, 'onBroadcast'))
+            {
+              $listener->onBroadcast('afterReceive');
+            }
           }
         }
       break;
@@ -204,7 +287,10 @@ class SkynetEventListenersLauncher
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
           $listener->setReceiverClusterUrl($this->clusterUrl);
-          $listener->onRequest('beforeSend');
+          if(method_exists($listener, 'onRequest'))
+          {
+            $listener->onRequest('beforeSend');
+          }
           $requests = $this->request->getRequestsData();
         }
       break;
@@ -214,7 +300,10 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->assignCli($this->cli);
-          $output = $listener->onCli();
+          if(method_exists($listener, 'onCli'))
+          {
+            $output = $listener->onCli();
+          }
           if($output !== null)
           {
             $this->cliOutput[] = $output;
@@ -227,7 +316,10 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->assignConsole($this->console);
-          $output = $listener->onConsole();
+          if(method_exists($listener, 'onConsole'))
+          {
+            $output = $listener->onConsole();
+          }
           if($output !== null)
           {
             $this->consoleOutput[] = $output;
@@ -268,14 +360,23 @@ class SkynetEventListenersLauncher
             && isset($requests['_skynet_sender_url']) 
             && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
-            $listener->onResponse('beforeSend');
+            if(method_exists($listener, 'onResponse'))
+            {
+              $listener->onResponse('beforeSend');
+            }
             if(isset($requests['@echo'])) 
             {
-              $listener->onEcho('beforeSend');
+              if(method_exists($listener, 'onEcho'))
+              {
+                $listener->onEcho('beforeSend');
+              }
             }
             if(isset($requests['@broadcast'])) 
             {
-              $listener->onBroadcast('beforeSend');
+              if(method_exists($listener, 'onBroadcast'))
+              {
+                $listener->onBroadcast('beforeSend');
+              }
             }
           }
         }
@@ -297,7 +398,10 @@ class SkynetEventListenersLauncher
             && isset($requests['_skynet_sender_url']) 
             && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
-            $listener->onRequest('afterReceive');
+            if(method_exists($listener, 'onRequest'))
+            {
+              $listener->onRequest('afterReceive');
+            }
           }
         }
       break;
@@ -318,14 +422,23 @@ class SkynetEventListenersLauncher
             && isset($requests['_skynet_sender_url']) 
             && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
-            $listener->onResponse('beforeSend');
+            if(method_exists($listener, 'onResponse'))
+            {
+              $listener->onResponse('beforeSend');
+            }
             if(isset($requests['@echo'])) 
             {
-              $listener->onEcho('beforeSend');
+              if(method_exists($listener, 'onEcho'))
+              {
+                $listener->onEcho('beforeSend');
+              }
             }
             if(isset($requests['@broadcast'])) 
             {
-              $listener->onBroadcast('beforeSend');
+              if(method_exists($listener, 'onBroadcast'))
+              {
+                $listener->onBroadcast('beforeSend');
+              }
             }
           }
         }
@@ -347,7 +460,10 @@ class SkynetEventListenersLauncher
             && isset($requests['_skynet_sender_url']) 
             && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
-            $listener->onRequest('afterReceive');
+            if(method_exists($listener, 'onRequest'))
+            {
+              $listener->onRequest('afterReceive');
+            }
           }
         }
       break;

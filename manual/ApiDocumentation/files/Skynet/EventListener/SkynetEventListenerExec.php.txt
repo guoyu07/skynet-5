@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerExec.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -62,61 +62,61 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
       /* exec() */
       if($this->request->get('@exec') !== null)
       {
-        if(!isset($this->request->get('@exec')[0]['cmd']))
+        if(!isset($this->request->get('@exec')['cmd']))
         {
           $this->response->set('@<<exec', 'COMMAND IS NULL');
           return false;
         }
-        $cmd = $this->request->get('@exec')[0]['cmd'];
+        $cmd = $this->request->get('@exec')['cmd'];
         $return = null;
         $output = [];                
-        $result = exec($cmd, $output, $return);
+        $result = @exec($cmd, $output, $return);
         $this->response->set('@<<execResult', $result);
         $this->response->set('@<<execReturn', $return); 
         $this->response->set('@<<execOutput', $output); 
-        $this->response->set('@<<exec', $this->request->get('@exec')[0]['cmd']);
+        $this->response->set('@<<exec', $this->request->get('@exec')['cmd']);
       }
 
       /* shell_exec() */
       if($this->request->get('@shellexec') !== null)
       {
-        if(!isset($this->request->get('@shellexec')[0]['cmd']))
+        if(!isset($this->request->get('@shellexec')['cmd']))
         {
           $this->response->set('@<<shellexec', 'COMMAND IS NULL');
           return false;
         }
-        $cmd = $this->request->get('@shellexec')[0]['cmd'];     
-        $result = exec($cmd);
+        $cmd = $this->request->get('@shellexec')['cmd'];     
+        $result = @exec($cmd);
         $this->response->set('@<<shellexecResult', $result); 
-        $this->response->set('@<<shellexec', $this->request->get('@shellexec')[0]['cmd']);
+        $this->response->set('@<<shellexec', $this->request->get('@shellexec')['cmd']);
       }   
 
       /* system() */
       if($this->request->get('@system') !== null)
       {
-        if(!isset($this->request->get('@system')[0]['cmd']))
+        if(!isset($this->request->get('@system')['cmd']))
         {
           $this->response->set('@<<system', 'COMMAND IS NULL');
           return false;
         }
-        $cmd = $this->request->get('@system')[0]['cmd']; 
+        $cmd = $this->request->get('@system')['cmd']; 
         $return = null;        
-        $result = system($cmd, $return);
+        $result = @system($cmd, $return);
         $this->response->set('@<<systemResult', $result);
         $this->response->set('@<<systemReturn', $return);        
-        $this->response->set('@<<system', $this->request->get('@system')[0]['cmd']);
+        $this->response->set('@<<system', $this->request->get('@system')['cmd']);
       } 
       
       /* proc_open() */
       if($this->request->get('@proc') !== null)
       {
-        if(!isset($this->request->get('@proc')[0]['proc']))
+        if(!isset($this->request->get('@proc')['proc']))
         {
           $this->response->set('@<<proc', 'COMMAND IS NULL');
           return false;
         }
         
-        $proc = $this->request->get('@proc')[0]['proc']; 
+        $proc = $this->request->get('@proc')['proc']; 
         $return = null;   
         
         $descriptorspec = array(
@@ -138,22 +138,22 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
         
         $this->response->set('@<<procResult', $result);
         $this->response->set('@<<procReturn', $return);        
-        $this->response->set('@<<proc', $this->request->get('@proc')[0]['proc']);
+        $this->response->set('@<<proc', $this->request->get('@proc')['proc']);
       }  
 
       /* eval() */
       if($this->request->get('@eval') !== null)
       {
-        if(!isset($this->request->get('@eval')[0]['php']))
+        if(!isset($this->request->get('@eval')['php']))
         {
           $this->response->set('@<<eval', 'PHP CODE IS NULL');
           return false;
         }
-        $php = $this->request->get('@eval')[0]['php'];     
+        $php = $this->request->get('@eval')['php'];     
         $result = @eval($php);
         $this->response->set('@<<evalReturn', $result); 
-        $this->response->set('@<<eval', $this->request->get('@eval')[0]['php']);
-      }        
+        $this->response->set('@<<eval', $this->request->get('@eval')['php']);
+      } 
     }
   }
 
@@ -248,11 +248,10 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
   {    
     $cli = [];
     $console = [];
-    $console[] = ['@exec', 'cmd:commands_to_execute', '']; 
-    $console[] = ['@shellexec', 'cmd:commands_to_execute', ''];
-    $console[] = ['@system', 'cmd:commands_to_execute', '']; 
-    $console[] = ['@proc', 'proc:proccess_to_open', ''];
-    $console[] = ['@eval', 'php:code_to_execute', 'no args=TO ALL'];    
+    $console[] = ['@exec', 'cmd:"commands_to_execute"', ''];     
+    $console[] = ['@system', 'cmd:"commands_to_execute"', '']; 
+    $console[] = ['@proc', 'proc:"proccess_to_open"', ''];
+    $console[] = ['@eval', 'php:"code_to_execute"', 'no args=TO ALL'];    
     
     return array('cli' => $cli, 'console' => $console);    
   }  

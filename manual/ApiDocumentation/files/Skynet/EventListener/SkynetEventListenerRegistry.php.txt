@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerRegistry.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -81,26 +81,19 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
       {
         $returnSuccess = [];
         $returnError = [];
-        $params = $this->request->get('@reg_set');         
-       
+        $params = $this->request->get('@reg_set');   
        
         if(is_array($params))
         {          
-          foreach($params as $param)
+          foreach($params as $key => $value)
           {
-            if(is_array($param))
+            if($this->reg_set($key, $value))
             {
-              foreach($param as $key => $value)
-              {               
-                if($this->reg_set($key, $value))
-                {
-                  $returnSuccess[] = $key;   
-                } else {
-                  $returnError[] = $key; 
-                  $this->addError(SkynetTypes::REGISTRY, 'UPDATE ERROR: '.$key);                  
-                }
-              }              
-            }            
+              $returnSuccess[] = $key;   
+            } else {
+              $returnError[] = $key; 
+              $this->addError(SkynetTypes::REGISTRY, 'UPDATE ERROR: '.$key);                  
+            }                 
           }
           
           if(count($returnSuccess) > 0)
@@ -119,8 +112,8 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
       if($this->request->get('@reg_get') !== null)
       {
         $return = [];
-        $params = $this->request->get('@reg_get');        
-        
+       
+        $params = $this->request->get('@reg_get');           
         if(is_array($params))
         {
           foreach($params as $param)
@@ -138,8 +131,8 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
           {
             $this->response->set($k, $v);
           }
-        }
-      }
+        }        
+      }      
     }
   }
 
@@ -213,8 +206,8 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
     $cli = [];
     $console = [];    
    
-    $console[] = ['@reg_set', ['key: value', 'key1: value1, key2: value2...'], 'no @to=TO ALL'];   
-    $console[] = ['@reg_get', ['key', 'key1,key2, key3...'], 'no @to=TO ALL'];  
+    $console[] = ['@reg_set', ['key: "value"', 'key1: "value1", key2: "value2"...'], 'no @to=TO ALL'];   
+    $console[] = ['@reg_get', ['key', 'key1, key2, key3...'], 'no @to=TO ALL'];  
     
     return array('cli' => $cli, 'console' => $console);    
   }  

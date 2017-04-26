@@ -29,6 +29,7 @@ use Skynet\Database\SkynetRegistry;
 use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Console\SkynetConsole;
 use Skynet\Console\SkynetCli;
+use Skynet\Debug\SkynetDebug;
 
  /**
   * Skynet Event Listener Abstract
@@ -102,6 +103,9 @@ abstract class SkynetEventListenerAbstract
   
   /** @var SkynetConsole HTML Console */
   protected $console;
+  
+  /** @var SkynetDebug Debugger */
+  protected $debug;
 
 
  /**
@@ -121,6 +125,7 @@ abstract class SkynetEventListenerAbstract
     $this->paramsParser = new SkynetParams();
     $this->options = new SkynetOptions();
     $this->registry = new SkynetRegistry();
+    $this->debug = new SkynetDebug();
   }
 
  /**

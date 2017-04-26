@@ -73,7 +73,7 @@ class SkynetRendererHtmlDebugParser
     $rows = [];
     foreach($fields as $k => $v)
     {
-      $rows[] = $this->elements->addValRow($k, $v);
+      $rows[] = $this->elements->addRow($v['title'].'<br>'.$v['data']);
     }    
     if(count($rows) == 0) 
     {

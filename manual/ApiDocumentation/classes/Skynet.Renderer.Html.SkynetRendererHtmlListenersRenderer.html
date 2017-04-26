@@ -21,54 +21,54 @@
     <script src="../js/jquery.smooth-scroll.js"></script>
     <script src="../js/prism.min.js"></script>
     <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
-        <script type="text/javascript">
-        function loadExternalCodeSnippets() {
-            Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
-                var src = pre.getAttribute('data-src');
-                var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
-                var language = 'php';
+    <script type="text/javascript">
+    function loadExternalCodeSnippets() {
+        Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+            var src = pre.getAttribute('data-src');
+            var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+            var language = 'php';
 
-                var code = document.createElement('code');
-                code.className = 'language-' + language;
+            var code = document.createElement('code');
+            code.className = 'language-' + language;
 
-                pre.textContent = '';
+            pre.textContent = '';
 
-                code.textContent = 'Loading…';
+            code.textContent = 'Loading…';
 
-                pre.appendChild(code);
+            pre.appendChild(code);
 
-                var xhr = new XMLHttpRequest();
+            var xhr = new XMLHttpRequest();
 
-                xhr.open('GET', src, true);
+            xhr.open('GET', src, true);
 
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState == 4) {
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
 
-                        if (xhr.status < 400 && xhr.responseText) {
-                            code.textContent = xhr.responseText;
+                    if (xhr.status < 400 && xhr.responseText) {
+                        code.textContent = xhr.responseText;
 
-                            Prism.highlightElement(code);
-                        }
-                        else if (xhr.status >= 400) {
-                            code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
-                        }
-                        else {
-                            code.textContent = '✖ Error: File does not exist or is empty';
-                        }
+                        Prism.highlightElement(code);
                     }
-                };
+                    else if (xhr.status >= 400) {
+                        code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                    }
+                    else {
+                        code.textContent = '✖ Error: File does not exist or is empty';
+                    }
+                }
+            };
 
-                xhr.send(null);
-            });
-        }
-
-        $(document).ready(function(){
-            loadExternalCodeSnippets();
+            xhr.send(null);
         });
-        $('#source-view').on('shown', function () {
-            loadExternalCodeSnippets();
-        })
-    </script>
+    }
+
+    $(document).ready(function(){
+        loadExternalCodeSnippets();
+    });
+    $('#source-view').on('shown', function () {
+        loadExternalCodeSnippets();
+    })
+</script>
 
     <link rel="shortcut icon" href="../images/favicon.ico"/>
     <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
@@ -145,28 +145,28 @@
                                 <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-698880111"></a>
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-1753045562"></a>
                                 <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
             </div>
-            <div id="namespace-698880111" class="accordion-body collapse in">
+            <div id="namespace-1753045562" class="accordion-body collapse in">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2096125238"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1136484414"></a>
                                 <a href="../namespaces/Skynet.html" style="margin-left: 30px; padding-left: 0">Skynet</a>
             </div>
-            <div id="namespace-2096125238" class="accordion-body collapse ">
+            <div id="namespace-1136484414" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-18182784"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1165340652"></a>
                                 <a href="../namespaces/Skynet.Cluster.html" style="margin-left: 30px; padding-left: 0">Cluster</a>
             </div>
-            <div id="namespace-18182784" class="accordion-body collapse ">
+            <div id="namespace-1165340652" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -184,10 +184,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-456677216"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-760951088"></a>
                                 <a href="../namespaces/Skynet.Common.html" style="margin-left: 30px; padding-left: 0">Common</a>
             </div>
-            <div id="namespace-456677216" class="accordion-body collapse ">
+            <div id="namespace-760951088" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -203,10 +203,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-545357793"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-837467522"></a>
                                 <a href="../namespaces/Skynet.Connection.html" style="margin-left: 30px; padding-left: 0">Connection</a>
             </div>
-            <div id="namespace-545357793" class="accordion-body collapse ">
+            <div id="namespace-837467522" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -225,10 +225,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1234650761"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-895271560"></a>
                                 <a href="../namespaces/Skynet.Console.html" style="margin-left: 30px; padding-left: 0">Console</a>
             </div>
-            <div id="namespace-1234650761" class="accordion-body collapse ">
+            <div id="namespace-895271560" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -247,10 +247,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1601140143"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-651486899"></a>
                                 <a href="../namespaces/Skynet.Core.html" style="margin-left: 30px; padding-left: 0">Core</a>
             </div>
-            <div id="namespace-1601140143" class="accordion-body collapse ">
+            <div id="namespace-651486899" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -270,10 +270,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-454509324"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1642925655"></a>
                                 <a href="../namespaces/Skynet.Data.html" style="margin-left: 30px; padding-left: 0">Data</a>
             </div>
-            <div id="namespace-454509324" class="accordion-body collapse ">
+            <div id="namespace-1642925655" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -291,10 +291,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2044999388"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-424772570"></a>
                                 <a href="../namespaces/Skynet.Database.html" style="margin-left: 30px; padding-left: 0">Database</a>
             </div>
-            <div id="namespace-2044999388" class="accordion-body collapse ">
+            <div id="namespace-424772570" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -314,10 +314,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1665555548"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-842074245"></a>
                                 <a href="../namespaces/Skynet.Debug.html" style="margin-left: 30px; padding-left: 0">Debug</a>
             </div>
-            <div id="namespace-1665555548" class="accordion-body collapse ">
+            <div id="namespace-842074245" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -332,10 +332,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-168223854"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1327353440"></a>
                                 <a href="../namespaces/Skynet.Encryptor.html" style="margin-left: 30px; padding-left: 0">Encryptor</a>
             </div>
-            <div id="namespace-168223854" class="accordion-body collapse ">
+            <div id="namespace-1327353440" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -352,10 +352,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1668618135"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-24820938"></a>
                                 <a href="../namespaces/Skynet.Error.html" style="margin-left: 30px; padding-left: 0">Error</a>
             </div>
-            <div id="namespace-1668618135" class="accordion-body collapse ">
+            <div id="namespace-24820938" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -373,10 +373,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-408728977"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-5941645"></a>
                                 <a href="../namespaces/Skynet.EventListener.html" style="margin-left: 30px; padding-left: 0">EventListener</a>
             </div>
-            <div id="namespace-408728977" class="accordion-body collapse ">
+            <div id="namespace-5941645" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -404,10 +404,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2004659521"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1813423633"></a>
                                 <a href="../namespaces/Skynet.EventLogger.html" style="margin-left: 30px; padding-left: 0">EventLogger</a>
             </div>
-            <div id="namespace-2004659521" class="accordion-body collapse ">
+            <div id="namespace-1813423633" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -425,10 +425,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1829600194"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1579902202"></a>
                                 <a href="../namespaces/Skynet.Filesystem.html" style="margin-left: 30px; padding-left: 0">Filesystem</a>
             </div>
-            <div id="namespace-1829600194" class="accordion-body collapse ">
+            <div id="namespace-1579902202" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -445,19 +445,19 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-941933733"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-771488687"></a>
                                 <a href="../namespaces/Skynet.Renderer.html" style="margin-left: 30px; padding-left: 0">Renderer</a>
             </div>
-            <div id="namespace-941933733" class="accordion-body collapse ">
+            <div id="namespace-771488687" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-170312249"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-239741060"></a>
                                 <a href="../namespaces/Skynet.Renderer.Cli.html" style="margin-left: 30px; padding-left: 0">Cli</a>
             </div>
-            <div id="namespace-170312249" class="accordion-body collapse ">
+            <div id="namespace-239741060" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -476,10 +476,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2068805843"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1520324346"></a>
                                 <a href="../namespaces/Skynet.Renderer.Html.html" style="margin-left: 30px; padding-left: 0">Html</a>
             </div>
-            <div id="namespace-2068805843" class="accordion-body collapse ">
+            <div id="namespace-1520324346" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -518,10 +518,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-935082430"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1115361720"></a>
                                 <a href="../namespaces/Skynet.Secure.html" style="margin-left: 30px; padding-left: 0">Secure</a>
             </div>
-            <div id="namespace-935082430" class="accordion-body collapse ">
+            <div id="namespace-1115361720" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -537,10 +537,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1934911741"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1845136580"></a>
                                 <a href="../namespaces/Skynet.State.html" style="margin-left: 30px; padding-left: 0">State</a>
             </div>
-            <div id="namespace-1934911741" class="accordion-body collapse ">
+            <div id="namespace-1845136580" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -557,10 +557,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-679548587"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1572676360"></a>
                                 <a href="../namespaces/Skynet.Tools.html" style="margin-left: 30px; padding-left: 0">Tools</a>
             </div>
-            <div id="namespace-679548587" class="accordion-body collapse ">
+            <div id="namespace-1572676360" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -577,10 +577,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1074801708"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-597953301"></a>
                                 <a href="../namespaces/Skynet.Updater.html" style="margin-left: 30px; padding-left: 0">Updater</a>
             </div>
-            <div id="namespace-1074801708" class="accordion-body collapse ">
+            <div id="namespace-597953301" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -605,10 +605,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1830771863"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1630520683"></a>
                                 <a href="../namespaces/SkynetUser.html" style="margin-left: 30px; padding-left: 0">SkynetUser</a>
             </div>
-            <div id="namespace-1830771863" class="accordion-body collapse ">
+            <div id="namespace-1630520683" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -634,94 +634,497 @@
     <section class="row-fluid">
         <div class="span10 offset2">
             <div class="row-fluid">
-                <div class="span8 content file">
+                <div class="span8 content class">
                     <nav>
-                                                                    </nav>
-
+                                                <a href="../namespaces/Skynet.Renderer.Html.html">\Skynet\Renderer\Html</a> <i class="icon-level-up"></i>
+                                            </nav>
                     <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
-                    <h1><small></small>SkynetRendererHtmlConnectionsRenderer.php</h1>
-                    <p><em>Skynet/Renderer/Html//SkynetRendererHtmlConnectionsRenderer.php</em></p>
-                    
 
+                    <h1><small>\Skynet\Renderer\Html</small>SkynetRendererHtmlListenersRenderer</h1>
+                    <p><em>Skynet Renderer Mode Renderer</em></p>
                     
                     
-                                        <h2>Classes</h2>
-                    <table class="table table-hover">
-                                            <tr>
-                            <td><a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlConnectionsRenderer.html">SkynetRendererHtmlConnectionsRenderer</a></td>
-                            <td><em>Skynet Renderer HTML Connections Renderer</em></td>
-                        </tr>
-                                        </table>
-                                    </div>
-
+                                        
+                    <section id="summary">
+                        <h2>Summary</h2>
+                        <section class="row-fluid heading">
+                            <section class="span4">
+                                <a href="#methods">Methods</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#properties">Properties</a>
+                            </section>
+                            <section class="span4">
+                                <a href="#constants">Constants</a>
+                            </section>
+                        </section>
+                        <section class="row-fluid public">
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method___construct" class="">__construct()</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method_render" class="">render()</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method_countListeners" class="">countListeners()</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method_countLoggers" class="">countLoggers()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No public properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No constants found</em>
+                                                            </section>
+                        </section>
+                        <section class="row-fluid protected">
+                            <section class="span4">
+                                                                    <em>No protected methods found</em>
+                                                            </section>
+                            <section class="span4">
+                                                                    <em>No protected properties found</em>
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                        <section class="row-fluid private">
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method_checkEvents" class="">checkEvents()</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method_checkCommands" class="">checkCommands()</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method_checkTables" class="">checkTables()</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method_renderListenersList" class="">renderListenersList()</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#method_renderLoggersList" class="">renderLoggersList()</a><br />
+                                                            </section>
+                            <section class="span4">
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#property_elements" class="">$elements</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#property_eventListeners" class="">$eventListeners</a><br />
+                                                                    <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html#property_eventLoggers" class="">$eventLoggers</a><br />
+                                                            </section>
+                            <section class="span4">
+                                <em>N/A</em>
+                            </section>
+                        </section>
+                    </section>
+                </div>
                 <aside class="span4 detailsbar">
+                                        
+                    
                     <dl>
-                                                    <dt>Package</dt>
-                            <dd><div class="namespace-wrapper">\Skynet</div></dd>
+                        <dt>File</dt>
+                            <dd><a href="../files/Skynet.Renderer.Html.SkynetRendererHtmlListenersRenderer.html"><div class="path-wrapper">Skynet\Renderer\Html\SkynetRendererHtmlListenersRenderer.php</div></a></dd>
+                                                <dt>Package</dt>
+                            <dd><div class="namespace-wrapper">Skynet</div></dd>
+                                                <dt>Class hierarchy</dt>
+                            <dd class="hierarchy">
+                                                                                                                                                                    <div class="namespace-wrapper">\Skynet\Renderer\Html\SkynetRendererHtmlListenersRenderer</div>
+                            </dd>
+
                         
-                                                                                    <dt>See also</dt>
-                                                                                        <dd><a href="http://github.com/szczyglinski/skynet"><div class="namespace-wrapper">http://github.com/szczyglinski/skynet</div></a></dd>
-                                                    
-                    </dl>
+                        
+                        
+                        
+                                                                        </dl>
                     <h2>Tags</h2>
                     <table class="table table-condensed">
-                                                    <tr>
-                                <th>
-                                    version
-                                </th>
-                                <td>
-                                                                            
-                                                                    </td>
-                            </tr>
-                                                    <tr>
-                                <th>
-                                    author
-                                </th>
-                                <td>
-                                                                            <p>Marcin Szczyglinski <a href="mailto:szczyglis83@gmail.com">szczyglis83@gmail.com</a></p>
-                                                                    </td>
-                            </tr>
-                                                    <tr>
-                                <th>
-                                    copyright
-                                </th>
-                                <td>
-                                                                            <p>2017 Marcin Szczyglinski</p>
-                                                                    </td>
-                            </tr>
-                                                    <tr>
-                                <th>
-                                    license
-                                </th>
-                                <td>
-                                                                            <p><a href="https://opensource.org/licenses/GPL-3.0">https://opensource.org/licenses/GPL-3.0</a> GNU Public License</p>
-                                                                    </td>
-                            </tr>
-                                                    <tr>
-                                <th>
-                                    since
-                                </th>
-                                <td>
-                                                                            
-                                                                    </td>
-                            </tr>
-                                            </table>
-
+                                            <tr><td colspan="2"><em>None found</em></td></tr>
+                                        </table>
                 </aside>
             </div>
 
-            
-            
+                        
+                                    <a id="properties" name="properties"></a>
+            <div class="row-fluid">
+                <div class="span8 content class">
+                    <h2>Properties</h2>
+                </div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_elements" name="property_elements" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$elements</h3>
+                <pre class="signature">$elements : \Skynet\Renderer\Html\SkynetRendererHtmlElements</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                <a href="../classes/Skynet.Renderer.Html.SkynetRendererHtmlElements.html">\Skynet\Renderer\Html\SkynetRendererHtmlElements</a>
+                &mdash; HTML Tags generator                            </article>
         </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_eventListeners" name="property_eventListeners" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$eventListeners</h3>
+                <pre class="signature">$eventListeners : array&lt;mixed,\Skynet\Renderer\Html\SkynetEventListenerInterface&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,\Skynet\Renderer\Html\SkynetEventListenerInterface&gt;
+                &mdash; Listeners                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="property_eventLoggers" name="property_eventLoggers" class="anchor"></a>
+            <article class="property">
+                <h3 class="private ">$eventLoggers</h3>
+                <pre class="signature">$eventLoggers : array&lt;mixed,\Skynet\Renderer\Html\SkynetEventListenerInterface&gt;</pre>
+                <p><em></em></p>
+                
+
+                                <h4>Type</h4>
+                array&lt;mixed,\Skynet\Renderer\Html\SkynetEventListenerInterface&gt;
+                &mdash; Loggers                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                        <dl>
+                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                            
+                                    <a id="methods" name="methods"></a>
+            <div class="row-fluid">
+                <div class="span8 content class"><h2>Methods</h2></div>
+                <aside class="span4 detailsbar"></aside>
+            </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method___construct" name="method___construct" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">__construct()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">__construct() </pre>
+                <p><em>Constructor</em></p>
+                
+
+                
+                
+                				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_render" name="method_render" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">render()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">render(  <span class="argument">$ajax = false</span>) : string</pre>
+                <p><em>Renders and returns listeners</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td></td>
+                                <td>$ajax </td>
+                                <td></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>HTML code</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_countListeners" name="method_countListeners" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">countListeners()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">countListeners() : integer</pre>
+                <p><em>Counts listeners</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    integer
+                                            &mdash; <p>Counter</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_countLoggers" name="method_countLoggers" class="anchor"></a>
+            <article class="method">
+                <h3 class="public ">countLoggers()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">countLoggers() : integer</pre>
+                <p><em>Counts loggers</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    integer
+                                            &mdash; <p>Counter</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_checkEvents" name="method_checkEvents" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">checkEvents()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">checkEvents(\ReflectionClass  <span class="argument">$reflection</span>) : array&lt;mixed,integer&gt;</pre>
+                <p><em>Checks for event methods</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>\ReflectionClass</td>
+                                <td>$reflection </td>
+                                <td></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,integer&gt;
+                                            &mdash; <p>Event Methods count</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_checkCommands" name="method_checkCommands" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">checkCommands()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">checkCommands(\ReflectionClass  <span class="argument">$reflection</span>, \Skynet\EventLogger\SkynetEventLoggersFactory  <span class="argument">$listener</span>) : array&lt;mixed,integer&gt;</pre>
+                <p><em>Gets commands count</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>\ReflectionClass</td>
+                                <td>$reflection </td>
+                                <td></td>
+                            </tr>
+                                                    <tr>
+                                <td><a href="../classes/Skynet.EventLogger.SkynetEventLoggersFactory.html">\Skynet\EventLogger\SkynetEventLoggersFactory</a></td>
+                                <td>$listener </td>
+                                <td></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,integer&gt;
+                                            &mdash; <p>Commands count</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_checkTables" name="method_checkTables" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">checkTables()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">checkTables(\ReflectionClass  <span class="argument">$reflection</span>, \Skynet\EventLogger\SkynetEventLoggersFactory  <span class="argument">$listener</span>) : array&lt;mixed,integer&gt;</pre>
+                <p><em>Gets tables count</em></p>
+                
+
+                                    <h4>Parameters</h4>
+                    <table class="table table-condensed table-hover">
+                                                    <tr>
+                                <td>\ReflectionClass</td>
+                                <td>$reflection </td>
+                                <td></td>
+                            </tr>
+                                                    <tr>
+                                <td><a href="../classes/Skynet.EventLogger.SkynetEventLoggersFactory.html">\Skynet\EventLogger\SkynetEventLoggersFactory</a></td>
+                                <td>$listener </td>
+                                <td></td>
+                            </tr>
+                                            </table>
+                
+                
+                                    <h4>Returns</h4>
+                    array&lt;mixed,integer&gt;
+                                            &mdash; <p>Tables count</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_renderListenersList" name="method_renderListenersList" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">renderListenersList()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">renderListenersList() : string</pre>
+                <p><em>Renders listeners list</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>HTML</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    <div class="row-fluid">
+        <div class="span8 content class">
+            <a id="method_renderLoggersList" name="method_renderLoggersList" class="anchor"></a>
+            <article class="method">
+                <h3 class="private ">renderLoggersList()</h3>
+                <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal" style="font-size: 1.1em; padding: 9px 14px"><i class="icon-code"></i></a>
+                <pre class="signature" style="margin-right: 54px;">renderLoggersList() : string</pre>
+                <p><em>Renders loggers list</em></p>
+                
+
+                
+                
+                                    <h4>Returns</h4>
+                    string
+                                            &mdash; <p>HTML</p>
+                                    				
+                            </article>
+        </div>
+        <aside class="span4 detailsbar">
+            <h1><i class="icon-arrow-down"></i></h1>
+                                                            <dl>
+                                                                            </dl>
+            <h2>Tags</h2>
+            <table class="table table-condensed">
+                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                            </table>
+        </aside>
+    </div>
+
+                                    </div>
     </section>
 
     <div id="source-view" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-view-label" aria-hidden="true">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="source-view-label"></h3>
+            <h3 id="source-view-label">SkynetRendererHtmlListenersRenderer.php</h3>
         </div>
         <div class="modal-body">
-            <pre data-src="../files/Skynet\Renderer\Html\SkynetRendererHtmlConnectionsRenderer.php.txt" class="language-php line-numbers"></pre>
+            <pre data-src="../files/Skynet\Renderer\Html\SkynetRendererHtmlListenersRenderer.php.txt" class="language-php line-numbers"></pre>
         </div>
     </div>
 

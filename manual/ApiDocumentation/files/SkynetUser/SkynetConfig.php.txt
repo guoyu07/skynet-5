@@ -21,10 +21,10 @@ namespace SkynetUser;
 class SkynetConfig
 {
   
-  /** @var string SKYNET KEY ID, default: empty*/
+  /** @var string SKYNET KEY ID, default: 1234567890 */
   const KEY_ID = '1234567890';
   
-  /** @var string SKYNET PASSWORD, default: 123456 */
+  /** @var string SKYNET PASSWORD, default: empty */
   const PASSWORD = '';
   
   

@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlStatusRenderer.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.4
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -44,6 +44,9 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   /** @var SkynetRendererHtmlConsoleRenderer Console Renderer */
   private $consoleRenderer;
   
+  /** @var SkynetRendererHtmlListenersenderer Event Listeners Renderer */
+  private $listenersRenderer;
+  
   /** @var SkynetRendererHtmlDebugParser Debug Parser */
   private $debugParser;
   
@@ -61,7 +64,8 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $this->modeRenderer = new  SkynetRendererHtmlModeRenderer();
     $this->clustersRenderer = new  SkynetRendererHtmlClustersRenderer();
     $this->debugParser = new SkynetRendererHtmlDebugParser();
-    $this->consoleRenderer = new  SkynetRendererHtmlConsoleRenderer();  
+    $this->consoleRenderer = new  SkynetRendererHtmlConsoleRenderer(); 
+    $this->listenersRenderer = new  SkynetRendererHtmlListenersRenderer();      
     $this->debugger = new SkynetDebug();
   }  
    
@@ -102,6 +106,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addTabBtn('Config (<span class="numConfig">'.count($this->configFields).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConfig\');', 'tabConfigBtn');
     $output[] = $this->elements->addTabBtn('Console (<span class="numConsole">'.count($this->consoleOutput).'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabConsole\');', 'tabConsoleBtn');
     $output[] = $this->elements->addTabBtn('Debug (<span class="numDebug">'.$this->debugger->countDebug().'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabDebug\');', 'tabDebugBtn');
+    $output[] = $this->elements->addTabBtn('Listeners (<span class="numListeners">'.$this->listenersRenderer->countListeners().'/'.$this->listenersRenderer->countLoggers().'</span>)', 'javascript:skynetControlPanel.switchTab(\'tabListeners\');', 'tabListenersBtn');
     $output[] = $this->elements->addSectionEnd();     
     return implode($output);
   }
@@ -165,6 +170,30 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     return implode($output);   
   }
   
+ /**
+  * Renders listeners debug
+  *
+  * @return string HTML code
+  */    
+  public function renderListeners($ajax = false)
+  {
+    $output = [];   
+    
+    /* Center Main : Left Column: states */
+    if(!$ajax)
+    {
+      $output[] = $this->elements->addSectionClass('tabListeners');
+    }
+    
+    $output[] = $this->listenersRenderer->render();
+    
+    if(!$ajax)
+    {      
+      $output[] = $this->elements->addSectionEnd();  
+    }
+    
+    return implode($output);   
+  }
   
  /**
   * Renders debug
@@ -263,7 +292,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     /* Empty password warning */
     if(empty(\SkynetUser\SkynetConfig::PASSWORD))
     {
-      $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Access password is not set yet. Use [pwdgen.php] to generate your password and place generated password into [/src/SkynetUser/SkynetConfig.php]', 'error').$this->elements->getNl();
+      $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Access password is not set yet. Use [pwdgen.php] to generate your password and place generated password into [/src/SkynetUser/SkynetConfig.php]', 'error').$this->elements->getNl().$this->elements->getNl();
     }
     
     /* Default ID warning */
@@ -284,7 +313,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   {   
     $output = [];
     
-    $output[] = $this->elements->addSectionClass('innerMode');
+    $output[] = $this->elements->addSectionClass('innerMode panel');
     $output[] = $this->elements->addSectionClass('hdrConnection');
     $output[] = $this->modeRenderer->render();
     $output[] = $this->elements->addSectionEnd();
@@ -305,7 +334,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     
     if(!$ajax)
     {
-      $output[] = $this->elements->addSectionClass('innerAddresses');  
+      $output[] = $this->elements->addSectionClass('innerAddresses panel');  
     }      
     $output[] = $this->elements->beginTable('tblClusters');
     $output[] = $this->clustersRenderer->render();    
@@ -359,14 +388,15 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
         
         $output[] = $this->elements->addSectionClass('sectionStates');   
         
-          $output[] = $this->elements->addSectionClass('innerStates');    
+          $output[] = $this->elements->addSectionClass('innerStates panel');    
           $output[] = $this->renderWarnings();      
           $output[] = $this->renderTabs();    
           $output[] = $this->renderErrors();
           $output[] = $this->renderConsoleDebug();
           $output[] = $this->renderStates();
           $output[] = $this->renderConfig(); 
-          $output[] = $this->renderDebug();          
+          $output[] = $this->renderDebug();  
+          $output[] = $this->renderListeners();          
           $output[] = $this->elements->addSectionEnd();     
           
         /* end sectionStates */

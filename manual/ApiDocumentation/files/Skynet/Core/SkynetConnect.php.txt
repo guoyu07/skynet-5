@@ -27,6 +27,7 @@ use Skynet\Data\SkynetResponse;
 use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Cluster\SkynetCluster;
 use Skynet\Common\SkynetTypes;
+use Skynet\Debug\SkynetDebug;
 
 
  /**
@@ -100,6 +101,12 @@ class SkynetConnect
   /** @var string[] Array with connections debug */ 
   private $connectionData = [];
   
+  /** @var SkynetDebug Debugger */
+  private $debugger;
+  
+  /** @var bool Execute connection or not */
+  private $doConnect;
+  
 
  /**
   * Constructor
@@ -114,7 +121,7 @@ class SkynetConnect
     $this->connection = SkynetConnectionsFactory::getInstance()->getConnector(\SkynetUser\SkynetConfig::get('core_connection_type'));
     $this->verifier = new SkynetVerifier();
     $this->clustersRegistry = new SkynetClustersRegistry();
-    
+    $this->debugger = new SkynetDebug();
   }  
 
  /**
@@ -130,6 +137,7 @@ class SkynetConnect
   public function connect($remote_cluster = null, $chain = null)
   {
     $result = false;
+    $this->doConnect = true;
     
     $this->init();   
     $this->cluster = $this->prepareCluster($remote_cluster);   
@@ -148,6 +156,12 @@ class SkynetConnect
     $this->prepareListeners();    
    
     $this->prepareRequest($chain);
+    
+    if(!$this->doConnect)
+    {
+      return null;
+    }
+    
     $this->responseData = $this->sendRequest();
 
     if($this->responseData === null || $this->responseData === false)
@@ -280,18 +294,35 @@ class SkynetConnect
 
     /* Try to connect and get response, launch pre-request listeners */
     $this->eventListenersLauncher->launch('onRequest');
-
-    /* If specified receiver via [@to] */
+   
     $requests = $this->request->getRequestsData();      
     
-    if(isset($requests['@to']) && !isset($_REQUEST['@peer']))
+     /* If specified receiver via [@to] */
+    if(isset($requests['@to']))
     {
-      $this->cluster = new SkynetCluster();
-      $this->cluster->setUrl($requests['@to']);
-      $this->clusterUrl = $requests['@to'];
-      $this->connection->setCluster($this->cluster);
-      $this->breakConnections = true;
-    } 
+       $to = $this->request->get('@to');
+       if(is_string($to))
+       {
+         if($this->verifier->isAddressCorrect($to))
+         {
+           if($this->clusterUrl != $to)
+           {             
+             $this->doConnect = false;
+           }           
+         }
+       } elseif(is_array($to))
+       {        
+          if(!in_array($this->clusterUrl, $to))
+          {
+            $this->doConnect = false;
+          }        
+       }       
+      
+       $to = $this->request->get('@to');      
+      // $this->debugger->dump($to);
+       //$this->debugger->dump($this->clusterUrl);      
+    }
+   
     $this->eventListenersLauncher->launch('onRequestLoggers');
   }
 

@@ -22,6 +22,7 @@ use Skynet\EventListener\SkynetEventListenersFactory;
 use Skynet\EventLogger\SkynetEventLoggersFactory;
 use Skynet\SkynetVersion;
 use Skynet\Database\SkynetDatabase;
+use Skynet\Database\SkynetDatabaseSchema;
 
  /**
   * Skynet CLI Output Renderer 
@@ -86,8 +87,11 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
     /* Center Main : Left Column: errors */
     $output[] = $this->elements->addSeparator();    
 
-    $output[] = $this->elements->addSubtitle('Errors');
-    $output[] = $this->debugRenderer->parseErrorsFields($this->errorsFields);
+    if(count($this->errorsFields > 0))
+    {
+      $output[] = $this->elements->addSubtitle('Errors');
+      $output[] = $this->debugRenderer->parseErrorsFields($this->errorsFields);
+    }
 
     if($this->cli->haveArgs() && $this->cli->isCommand('status'))
     {
@@ -132,15 +136,10 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
   {
     $output = [];
     
-    $header = $this->elements->addH1('//\\\\ SKYNET v.'.SkynetVersion::VERSION);
-    $header.= '(c) 2017 Marcin Szczyglinski | Check for newest versions here: '.$this->elements->addUrl(SkynetVersion::WEBSITE);
-    $header.= $this->elements->getNl();     
-
-    /* Header Left */
-    $output[] = $this->elements->addSectionId('headerLogo');
-    $output[] = $header;           
-    $output[] = $this->elements->addSectionEnd();   
-
+    //$header = $this->elements->getNl().$this->elements->addH1('//\\\\ SKYNET v.'.SkynetVersion::VERSION);
+    $header = $this->elements->getNl().'(c) 2017 Marcin Szczyglinski | Check for newest versions here: '.$this->elements->addUrl(SkynetVersion::WEBSITE);
+    $header.= $this->elements->getNl();
+    $output[] = $header;      
     return implode('', $output);
   }
   
@@ -238,8 +237,8 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
   */
   private function renderCommandsHelp()
   {
-    $database = SkynetDatabase::getInstance();
-    $tables = ' [?] Database tables: '.implode(', ', array_flip($database->getDbTables()));
+    $databaseSchema = new SkynetDatabaseSchema();
+    $tables = ' [?] Database tables: '.implode(', ', array_flip($databaseSchema->getDbTables()));
     $listenersCommands = $this->prepareListenersCommands();
    
     $str = $this->elements->getSeparator()." [?] HELP: Commands list [you can put multiple params at once, separating by space]:".$this->elements->getSeparator().$this->elements->getNl();      
@@ -262,7 +261,7 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
     {
       $output[] = $this->renderCommandsHelp();
     } else {
-      $output[] = $this->elements->getNl().' --- TIP: ---'.$this->elements->getNl().'"php '.$_SERVER['argv'][0].' -h" OR "php '.$_SERVER['argv'][0].' -help" displays Skynet CLI commands list.'.$this->elements->getNl();
+      $output[] = $this->elements->getSeparator().' [?] HELP: "php '.$_SERVER['argv'][0].' -h" OR "php '.$_SERVER['argv'][0].' -help" displays Skynet CLI commands list.';
     }
     
     return implode('', $output);   
@@ -283,16 +282,19 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
 
       /* Render header */
       $this->output[] = $this->renderHeaderSection();    
-     
+          
       switch($this->mode)
       {
         case 'connections':
            /* --- Center Main --- */      
            $this->output[] = $this->renderDebugSection();
+           $this->output[] = $this->renderEndCommands();
            
            if($this->cli->haveArgs() && ($this->cli->isCommand('dbg') || $this->cli->isCommand('debug')))
            {
               $this->output[] = $this->renderConnectionsSection();
+           } else {
+             $this->output[] = $this->elements->getSeparator().$this->elements->getNl().'[RESULT] Executed connections to clusters: '.count($this->connectionsData);
            }
            $this->output[] = $this->elements->addSectionEnd();        
    
@@ -300,7 +302,7 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
 
         case 'database':
            /* --- Center Main --- */
-           
+           $this->output[] = $this->renderEndCommands();
            $this->output[] = $this->elements->addSectionId('dbRecords'); 
            $this->output[] = $this->databaseRenderer->renderDatabaseView();
            $this->output[] = $this->elements->addSectionEnd();
@@ -308,15 +310,27 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
       }   
       /* Center Main : END */   
       
-      $this->output[] = $listenersOutput;
-      $this->output[] = $this->renderEndCommands();    
+      $this->output[] = $listenersOutput;    
+
+      $params = $this->cli->getParams('send');
+      
       $this->output[] = $this->elements->addFooter();
       
     } else {
-        $params = $this->cli->getParams('out');
+        $params = $this->cli->getParams('out');        
         if($params !== null && isset($params[0]))
         {
-          $this->output[] = $this->connectionsRenderer->renderConnections($this->connectionsData, explode(',', $params[0]));         
+          $e = explode(',', $params[0]);
+          $outputParams = [];
+          if($e > 0)
+          {
+            foreach($e as $paramKey)
+            {
+              $outputParams[] = trim($paramKey);
+            }            
+          }          
+          
+          $this->output[] = $this->connectionsRenderer->renderConnections($this->connectionsData, $outputParams);         
         } else {
           $this->output[] = $this->connectionsRenderer->renderConnections($this->connectionsData, true);
         }

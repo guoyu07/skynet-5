@@ -49,7 +49,7 @@ class SkynetDebug
     {
       foreach($_SESSION['_skynetDebugger'] as $k => $v)
       {
-        $output[$k] = $this->decorate($v);
+        $output[$k] = ['title' => $v['title'], 'data' => $this->decorate($v['data'])];
       }    
     }
     
@@ -141,12 +141,17 @@ class SkynetDebug
   */   
   private function addDebugField($debug, $name = null)
   {
+    $data = ['title' => $name, 'data' => $debug];
+    $_SESSION['_skynetDebugger'][] = $data;
+    
+    /*
     if($name === null)
     {
       $_SESSION['_skynetDebugger'][] = $debug;
     } else {
       $_SESSION['_skynetDebugger'][$name] = $debug;
-    }    
+    }   
+    */
   }
 
  /**
