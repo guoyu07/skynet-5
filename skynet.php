@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.26 03:32:26 (1493177546) */
+/* Skynet Standalone | version compiled: 2017.04.26 03:36:29 (1493177789) */
 
 namespace Skynet;
 
@@ -5417,7 +5417,8 @@ class SkynetConsole
       if(substr($value, -1) == ';')
       {
         $value = rtrim($value, ';');
-      }      
+      }
+     
       $cleanValue = $this->unQuoteValue($value);
       $ary = [$key => $cleanValue];
      
@@ -5613,6 +5614,10 @@ class SkynetConsole
     if(strpos($input, '"') === 0)
     {
       $input = trim($input, '"');
+    }
+    if(substr($input, -1) == '"')
+    {
+      $input = rtrim($input, '"');
     }
     if(strpos($input, '\'') === 0)
     {

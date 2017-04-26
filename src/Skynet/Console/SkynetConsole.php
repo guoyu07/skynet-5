@@ -565,7 +565,8 @@ class SkynetConsole
       if(substr($value, -1) == ';')
       {
         $value = rtrim($value, ';');
-      }      
+      }
+     
       $cleanValue = $this->unQuoteValue($value);
       $ary = [$key => $cleanValue];
      
@@ -761,6 +762,10 @@ class SkynetConsole
     if(strpos($input, '"') === 0)
     {
       $input = trim($input, '"');
+    }
+    if(substr($input, -1) == '"')
+    {
+      $input = rtrim($input, '"');
     }
     if(strpos($input, '\'') === 0)
     {
