@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.26 03:36:29 (1493177789) */
+/* Skynet Standalone | version compiled: 2017.04.26 03:46:51 (1493178411) */
 
 namespace Skynet;
 
@@ -5444,6 +5444,7 @@ class SkynetConsole
     
     /* get command name */
     $cmdName = strstr($str, ' ', true);
+    
     /* no space after command == no params */
     
     if($cmdName === false)
@@ -5461,7 +5462,7 @@ class SkynetConsole
     $paramsAry = $this->parseCmdParams($paramsStr);    
     
     $data = [];
-    $data['command'] = $cmdName;
+    $data['command'] = rtrim($cmdName, ';');
     $data['params'] = $paramsAry;    
     return $data;          
   } 
@@ -8323,12 +8324,16 @@ class SkynetField
   */
 class SkynetParams
 {  
- /**
+ 
+  /** @var SkynetDebug Debugger */
+  private $debugger;
+  
+  /**
   * Constructor
   */
   public function __construct()
   {
-    
+    $this->debugger = new SkynetDebug();
   }
 
  /**
@@ -8340,11 +8345,11 @@ class SkynetParams
   */  
   public function packParams($params)
   {       
-    if($params === null)
+    if($params === null || empty($params))
     {
       return false;
     } 
-    
+   
     if(!is_array($params))
     {
       return $params;
@@ -8410,6 +8415,7 @@ class SkynetParams
   public function unpackParams($params)
   {
     $params = preg_replace('/^\$#/', '', $params);
+    
     $e = unserialize($params);
     
     if(count($e) < 1) 

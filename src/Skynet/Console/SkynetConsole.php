@@ -592,6 +592,7 @@ class SkynetConsole
     
     /* get command name */
     $cmdName = strstr($str, ' ', true);
+    
     /* no space after command == no params */
     
     if($cmdName === false)
@@ -609,7 +610,7 @@ class SkynetConsole
     $paramsAry = $this->parseCmdParams($paramsStr);    
     
     $data = [];
-    $data['command'] = $cmdName;
+    $data['command'] = rtrim($cmdName, ';');
     $data['params'] = $paramsAry;    
     return $data;          
   } 
