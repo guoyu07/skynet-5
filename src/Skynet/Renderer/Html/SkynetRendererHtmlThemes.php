@@ -53,7 +53,7 @@ class SkynetRendererHtmlThemes
     tr:hover a {  } 
     tr:hover th { background:#000; }
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }
-    #header { height: 10%;  }
+    #header { height: 10%; min-height:70px; }
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
     #authMain { text-align: center; }    
