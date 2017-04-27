@@ -73,7 +73,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
       {
         $name = $this->elements->addBold($v, 'viewActive');
       }
-      $links[] = ' <a class="aSwitch" href="?_skynetView='.$k.'" title="Switch to view: '.htmlentities($v).'">'.$name.'</a> ';     
+      $links[] = ' <a class="aSwitch" href="?_skynetView='.$k.'" title="Switch to view: '.strip_tags($v).'">'.$name.'</a> ';     
     }    
     return implode(' ', $links);
   } 

@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.27 01:31:43 (1493256703) */
+/* Skynet Standalone | version compiled: 2017.04.27 01:35:47 (1493256947) */
 
 namespace Skynet;
 
@@ -2579,7 +2579,7 @@ class SkynetClusterHeader
  * Skynet/Cluster/SkynetClustersRegistry.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -20355,7 +20355,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
       {
         $name = $this->elements->addBold($v, 'viewActive');
       }
-      $links[] = ' <a class="aSwitch" href="?_skynetView='.$k.'" title="Switch to view: '.htmlentities($v).'">'.$name.'</a> ';     
+      $links[] = ' <a class="aSwitch" href="?_skynetView='.$k.'" title="Switch to view: '.strip_tags($v).'">'.$name.'</a> ';     
     }    
     return implode(' ', $links);
   } 
