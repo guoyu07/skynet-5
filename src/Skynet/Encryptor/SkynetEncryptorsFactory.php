@@ -46,6 +46,7 @@ class SkynetEncryptorsFactory
   */
   private function registerEncryptors()
   {
+    $this->register('openSSL', new SkynetEncryptorOpenSSL());
     $this->register('mcrypt', new SkynetEncryptorMcrypt());
     $this->register('base64', new SkynetEncryptorBase64());
   }

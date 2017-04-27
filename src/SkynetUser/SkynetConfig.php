@@ -57,9 +57,9 @@ class SkynetConfig
     'core_check_new_versions' => true,
 
 
-    /* core_encryptor -> string:[mcrypt|base64|...]
+    /* core_encryptor -> string:[openSSL|mcrypt|base64|...]
     Name of registered class used for encrypting data */
-    'core_encryptor' => 'mcrypt',
+    'core_encryptor' => 'openSSL',
     
     /* core_renderer_theme -> string:[dark|light|raw|...]
     Theme CSS configuration for HTML Renderer */
