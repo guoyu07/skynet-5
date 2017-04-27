@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.27 01:35:47 (1493256947) */
+/* Skynet Standalone | version compiled: 2017.04.27 01:42:37 (1493257357) */
 
 namespace Skynet;
 
@@ -22521,7 +22521,10 @@ class SkynetVerifier
       {       
         return true;        
       } else {         
-        $this->saveAccessLogs();
+        if($this->isPing())
+        {
+          $this->saveAccessLogs();
+        }
       }         
     }    
   }

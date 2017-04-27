@@ -303,7 +303,10 @@ class SkynetVerifier
       {       
         return true;        
       } else {         
-        $this->saveAccessLogs();
+        if($this->isPing())
+        {
+          $this->saveAccessLogs();
+        }
       }         
     }    
   }
