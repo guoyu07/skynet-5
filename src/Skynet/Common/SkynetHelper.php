@@ -176,6 +176,7 @@ class SkynetHelper
     $titles['core_cloner'] = 'Cloner engine enabled';
     $titles['core_check_new_versions'] = 'Check GitHub for new version';
     $titles['core_encryptor'] = 'Data encryptor';
+    $titles['core_encryptor_algorithm'] = 'Data encryptor algorithm';
     $titles['core_renderer_theme'] = 'Renderer theme';
     $titles['core_date_format'] = 'Date format';
     

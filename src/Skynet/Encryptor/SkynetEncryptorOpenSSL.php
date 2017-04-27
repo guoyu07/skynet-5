@@ -32,10 +32,8 @@ class SkynetEncryptorOpenSSL implements SkynetEncryptorInterface
   {    
     $key = md5(\SkynetUser\SkynetConfig::KEY_ID); 
     $iv = openssl_random_pseudo_bytes(16);
-    $iv_base64 = base64_encode($iv);
-    
-    $encryptedData = openssl_encrypt($decrypted, 'aes-256-ctr', $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);         
-    
+    $iv_base64 = base64_encode($iv);    
+    $encryptedData = @openssl_encrypt($decrypted, \SkynetUser\SkynetConfig::get('core_encryptor_algorithm'), $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);   
     return base64_encode($iv_base64.'$:::$'.base64_encode($encryptedData));
   }
 
@@ -55,11 +53,9 @@ class SkynetEncryptorOpenSSL implements SkynetEncryptorInterface
      {
        $iv = base64_decode($parts[0]);
        $data = base64_decode($parts[1]);
-       $decryptedData = openssl_encrypt($data, 'aes-256-ctr', $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv); 
-        return $decryptedData;
-        
-     } else {
-       
+       $decryptedData = @openssl_encrypt($data, \SkynetUser\SkynetConfig::get('core_encryptor_algorithm'), $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv); 
+       return $decryptedData;        
+     } else {       
        return $encrypted;
      }
   }

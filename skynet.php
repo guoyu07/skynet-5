@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.27 00:27:32 (1493252852) */
+/* Skynet Standalone | version compiled: 2017.04.27 00:42:50 (1493253770) */
 
 namespace Skynet;
 
@@ -62,6 +62,10 @@ class SkynetConfig
     /* core_encryptor -> string:[openSSL|mcrypt|base64|...]
     Name of registered class used for encrypting data */
     'core_encryptor' => 'openSSL',
+    
+    /* core_encryptor_algorithm -> string]
+    Algorithm for OpenSSL encryption */
+    'core_encryptor_algorithm' => 'aes-256-ctr',
     
     /* core_renderer_theme -> string:[dark|light|raw|...]
     Theme CSS configuration for HTML Renderer */
@@ -3746,6 +3750,7 @@ class SkynetHelper
     $titles['core_cloner'] = 'Cloner engine enabled';
     $titles['core_check_new_versions'] = 'Check GitHub for new version';
     $titles['core_encryptor'] = 'Data encryptor';
+    $titles['core_encryptor_algorithm'] = 'Data encryptor algorithm';
     $titles['core_renderer_theme'] = 'Renderer theme';
     $titles['core_date_format'] = 'Date format';
     
@@ -10835,10 +10840,8 @@ class SkynetEncryptorOpenSSL implements SkynetEncryptorInterface
   {    
     $key = md5(SkynetConfig::KEY_ID); 
     $iv = openssl_random_pseudo_bytes(16);
-    $iv_base64 = base64_encode($iv);
-    
-    $encryptedData = openssl_encrypt($decrypted, 'aes-256-ctr', $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);         
-    
+    $iv_base64 = base64_encode($iv);    
+    $encryptedData = @openssl_encrypt($decrypted, SkynetConfig::get('core_encryptor_algorithm'), $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);   
     return base64_encode($iv_base64.'$:::$'.base64_encode($encryptedData));
   }
 
@@ -10858,11 +10861,9 @@ class SkynetEncryptorOpenSSL implements SkynetEncryptorInterface
      {
        $iv = base64_decode($parts[0]);
        $data = base64_decode($parts[1]);
-       $decryptedData = openssl_encrypt($data, 'aes-256-ctr', $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv); 
-        return $decryptedData;
-        
-     } else {
-       
+       $decryptedData = @openssl_encrypt($data, SkynetConfig::get('core_encryptor_algorithm'), $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv); 
+       return $decryptedData;        
+     } else {       
        return $encrypted;
      }
   }

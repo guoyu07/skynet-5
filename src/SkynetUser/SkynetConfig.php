@@ -61,6 +61,10 @@ class SkynetConfig
     Name of registered class used for encrypting data */
     'core_encryptor' => 'openSSL',
     
+    /* core_encryptor_algorithm -> string]
+    Algorithm for OpenSSL encryption */
+    'core_encryptor_algorithm' => 'aes-256-ctr',
+    
     /* core_renderer_theme -> string:[dark|light|raw|...]
     Theme CSS configuration for HTML Renderer */
     'core_renderer_theme' => 'dark',
