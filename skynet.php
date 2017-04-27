@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.27 00:42:50 (1493253770) */
+/* Skynet Standalone | version compiled: 2017.04.27 01:00:36 (1493254836) */
 
 namespace Skynet;
 
@@ -7727,13 +7727,19 @@ class SkynetOutput
       $key = '****';
     }
     
+    $encryptorAlgorithm = '';
+    if(SkynetConfig::get('core_encryptor') == 'openSSL')
+    {
+      $encryptorAlgorithm = ' ('.SkynetConfig::get('core_encryptor_algorithm').')';
+    }
+    
     $renderer->setInAjax($this->inAjax);
     $renderer->setClustersData($this->clusters);
     $renderer->setConnectionsCounter($this->successConnections);
     $renderer->addField('My address', SkynetHelper::getMyUrl());
     $renderer->addField('Cluster IP', SkynetHelper::getServerIp());
     $renderer->addField('Your IP', SkynetHelper::getRemoteIp());
-    $renderer->addField('Encryption', SkynetConfig::get('core_encryptor'));
+    $renderer->addField('Encryption', SkynetConfig::get('core_encryptor').$encryptorAlgorithm);
     $renderer->addField('Connections', SkynetConfig::get('core_connection_type').' | By '.SkynetConfig::get('core_connection_mode').' | '.SkynetConfig::get('core_connection_protocol'));    
     $renderer->addField('Broadcasting Clusters', $this->broadcastNum);
     $renderer->addField('Clusters in DB', $this->clustersRegistry->countClusters().' / '.$this->clustersRegistry->countBlockedClusters()); 
