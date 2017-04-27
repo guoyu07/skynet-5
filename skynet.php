@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.27 01:03:53 (1493255033) */
+/* Skynet Standalone | version compiled: 2017.04.27 01:31:43 (1493256703) */
 
 namespace Skynet;
 
@@ -2711,7 +2711,7 @@ class SkynetClustersRegistry
       
     } else {
       if(!$this->isClusterBlocked($cluster))
-      {
+      {        
         return $this->insert($cluster);
       }
     }    
@@ -3188,11 +3188,11 @@ class SkynetClustersRegistry
     
     $url = SkynetHelper::cleanUrl($url);
     
-    if(!$this->verifier->isAddressCorrect($url))
+    if(!$this->verifier->isAddressCorrect(SkynetConfig::get('core_connection_protocol').$url))
     {
       return false;
     }
-    echo 'aaaaaa'.SkynetHelper::getMyUrl();
+    
     /* dont do anything when only file name in url */
     if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
     {
@@ -3278,7 +3278,7 @@ class SkynetClustersRegistry
       return false;
     }  
     
-    if(!$this->verifier->isAddressCorrect($url))
+    if(!$this->verifier->isAddressCorrect(SkynetConfig::get('core_connection_protocol').$url))
     {
       return false;
     }
