@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html/SkynetRendererHtmlThemes.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -49,7 +49,7 @@ class SkynetRendererHtmlThemes
     table { font-size:1.0em; width:100%; max-width:100%; table-layout: fixed; }
     td { border-bottom: 1px solid #313c33; padding:2px; word-wrap: break-word; }
     th { color: #707070; font-weight: bold; text-align:left; }
-    tr:hover { background:#0c0c0c; color: #616f62; } 
+    tr:hover { background:#0c0c0c; color: #fff; } 
     tr:hover a {  } 
     tr:hover th { background:#000; }
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }

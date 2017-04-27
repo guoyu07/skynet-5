@@ -338,27 +338,53 @@ class Skynet
 
     try
     {
-      $connResult = $connect->connect($remote_cluster, $chain);
+      $connResult = $connect->connect($remote_cluster, $chain);     
+      
       if($connResult)
       {
         $this->successConnections++;
-        $this->clusters[$this->connectId - 1] = $connect->getCluster();
+        if($connect->getAddition())
+        {
+          $this->clusters[] = $connect->getCluster();
+        } else {
+          $this->clusters[$this->connectId - 1] = $connect->getCluster();
+        }
         $this->isConnected = true;
       } elseif($connResult === null) 
       {
-        $this->clusters[$this->connectId - 1]->getHeader()->setResult(0);
+        if($connect->getAddition())
+        {
+          $this->clusters[] = $connect->getCluster();
+        } else {
+          $this->clusters[$this->connectId - 1]->getHeader()->setResult(0);
+        }
       } elseif(!$connResult) 
       {
-        $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
-      }      
+        if($connect->getAddition())
+        {
+          $this->clusters[] = $connect->getCluster();
+        } else {
+          $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
+        }
+      }  
 
     } catch(SkynetException $e)
     {
-      $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
+      if($connect->getAddition())
+      {
+        $this->clusters[] = $connect->getCluster();
+      } else {
+        $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
+      }
+      
       $this->addState(SkynetTypes::CONN_ERR, SkynetTypes::CONN_ERR.' : '. $connect->getConnection()->getUrl().$connect->getConnection()->getParams());
       $this->addError('Connection error: '.$e->getMessage(), $e);
     }
-
+    $monits = $connect->getMonits();
+    if(count($monits) > 0)
+    {
+      $this->monits = array_merge($this->monits, $monits);
+    }
     $this->breakConnections = $connect->getBreakConnections();
 
     $data = $connect->getConnectionData();

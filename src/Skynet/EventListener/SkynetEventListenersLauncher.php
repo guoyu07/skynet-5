@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenersLauncher.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -59,6 +59,9 @@ class SkynetEventListenersLauncher
   
   /** @var string[] Tables data */
   private $dbTables = [];
+  
+  /** @var string[] Monits */
+  private $monits = [];
 
  /**
   * Constructor
@@ -178,7 +181,31 @@ class SkynetEventListenersLauncher
       break;      
     }
   } 
-
+ 
+ 
+  private function get_class_name($classname)
+  {
+    if($pos = strrpos($classname, '\\')) 
+    {
+      return substr($classname, $pos + 1);
+    }
+    return $pos;
+  }
+ 
+ /**
+  * Assigns monits from listeners
+  *
+  * @param string[] Monits from listener
+  */     
+  private function assignMonits($listener, $eventName, $context = null)
+  {
+    $monits = $listener->getMonits();
+    if(is_array($monits) && count($monits) > 0)
+    {
+      $this->monits[] = '['.$this->get_class_name(get_class($listener)).'] : '.$eventName.'('.$context.')<br>'.implode('<br>', $monits).'<br>';    
+    }  
+  }
+  
  /**
   * Launch Event Listeners
   *
@@ -198,6 +225,7 @@ class SkynetEventListenersLauncher
       case 'onResponse':
         foreach($this->eventListeners as $listener)
         {
+          $listener->resetMonits();
           $listener->setConnId($this->connectId);
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
@@ -221,6 +249,7 @@ class SkynetEventListenersLauncher
               $listener->onBroadcast('afterReceive');
             }
           }
+          $this->assignMonits($listener, $event, 'afterReceive'); 
         }
       break;
 
@@ -228,6 +257,7 @@ class SkynetEventListenersLauncher
       case 'onRequest':
         foreach($this->eventListeners as $listener)
         {
+          $listener->resetMonits();
           $listener->setConnId($this->connectId);
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
@@ -238,6 +268,7 @@ class SkynetEventListenersLauncher
             $listener->onRequest('beforeSend');
           }
           $requests = $this->request->getRequestsData();
+          $this->assignMonits($listener, $event, 'beforeSend');
         }
 
         if($this->request->isField('@broadcast') 
@@ -252,6 +283,7 @@ class SkynetEventListenersLauncher
       case 'onResponseLoggers':
         foreach($this->eventLoggers as $listener)
         {
+          $listener->resetMonits();
           $listener->setConnId($this->connectId);
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
@@ -275,6 +307,7 @@ class SkynetEventListenersLauncher
               $listener->onBroadcast('afterReceive');
             }
           }
+          $this->assignMonits($listener, $event, 'afterReceive');
         }
       break;
 
@@ -282,6 +315,7 @@ class SkynetEventListenersLauncher
       case 'onRequestLoggers':
         foreach($this->eventLoggers as $listener)
         {
+          $listener->resetMonits();
           $listener->setConnId($this->connectId);
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
@@ -292,6 +326,7 @@ class SkynetEventListenersLauncher
             $listener->onRequest('beforeSend');
           }
           $requests = $this->request->getRequestsData();
+          $this->assignMonits($listener, $event, 'beforeSend');
         }
       break;
       
@@ -299,6 +334,7 @@ class SkynetEventListenersLauncher
       case 'onCli':
         foreach($this->eventListeners as $listener)
         {
+          $listener->resetMonits();
           $listener->assignCli($this->cli);
           if(method_exists($listener, 'onCli'))
           {
@@ -308,6 +344,7 @@ class SkynetEventListenersLauncher
           {
             $this->cliOutput[] = $output;
           }
+          $this->assignMonits($listener, $event, 'onCli');
         }
       break;
       
@@ -315,6 +352,7 @@ class SkynetEventListenersLauncher
       case 'onConsole':
         foreach($this->eventListeners as $listener)
         {
+          $listener->resetMonits();
           $listener->assignConsole($this->console);
           if(method_exists($listener, 'onConsole'))
           {
@@ -324,6 +362,7 @@ class SkynetEventListenersLauncher
           {
             $this->consoleOutput[] = $output;
           }
+          $this->assignMonits($listener, $event, 'onConsole');
         }
       break;
     }
@@ -348,6 +387,7 @@ class SkynetEventListenersLauncher
       case 'onResponse':
         foreach($this->eventListeners as $listener)
         {
+          $listener->resetMonits();
           $listener->setConnId($this->connectId);
           $listener->setSender($this->sender);
           $this->request->loadRequest();
@@ -379,6 +419,7 @@ class SkynetEventListenersLauncher
               }
             }
           }
+          $this->assignMonits($listener, $event, 'beforeSend');
         }
       break;
 
@@ -386,6 +427,7 @@ class SkynetEventListenersLauncher
       case 'onRequest':
         foreach($this->eventListeners as $listener)
         {
+          $listener->resetMonits();
           $listener->setConnId($this->connectId);
           $listener->setSender($this->sender);
           $this->request->loadRequest();
@@ -403,6 +445,7 @@ class SkynetEventListenersLauncher
               $listener->onRequest('afterReceive');
             }
           }
+          $this->assignMonits($listener, $event, 'afterReceive');
         }
       break;
 
@@ -410,6 +453,7 @@ class SkynetEventListenersLauncher
       case 'onResponseLoggers':
         foreach($this->eventLoggers as $listener)
         {
+          $listener->resetMonits();
           $listener->setConnId($this->connectId);
           $listener->setSender($this->sender);
           $this->request->loadRequest();
@@ -441,6 +485,7 @@ class SkynetEventListenersLauncher
               }
             }
           }
+          $this->assignMonits($listener, $event, 'beforeSend');
         }
       break;
 
@@ -448,6 +493,7 @@ class SkynetEventListenersLauncher
       case 'onRequestLoggers':
         foreach($this->eventLoggers as $listener)
         {
+          $listener->resetMonits();
           $listener->setConnId($this->connectId);
           $listener->setSender($this->sender);
           $this->request->loadRequest();
@@ -465,8 +511,19 @@ class SkynetEventListenersLauncher
               $listener->onRequest('afterReceive');
             }
           }
+          $this->assignMonits($listener, $event, 'afterReceive');
         }
       break;
     }
+  }
+  
+ /**
+  * Returns monits
+  *
+  * @return string[] Monits
+  */
+  public function getMonits()
+  {
+    return $this->monits;
   }
 }

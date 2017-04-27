@@ -4,7 +4,7 @@
  * Skynet/EventLogger/SkynetEventListenerLoggerDatabase.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -64,14 +64,9 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
   */
   public function onRequest($context = null)
   {
-    if(\SkynetUser\SkynetConfig::get('logs_db_requests')) 
+    if(\SkynetUser\SkynetConfig::get('db') && \SkynetUser\SkynetConfig::get('logs_db_requests')) 
     {
       $this->saveRequestToDb($context);
-    }
-
-    if($this->myAddress == 'localhost/skynet/skynetCluster.php')
-    {
-       $this->request->set('add', '5');
     }
   }
 
@@ -86,18 +81,9 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
   */
   public function onResponse($context = null)
   {
-    if(\SkynetUser\SkynetConfig::get('logs_db_responses')) 
+    if(\SkynetUser\SkynetConfig::get('db') && \SkynetUser\SkynetConfig::get('logs_db_responses')) 
     {
       $this->saveResponseToDb($context);
-    }
-
-    if($this->myAddress == 'localhost/skynet/skynetCluster2.php')
-    {
-      if($this->request->get('add') !== null)
-      {
-        $w = 5 + (int)$this->request->get('add');
-        $this->response->set('wynik', $w);
-      }
     }
   }
 
@@ -281,9 +267,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
   */
   private function saveResponseToDb($context)
   {
-    if($this->skynetChain->isRequestForChain() ||
-    !$this->db_connected ||
-    !$this->db_created)
+    if($this->skynetChain->isRequestForChain())
     {
       return false;
     }
@@ -333,6 +317,9 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
          $skynet_id = $this->responseData['_skynet_id'];
          $logInfo = 'from &lt;&lt; '.$sender;
       }
+      
+      $sender = SkynetHelper::cleanUrl($sender);
+      $receiver = SkynetHelper::cleanUrl($receiver);
 
       $time = time();
       $stmt->bindParam(':skynet_id', $skynet_id, \PDO::PARAM_STR);
@@ -363,8 +350,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
   */
   private function saveRequestToDb($context)
   {
-    if($this->skynetChain->isRequestForChain() ||
-    !$this->db_connected || !$this->db_created)
+    if($this->skynetChain->isRequestForChain())
     {
       return false;
     }
@@ -410,6 +396,9 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
          $receiver = $this->receiverClusterUrl;
          $skynet_id = \SkynetUser\SkynetConfig::KEY_ID;
       }
+      
+      $sender = SkynetHelper::cleanUrl($sender);
+      $receiver = SkynetHelper::cleanUrl($receiver);
 
       $time = time();
       $senderUrl = SkynetHelper::getMyUrl();
@@ -457,6 +446,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
          }
       }
     }
+    
+    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
 
     try
     {
@@ -508,7 +499,9 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
          }
       }
     }
-
+    
+    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
+    
     try
     {
       $stmt = $this->db->prepare(
@@ -557,6 +550,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
          }
       }
     }
+    
+    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
 
     try
     {

@@ -180,7 +180,11 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
   */
   private function decodeIfNeeded($key, $val)
   {
-    if(is_numeric($key)) return $val;
+    if(is_numeric($key)) 
+    {
+      return $val;
+    }
+    
     if($key == '_skynet_clusters' || $key == '@_skynet_clusters')
     {
       $ret = [];

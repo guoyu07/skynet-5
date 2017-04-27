@@ -4,7 +4,7 @@
  * Skynet/Cluster/SkynetClustersRegistry.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -56,6 +56,9 @@ class SkynetClustersRegistry
   
   /** @var SkynetVerifier Verifier instance */
   private $verifier;
+  
+  /** @var string[] Monits */
+  private $monits = [];
 
  /**
   * Constructor
@@ -141,12 +144,16 @@ class SkynetClustersRegistry
     
     if($this->isCluster($cluster))
     {
-      return $this->update($cluster);
+      $this->update($cluster);
       
     } else {
+      
       if(!$this->isClusterBlocked($cluster))
       {        
-        return $this->insert($cluster);
+        if($this->insert($cluster))
+        {          
+          return true;
+        }
       }
     }    
   }  
@@ -167,7 +174,10 @@ class SkynetClustersRegistry
     }   
     if(!$this->isClusterBlocked($cluster))
     {     
-      return $this->insertBlocked($cluster);
+      if($this->insertBlocked($cluster))
+      {        
+        return true;
+      }
     }
   }    
   
@@ -551,6 +561,7 @@ class SkynetClustersRegistry
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
+        $this->monits[] = 'Clusters Registry: cluster removed from list: '.$url;
         return true;
       }
     
@@ -583,6 +594,7 @@ class SkynetClustersRegistry
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
+        $this->monits[] = 'Clusters Registry: cluster removed from blocked list: '.$url;
         return true;
       }
     
@@ -664,6 +676,12 @@ class SkynetClustersRegistry
 
       if($stmt->execute())
       {
+        $this->monits[] = 'Clusters Registry: cluster added to list: '.SkynetHelper::cleanUrl($cluster->getUrl());
+        if($this->isClusterBlocked($cluster))
+        {     
+          $this->removeBlocked($cluster);
+        }
+        
         $this->addState(SkynetTypes::CLUSTERS_DB, 'CLUSTER ['.$url.'] ADDED TO DB');
         return true;
       } else {
@@ -748,6 +766,7 @@ class SkynetClustersRegistry
 
       if($stmt->execute())
       {
+        $this->monits[] = 'Clusters Registry: cluster added to blocked list: '.SkynetHelper::cleanUrl($cluster->getUrl());
         $this->addState(SkynetTypes::CLUSTERS_DB, 'CLUSTER ['.$url.'] ADDED TO DB');
         return true;
       } else {
@@ -794,11 +813,21 @@ class SkynetClustersRegistry
       {
         if($this->isCluster($cluster))
         {
-          return $this->update($cluster);
+          $this->update($cluster);
         } else {
-          return $this->insert($cluster);
+          $this->insert($cluster);
         }
       }
     }
+  }
+  
+ /**
+  * Returns monits
+  *
+  * @return string[] Monits
+  */
+  public function getMonits()
+  {
+    return $this->monits;
   }
 }

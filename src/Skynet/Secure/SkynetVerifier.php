@@ -266,7 +266,7 @@ class SkynetVerifier
   *
   * @return bool True if valid
   */
-  public function isRequestKeyVerified($key = null)
+  public function isRequestKeyVerified($key = null, $sender = false, SkynetResponse $response = null)
   {
     $success = false;    
     
@@ -284,9 +284,10 @@ class SkynetVerifier
         $this->requestKey = $this->encryptor->decrypt($_REQUEST['_skynet_id']);
       }
       
+      /* Verify when responder gets request */
       if(password_verify($this->packageKey, $this->requestKey))
-      {
-        if($this->isRequestHash() && $this->isRequestSenderUrl())
+      {        
+        if(!$sender && $this->isRequestHash() && $this->isRequestSenderUrl())
         {
           $strToVerify = $this->requestSenderUrl.$this->packageKey;
           if(password_verify($strToVerify, $this->requestHash))
@@ -296,7 +297,26 @@ class SkynetVerifier
               $success = true;
             }
           }
-        }   
+          
+        /* Verify when sender receives response */
+        } elseif($sender) 
+        {
+          if($response !== null)
+          {
+            $responseData = $response->getResponseData();
+            if(isset($responseData['_skynet_cluster_url']) && isset($responseData['_skynet_hash']) && !empty($responseData['_skynet_cluster_url']) && !empty($responseData['_skynet_hash']))
+            {
+              $strToVerify = $responseData['_skynet_cluster_url'].$this->packageKey;
+              if(password_verify($strToVerify, $responseData['_skynet_hash']))
+              {
+                if(strcmp(SkynetHelper::getMyUrl(), $responseData['_skynet_cluster_url']) !== 0)
+                {                  
+                  $success = true;
+                }
+              }
+            }
+          }
+        }
       }     
       
       if($success === true)

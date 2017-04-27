@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerEcho.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -82,7 +82,14 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   {
     if($context == 'afterReceive')
     {
-
+      if($this->response->get('@<<self_updateSuccess') !== null)
+      {        
+        $this->addMonit('[SUCCESS] Update succesfull: '.$this->response->get('@<<self_updateSuccess'));
+      }
+      if($this->response->get('@<<self_updateError') !== null)
+      {
+        $this->addMonit('[ERROR] Update error: '.$this->response->get('@<<self_updateError'));
+      }
     }
 
 
@@ -95,7 +102,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
         {
           $address = $this->request->get('@self_update')['source'];
         } else {
-           $this->response->set('@<<self_update_error', 'NO SOURCE: '.SkynetHelper::getMyUrl());           
+           $this->response->set('@<<self_updateError', 'NO SOURCE: '.SkynetHelper::getMyUrl());           
            return false;
         }        
         
@@ -206,9 +213,9 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
         
         if(!$success) 
         {
-          $this->response->set('@<<self_update_error', SkynetHelper::getMyUrl());
+          $this->response->set('@<<self_updateError', SkynetHelper::getMyUrl());
         } else {
-          $this->response->set('@<<self_update_success', SkynetHelper::getMyUrl());         
+          $this->response->set('@<<self_updateSuccess', SkynetHelper::getMyUrl());         
         }
       }
     }

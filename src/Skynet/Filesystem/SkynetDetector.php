@@ -4,7 +4,7 @@
  * Skynet/Filesystem/SkynetDetector.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -23,9 +23,9 @@ use Skynet\Common\SkynetTypes;
 use Skynet\Common\SkynetHelper;
 
  /**
-  * Skynet Cloner
+  * Skynet Detector
   *
-  * Creates another Skynet clusters on-fly
+  * Checks for other clusters in this directory
   */
 class SkynetDetector
 {
@@ -62,7 +62,8 @@ class SkynetDetector
           $clusters[] = $address; 
         }          
       }      
-    }
+    } 
+    
     return $clusters;
   }   
   

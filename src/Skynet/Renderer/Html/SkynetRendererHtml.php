@@ -166,13 +166,17 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
         break; 
 
         case 'database':
+            
+           $records = $this->databaseRenderer->renderDatabaseView();
+           $sorter = $this->databaseRenderer->renderDatabaseSwitch();
+           
            /* --- Center Main --- */
            $this->output[] = $this->elements->addSectionId('dbSwitch'); 
-           $this->output[] = $this->databaseRenderer->renderDatabaseSwitch();
+           $this->output[] = $sorter;
            $this->output[] = $this->elements->addSectionEnd();
            
            $this->output[] = $this->elements->addSectionId('dbRecords'); 
-           $this->output[] = $this->databaseRenderer->renderDatabaseView();
+           $this->output[] = $records;
            $this->output[] = $this->elements->addSectionEnd();
         break;
       }   

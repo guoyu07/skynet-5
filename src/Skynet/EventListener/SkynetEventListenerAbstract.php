@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerAbstract.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -106,6 +106,9 @@ abstract class SkynetEventListenerAbstract
   
   /** @var SkynetDebug Debugger */
   protected $debug;
+  
+  /** @var string[] Monits */
+  protected $monits = [];
 
 
  /**
@@ -128,6 +131,21 @@ abstract class SkynetEventListenerAbstract
     $this->debug = new SkynetDebug();
   }
 
+ /**
+  * Adds monit
+  *
+  * @param string $mode
+  */
+  public function addMonit($monit)
+  {
+    $tmpMonit = $monit;
+    if(is_array($monit))
+    {
+      $tmpMonit = implode('<br>', $monit);
+    }
+    $this->monits[] = $tmpMonit;
+  }
+  
  /**
   * Sets context - sender or cluster
   *
@@ -309,5 +327,23 @@ abstract class SkynetEventListenerAbstract
   public function assignConsole(SkynetConsole $console)
   {
      $this->console = $console;
+  }
+ 
+ /**
+  * Resets monits
+  */
+  public function resetMonits()
+  {
+    $this->monits = [];
+  }
+  
+ /**
+  * Returns monits
+  *
+  * @return string[] Monits
+  */
+  public function getMonits()
+  {
+    return $this->monits;
   }
 }

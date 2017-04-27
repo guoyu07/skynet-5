@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerRegistry.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -55,7 +55,7 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
   {
     if($context == 'beforeSend')
     {
-      
+     
     }
   }
 
@@ -72,7 +72,25 @@ class SkynetEventListenerRegistry extends SkynetEventListenerAbstract implements
   {
     if($context == 'afterReceive')
     {
-      
+      if($this->response->get('@<<reg_setSuccess') !== null)
+      {
+         $fields = $this->response->get('@<<reg_setSuccess');
+         if(is_array($fields))
+         {
+           $fields = implode(', ', $fields);
+         }
+         
+         $this->addMonit('[SUCCESS] Registry values set: '.$fields);
+      }
+      if($this->response->get('@<<reg_setErrors') !== null)
+      {
+        $fields = $this->response->get('@<<reg_setErrors');
+        if(is_array($fields))
+        {
+          $fields = implode(',', $fields);
+        }
+        $this->addMonit('[ERROR] Registry values not set: '.$fields);
+      }
     }
 
     if($context == 'beforeSend')

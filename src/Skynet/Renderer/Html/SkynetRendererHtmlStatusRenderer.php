@@ -92,7 +92,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     if($c > 0)
     {
       $output[] = $this->elements->addSectionClass('monits');
-      $output[] = $this->elements->addBold('Information: ');
+      $output[] = $this->elements->addBold('Information(s):').$this->elements->getNl();
       foreach($this->monits as $monit)
       {
         $output[] = $monit.$this->elements->getNl();       
