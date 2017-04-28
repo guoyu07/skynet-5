@@ -1,3 +1,9 @@
+1.1.6-stable (2017.04.27)
+
+- added output from listeners
+- cloner fix
+- added theme switcher
+
 1.1.5-stable (2017.04.26)
 
 - params hashed added
