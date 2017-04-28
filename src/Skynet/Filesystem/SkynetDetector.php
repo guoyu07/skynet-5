@@ -4,7 +4,7 @@
  * Skynet/Filesystem/SkynetDetector.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -50,7 +50,7 @@ class SkynetDetector
   private function checkDir($dir = '')
   {   
     $clusters = [];
-    $d = glob($dir.'skynet*.php');
+    $d = glob($dir.'*skynet*.php');
     foreach($d as $file)
     {
       $name = str_replace($d, '', $file);
@@ -62,8 +62,7 @@ class SkynetDetector
           $clusters[] = $address; 
         }          
       }      
-    } 
-    
+    }     
     return $clusters;
   }   
   

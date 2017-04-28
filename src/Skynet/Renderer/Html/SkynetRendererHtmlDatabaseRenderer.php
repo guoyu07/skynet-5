@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlDatabaseRenderer.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -364,7 +364,7 @@ class SkynetRendererHtmlDatabaseRenderer
   private function getNewButton()
   {
     $newHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetNewRecord=1&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;    
-    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('New record'), false, 'btnNormal').$this->elements->getNl().$this->elements->getNl();
+    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('[+] New record'), false, 'btnNormal').$this->elements->getNl().$this->elements->getNl();
   }  
   
  /**
