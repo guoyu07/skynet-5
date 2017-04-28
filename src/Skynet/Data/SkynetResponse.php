@@ -4,7 +4,7 @@
  * Skynet/Data/SkynetResponse.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -18,6 +18,7 @@ use Skynet\Error\SkynetErrorsTrait;
 use Skynet\State\SkynetStatesTrait;
 use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Cluster\SkynetClusterHeader;
+use Skynet\Cluster\SkynetClustersUrlsChain;
 use Skynet\Core\SkynetChain;
 use Skynet\Encryptor\SkynetEncryptorsFactory;
 use Skynet\Secure\SkynetVerifier;
@@ -63,6 +64,9 @@ class SkynetResponse
 
   /** @var SkynetClusterHeader SkynetClusterHeader instance */
   private $clusterHeader;
+  
+  /** @var clustersUrlsChain clustersUrlsChain instance */
+  private $clustersUrlsChain;
 
   /** @var SkynetEncryptorInterface SkynetEncryptorInterface instance */
   private $encryptor;
@@ -84,6 +88,7 @@ class SkynetResponse
     $this->verifier = new SkynetVerifier();
     $this->clustersRegistry = new SkynetClustersRegistry();
     $this->clusterHeader = new SkynetClusterHeader();
+    $this->clustersUrlsChain = new SkynetClustersUrlsChain();
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->paramsParser = new SkynetParams();
     $this->skynetChain = new SkynetChain();
@@ -309,7 +314,11 @@ class SkynetResponse
     $this->set('_skynet_cluster_url', $clusterHeader->getUrl());
     $this->set('_skynet_cluster_ip', $clusterHeader->getIp());
     $this->set('_skynet_cluster_time', time());
-    $this->set('_skynet_clusters', $this->skynetChain->parseMyClusters());
+    
+    if(\SkynetUser\SkynetConfig::get('core_urls_chain'))
+    {
+      $this->set('_skynet_clusters_chain', $this->clustersUrlsChain->parseMyClusters());
+    }
   }
 
  /**

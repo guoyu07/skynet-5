@@ -4,7 +4,7 @@
  * Skynet/Cluster/SkynetClustersRegistry.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -130,14 +130,14 @@ class SkynetClustersRegistry
   * @return bool
   */  
   public function add(SkynetCluster $cluster = null)
-  {
-    /* Update from remote list from header */
+  {    
     if($cluster === null)
     {
         return false;
     }
     
-    if($cluster->getHeader() !== null  && !empty($cluster->getHeader()->getClusters()))
+    /* Update via remote list from urls chain */
+    if(\SkynetUser\SkynetConfig::get('core_urls_chain') && $cluster->getHeader() !== null  && !empty($cluster->getHeader()->getClusters()))
     {
       $this->updateFromHeader($cluster);
     }  

@@ -4,6 +4,7 @@
  * Skynet/SkynetConfig.php
  *
  * @package Skynet
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -55,7 +56,10 @@ class SkynetConfig
     /* core_check_new_versions -> bool:[true|false]
     If TRUE - information about new version is given from GitHub */
     'core_check_new_versions' => true,
-
+    
+    /* core_urls_chain -> bool:[true|false]
+    If TRUE - Skynet will include urls chain to requests/responses and will be updates new clusters from it  */
+    'core_urls_chain' => true,
 
     /* core_encryptor -> string:[openSSL|mcrypt|base64|...]
     Name of registered class used for encrypting data */

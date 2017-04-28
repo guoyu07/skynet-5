@@ -4,7 +4,7 @@
  * Skynet/Data/SkynetRequest.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -17,6 +17,7 @@ namespace Skynet\Data;
 use Skynet\State\SkynetStatesTrait;
 use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Cluster\SkynetClusterHeader;
+use Skynet\Cluster\SkynetClustersUrlsChain;
 use Skynet\Core\SkynetChain;
 use Skynet\Encryptor\SkynetEncryptorsFactory;
 use Skynet\Secure\SkynetVerifier;
@@ -46,6 +47,9 @@ class SkynetRequest
 
   /** @var SkynetClustersRegistry SkynetClustersRegistry instance */
   private $clustersRegistry;
+  
+  /** @var clustersUrlsChain clustersUrlsChain instance */
+  private $clustersUrlsChain;
 
   /** @var SkynetChain SkynetChain instance */
   private $skynetChain;
@@ -68,6 +72,7 @@ class SkynetRequest
   public function __construct()
   {
     $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersUrlsChain = new SkynetClustersUrlsChain();
     $this->skynetChain = new SkynetChain();
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->verifier = new SkynetVerifier();
@@ -103,7 +108,7 @@ class SkynetRequest
     }
   }
   
-   /**
+ /**
   * Quick alias for add new request field
   *
   * @param string $name Field name/key
@@ -295,12 +300,6 @@ class SkynetRequest
     /* Prepare my header */
     $clusterHeader = new SkynetClusterHeader();
     $clusterHeader->generate();
-
-    /* If urls chain is empty (possibly it is the first connection) then generate chain and add my cluster to it */
-    if(!$this->isField('_skynet_clusters_chain'))
-    {
-      $this->set('_skynet_clusters_chain', base64_encode(SkynetHelper::getMyUrl()));      
-    }
     
     $milliseconds = round(microtime(true) * 1000);
 
@@ -314,10 +313,14 @@ class SkynetRequest
     $this->set('_skynet_version', $clusterHeader->getVersion());
     $this->set('_skynet_cluster_url', $clusterHeader->getUrl());
     $this->set('_skynet_cluster_ip', $clusterHeader->getIp());
-    $this->set('_skynet_cluster_time', time());
-    $this->set('_skynet_clusters', $this->skynetChain->parseMyClusters());
+    $this->set('_skynet_cluster_time', time());   
     $this->set('_skynet_sender_time', time());
     $this->set('_skynet_sender_url', SkynetHelper::getMyUrl());
+    
+    if(\SkynetUser\SkynetConfig::get('core_urls_chain'))
+    {
+      $this->set('_skynet_clusters_chain', $this->clustersUrlsChain->parseMyClusters());
+    }
   }
 
  /**

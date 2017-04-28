@@ -4,7 +4,7 @@
  * Skynet/Cluster/SkynetClustersUrlsChain.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -44,8 +44,11 @@ class SkynetClustersUrlsChain
   /** @var string Sender URL */
   private $senderUrl;
   
- /** @var SkynetVerifier Verifier instance */
+  /** @var SkynetVerifier Verifier instance */
   private $verifier;
+  
+  /** @var SkynetClustersRegistry ClustersRegistry instance */
+  private $clustersRegistry;
 
  /**
   * Constructor
@@ -54,6 +57,7 @@ class SkynetClustersUrlsChain
   {
     $this->myUrl = SkynetHelper::getMyUrl();
     $this->verifier = new SkynetVerifier();
+    $this->clustersRegistry = new SkynetClustersRegistry();
   }
 
  /**
@@ -66,6 +70,36 @@ class SkynetClustersUrlsChain
     $this->request = $request;
   }
 
+ /**
+  * Parses clusters from dataabse into urls chain
+  *
+  * Creates urls chain from saved clusters. This chain will be sended with request to update clusters on another clusters
+  *
+  * @return string Parsed chain
+  */
+  public function parseMyClusters()
+  {
+    $clusters = $this->clustersRegistry->getAll();
+    $ary = [];
+    $ret = '';
+    $ary[] = base64_encode(SkynetHelper::getMyUrl());
+    if(count($clusters) > 0)
+    {
+      foreach($clusters as $cluster)
+      {
+        if(!$this->clustersRegistry->isClusterBlocked($cluster))
+        {
+          if(!empty($cluster->getUrl())) 
+          {
+            $ary[] = base64_encode($cluster->getUrl());
+          }
+        }
+      }
+      $ret = implode(';', $ary);
+    }
+    return $ret;
+  }
+  
  /**
   * Loads clusters urls saved in request into $this->clusters[] array
   */

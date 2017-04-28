@@ -4,7 +4,7 @@
  * Skynet/Core/SkynetChain.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -72,36 +72,6 @@ class SkynetChain
 
     $this->updateMyChain();
     $this->showMyChain();
-  }
-
- /**
-  * Parses clusters from dataabse into urls chain
-  *
-  * Creates urls chain from saved clusters. This chain will be sended with request to update clusters on another clusters
-  *
-  * @return string Parsed chain
-  */
-  public function parseMyClusters()
-  {
-    $clusters = $this->clustersRegistry->getAll();
-    $ary = [];
-    $ret = '';
-    $ary[] = base64_encode(SkynetHelper::getMyUrl());
-    if(count($clusters) > 0)
-    {
-      foreach($clusters as $cluster)
-      {
-        if(!$this->clustersRegistry->isClusterBlocked($cluster))
-        {
-          if(!empty($cluster->getUrl())) 
-          {
-            $ary[] = base64_encode($cluster->getUrl());
-          }
-        }
-      }
-      $ret = implode(';', $ary);
-    }
-    return $ret;
   }
 
  /**
@@ -189,7 +159,7 @@ class SkynetChain
       $ary['_skynet_cluster_url'] = $this->encrypt(SkynetHelper::getMyUrl());
       $ary['_skynet_cluster_ip'] = $this->encrypt($_SERVER['REMOTE_ADDR']);
       $ary['_skynet_version'] = $this->encrypt(SkynetVersion::VERSION);
-      $ary['_skynet_clusters'] = $this->encrypt($this->clustersRegistry->parseMyClusters());
+      $ary['_skynet_clusters_chain'] = $this->encrypt($this->clustersRegistry->parseMyClusters());
 
       echo json_encode($ary);
 
