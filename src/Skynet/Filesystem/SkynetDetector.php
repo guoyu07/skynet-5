@@ -9,7 +9,7 @@
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
 namespace Skynet\Filesystem;
@@ -50,18 +50,25 @@ class SkynetDetector
   private function checkDir($dir = '')
   {   
     $clusters = [];
+    
+    if(!empty($dir))
+    {
+      if(substr($dir, -1) != '/')
+      {
+        $dir.= '/';
+      }
+    }    
+    
     $d = glob($dir.'*skynet*.php');
     foreach($d as $file)
     {
-      $name = str_replace($d, '', $file);
+      $name = str_replace($d, '', $file);      
+      $address = SkynetHelper::getMyServer().'/'.$file;
+      
+      if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl())
       {
-        $address = SkynetHelper::getMyServer().'/'.$file;
-        
-        if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl())
-        {
-          $clusters[] = $address; 
-        }          
-      }      
+        $clusters[] = $address; 
+      }   
     }     
     return $clusters;
   }   

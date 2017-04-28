@@ -4,7 +4,7 @@
  * Skynet/Filesystem/SkynetCloner.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -124,12 +124,27 @@ class SkynetCloner
     
     $dir = @glob($from.'*');
     $dirs = [];
+    
+    $toExcludeDirs = [];
+    $excludeDirs = [];
+    
+    $toExcludeDirs[] = \SkynetUser\SkynetConfig::get('logs_dir');
+    
+    foreach($toExcludeDirs as $excludeDir)
+    {
+      if(!empty($exludeDir) && substr($excludeDir, -1) == '/')
+      {
+        $excludeDir = rtrim($excludeDir, '/');
+        $excludeDirs[] = $excludeDir;
+      }      
+    }
+    
     foreach($dir as $path)
     {
       if(is_dir($path))
       {
         $base = basename($path);
-        if($base != 'logs')
+        if(!in_array($base, $excludeDirs))
         {
           $dirs[] = $path;
         }
@@ -168,7 +183,7 @@ class SkynetCloner
     
     try
     {      
-      if(copy($myFile, $newFile))
+      if(@copy($myFile, $newFile))
       {
         $this->addState(SkynetTypes::CLONER,'CLONED TO: '.$newFile);  
         $address = $_SERVER['HTTP_HOST'].str_replace(basename($_SERVER['PHP_SELF']), '', $_SERVER['PHP_SELF']).$newFile;       

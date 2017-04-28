@@ -6,7 +6,7 @@
  * Checking and veryfing access to skynet
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -71,13 +71,20 @@ class SkynetLogFile
     $this->name = $name;
     $this->ext = '.txt';
     
-    if(!empty(\SkynetUser\SkynetConfig::get('logs_dir')) && !is_dir(\SkynetUser\SkynetConfig::get('logs_dir'))) 
+    $logsDir = \SkynetUser\SkynetConfig::get('logs_dir');
+    if(!empty($logsDir) && substr($logsDir, -1) != '/')
+    {
+      $logsDir.= '/';
+      \SkynetUser\SkynetConfig::set('logs_dir', $logsDir);
+    }
+    
+    if(!empty($logsDir) && !is_dir($logsDir)) 
     {
       try
       {
-        if(!mkdir(\SkynetUser\SkynetConfig::get('logs_dir')))
+        if(!mkdir($logsDir))
         {
-          throw new SkynetException('ERROR CREATING DIRECTORY: '.\SkynetUser\SkynetConfig::get('logs_dir'));
+          throw new SkynetException('ERROR CREATING DIRECTORY: '.$logsDir);
         }          
       } catch(SkynetException $e)
       {
@@ -264,6 +271,8 @@ class SkynetLogFile
   */
   public function save($mode = null, $toFile = true)
   {   
+    $logsDir = \SkynetUser\SkynetConfig::get('logs_dir');    
+    
     if($this->selfSuffix === null) 
     {
       $this->selfSuffix = str_replace("/", "-", SkynetHelper::getMyUrl());
@@ -277,8 +286,11 @@ class SkynetLogFile
     }
     
     $time = '';
-    if($this->timePrefix) $time = time().'_';    
-    $file = \SkynetUser\SkynetConfig::get('logs_dir').$time.$this->fileName.$suffix.$counter.$this->ext;
+    if($this->timePrefix) 
+    {
+      $time = time().'_';    
+    }
+    $file = $logsDir.$time.$this->fileName.$suffix.$counter.$this->ext;
     
     /* Save mode */
     if($mode !== null)
