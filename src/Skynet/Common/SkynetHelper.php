@@ -4,7 +4,7 @@
  * Skynet/Common/SkynetHelper.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -198,6 +198,8 @@ class SkynetHelper
     $titles['response_include_request'] = 'Include @request in response';
     
     $titles['logs_errors_with_full_trace'] = 'Log errors with full trace';
+    $titles['logs_txt_include_secure_data'] = 'Include Key ID and Hash in txt logs';
+    $titles['logs_txt_include_clusters_data'] = 'Include clusters URLs in txt logs';
     
     $titles['logs_dir'] = 'Directory for logs';
     

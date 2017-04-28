@@ -4,7 +4,7 @@
  * Skynet/EventLogger/SkynetEventListenerLoggerFiles.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -239,20 +239,32 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $logFile = new SkynetLogFile('RESPONSE');
     $logFile->setFileName($fileName);
     $logFile->setCounter($this->connId);
-    $logFile->setHeader("Response ".$direction.": ".$remote);
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("Response ".$direction.": ".$remote);
+    }
 
     foreach($this->responseData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
     /* If from response sender */
     if($direction == 'to')
     {
       $logFile->addSeparator();
-      $logFile->addLine("RESPONSE FOR THIS REQUEST FROM [".$remote."]");
+      if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+      {
+        $logFile->addLine("RESPONSE FOR THIS REQUEST FROM [".$remote."]");
+      }
       foreach($this->requestsData as $k => $v)
       {
-        $logFile->addLine($this->parseLine($k, $v));
+        if($this->canSave($k))
+        {
+          $logFile->addLine($this->parseLine($k, $v));
+        }
       }
     }
     return $logFile->save();
@@ -293,10 +305,16 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $logFile = new SkynetLogFile('REQUEST');
     $logFile->setFileName($fileName);
     $logFile->setCounter($this->connId);
-    $logFile->setHeader("Request ".$direction.": ".$receiver);
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("Request ".$direction.": ".$receiver);
+    }
     foreach($this->requestsData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
     return $logFile->save();
   }
@@ -324,15 +342,21 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $fileName = 'echo';
     $logFile = new SkynetLogFile('ECHO');
     $logFile->setFileName($fileName);
-    $logFile->setHeader("@Echo From (sended to me from): ".$senderUrl);
-    $logFile->setHeader("@Echo To (resended to): ".$receivers_urls);
-    $logFile->addLine("URLS CHAIN: ".$urlsChainPlain);
-    $logFile->addSeparator();
-    $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("@Echo From (sended to me from): ".$senderUrl);
+      $logFile->setHeader("@Echo To (resended to): ".$receivers_urls);
+      $logFile->addLine("URLS CHAIN: ".$urlsChainPlain);
+      $logFile->addSeparator();
+      $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    }
 
     foreach($this->requestsData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
     return $logFile->save();
   }
@@ -361,24 +385,40 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $fileName = 'broadcast';
     $logFile = new SkynetLogFile('BROADCAST');
     $logFile->setFileName($fileName);
-    $logFile->setHeader("@Broadcast From (sended to me from): ".$senderUrl);
-    $logFile->setHeader("@Broadcast To (resended to): ".$receivers_urls);
-    $logFile->addLine("URLS CHAIN: ".$urlsChainPlain);
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("@Broadcast From (sended to me from): ".$senderUrl);
+      $logFile->setHeader("@Broadcast To (resended to): ".$receivers_urls);
+      $logFile->addLine("URLS CHAIN: ".$urlsChainPlain);
+    }
     $logFile->addSeparator();
-    $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    }
 
     foreach($this->requestsData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
 
     if(is_array($broadcastedRequests) && count($broadcastedRequests) > 0)
     {
       $logFile->addSeparator();
-      $logFile->addLine("@BROADCASTED REQUEST TO [".$receivers_urls."]:");
+      if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+      {
+        $logFile->addLine("@BROADCASTED REQUEST TO [".$receivers_urls."]:");
+      }
+      
       foreach($broadcastedRequests as $k => $v)
       {
-        $logFile->addLine($this->parseLine($k, $v, true));
+        if($this->canSave($k))
+        {
+          $logFile->addLine($this->parseLine($k, $v, true));
+        }
       }
     }
     return $logFile->save();
@@ -398,7 +438,10 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $fileName = 'self-update';
     $logFile = new SkynetLogFile('SELF-UPDATE');
     $logFile->setFileName($fileName);
-    $logFile->setHeader("@Self-update request From (sended to me from): ".$senderUrl);
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("@Self-update request From (sended to me from): ".$senderUrl);
+    }
     $logFile->addLine("UPDATE LOG:");
     foreach($logs as $k => $v)
     {     
@@ -406,17 +449,66 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     }    
     
     $logFile->addSeparator();
-    $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    }
 
     foreach($this->requestsData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
+    return $logFile->save();
+  }
+  
+ /**
+  * Saves User Log
+  *
+  * @param string $content Log message
+  * @param string $listener Event listener/file
+  * @param string $line Line
+  * @param string $event Event name
+  * @param string $method Method name
+  */
+  public function saveUserLogToFile($content, $listener = '', $line = 0, $event = '', $method = '')
+  {   
+    $logs = [];
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logs['Sender URL'] = $this->senderClusterUrl;
+      $logs['Receiver URL'] = $this->receiverClusterUrl;
+    }
+    $logs['Listener'] = $listener;
+    $logs['Event'] = $event;
+    $logs['Method'] = $method;
+    $logs['Line'] = $line;   
+    $logs['Message'] = $content;    
+    
+    $fileName = 'log';
+    $logFile = new SkynetLogFile('USERLOG');
+    $logFile->setFileName($fileName);
+    $logFile->setHeader("@User log from Event Listener: ".$listener);
+    $logFile->addLine("LOG:");
+    foreach($logs as $k => $v)
+    {     
+      $logFile->addLine($this->parseLine($k, $v));     
+    }    
+    
+    $logFile->addSeparator();
+    if(\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->addLine("#SENDER [".$this->senderClusterUrl."]");
+      $logFile->addLine("#RECEIVER [".$this->receiverClusterUrl."]");
+    }
+
     return $logFile->save();
   }
 
  /**
-  * Parse single line
+  * Parses single line
   *
   * @param string $k Field name/key
   * @param string $v Field value
@@ -426,7 +518,7 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
   */
   private function parseLine($k, $v, $force = false)
   {     
-    $row = '';
+    $row = '';    
     if(\SkynetUser\SkynetConfig::get('logs_txt_include_internal_data') || $force)
     {
        $row = "  ".$k.": ".$this->decodeIfNeeded($k, $v);
@@ -437,5 +529,33 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
        }
     }       
     return $row;
+  }
+
+ /**
+  * Checks for secure data
+  *
+  * @param string $key Field key
+  *
+  * @return bool True if can save
+  */  
+  private function canSave($key)
+  {
+    if($key == '_skynet_id' || $key == '_skynet_hash' || $key == '@_skynet_id' || $key == '@_skynet_hash')
+    {
+      if(!\SkynetUser\SkynetConfig::get('logs_txt_include_secure_data'))
+      {
+        return false;
+      }
+    }
+    
+    if($key == '_skynet_cluster_url' || $key == '_skynet_sender_url' || $key == '@_skynet_cluster_url' || $key == '@_skynet_sender_url' || $key == '_skynet_clusters_chain' || $key == '@_skynet_clusters_chain')
+    {
+      if(!\SkynetUser\SkynetConfig::get('logs_txt_include_clusters_data'))
+      {
+        return false;
+      }
+    }
+    
+    return true;
   }
 }

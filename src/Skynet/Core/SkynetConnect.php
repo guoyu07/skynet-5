@@ -4,7 +4,7 @@
  * Skynet/Core/SkynetConnect.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -160,6 +160,8 @@ class SkynetConnect
       $this->newData();
     }
 
+    $this->eventListenersLauncher->assignSenderClusterUrl(SkynetHelper::getMyUrl());
+    $this->eventListenersLauncher->assignReceiverClusterUrl($this->cluster->getUrl());
     $this->prepareListeners();
 
     $this->prepareRequest($chain);
@@ -181,6 +183,9 @@ class SkynetConnect
       $this->prepareResponse();
       $this->updateClusterHeader();
       $this->storeCluster();
+      
+      $this->eventListenersLauncher->assignSenderClusterUrl($this->cluster->getUrl());
+      $this->eventListenersLauncher->assignReceiverClusterUrl(SkynetHelper::getMyUrl());
       $this->launchResponseListeners();
       $result = true;
     }

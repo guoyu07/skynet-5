@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenersLauncher.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -35,6 +35,12 @@ class SkynetEventListenersLauncher
   
   /** @var string Cluster UR */
   private $clusterUrl;
+  
+  /** @var string Sender cluster UR */
+  private $senderClusterUrl;
+  
+  /** @var string Receiver cluster UR */
+  private $receiverClusterUrl;
   
   /** @var SkynetCli CLI object */
   private $cli;
@@ -112,6 +118,26 @@ class SkynetEventListenersLauncher
     $this->clusterUrl = $clusterUrl;
   }
  
+ /**
+  * Assigns sender clusterURL
+  *
+  * @param string $clusterUrl
+  */   
+  public function assignSenderClusterUrl($clusterUrl)
+  {
+    $this->senderClusterUrl = $clusterUrl;
+  }
+ 
+ /**
+  * Assigns receiver clusterURL
+  *
+  * @param string $clusterUrl
+  */   
+  public function assignReceiverClusterUrl($clusterUrl)
+  {
+    $this->receiverClusterUrl = $clusterUrl;
+  }
+  
  /**
   * Assigns CLI
   *
@@ -227,6 +253,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onResponse');
+          $listener->setContext('afterReceive');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
@@ -259,6 +291,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onRequest');
+          $listener->setContext('beforeSend');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
@@ -285,6 +323,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onResponseLoggers');
+          $listener->setContext('afterReceive');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
@@ -317,6 +361,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onRequestLoggers');
+          $listener->setContext('beforeSend');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
@@ -335,6 +385,12 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->resetMonits();
+          $listener->setEventName('onCli');
+          $listener->setContext('onCli');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->assignCli($this->cli);
           if(method_exists($listener, 'onCli'))
           {
@@ -353,6 +409,12 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->resetMonits();
+          $listener->setEventName('onConsole');
+          $listener->setContext('onConsole');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->assignConsole($this->console);
           if(method_exists($listener, 'onConsole'))
           {
@@ -389,6 +451,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onResponse');
+          $listener->setContext('beforeSend');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $this->request->loadRequest();
           $listener->assignRequest($this->request);
@@ -396,9 +464,7 @@ class SkynetEventListenersLauncher
           $requests = $this->request->getRequestsData();
           $listener->setRequestData($requests);
           $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          if(isset($requests['_skynet']) && isset($requests['_skynet_sender_url']) && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
             if(method_exists($listener, 'onResponse'))
             {
@@ -429,6 +495,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onRequest');
+          $listener->setContext('afterReceive');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $this->request->loadRequest();
           $listener->assignRequest($this->request);
@@ -436,9 +508,7 @@ class SkynetEventListenersLauncher
           $requests = $this->request->getRequestsData();
           $listener->setRequestData($requests);
           $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          if(isset($requests['_skynet']) && isset($requests['_skynet_sender_url']) && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
             if(method_exists($listener, 'onRequest'))
             {
@@ -455,6 +525,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onResponseLoggers');
+          $listener->setContext('beforeSend');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $this->request->loadRequest();
           $listener->assignRequest($this->request);
@@ -462,9 +538,7 @@ class SkynetEventListenersLauncher
           $requests = $this->request->getRequestsData();
           $listener->setRequestData($requests);
           $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          if(isset($requests['_skynet']) && isset($requests['_skynet_sender_url']) && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
             if(method_exists($listener, 'onResponse'))
             {
@@ -495,6 +569,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onRequestLoggers');
+          $listener->setContext('afterReceive');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $this->request->loadRequest();
           $listener->assignRequest($this->request);
@@ -502,9 +582,7 @@ class SkynetEventListenersLauncher
           $requests = $this->request->getRequestsData();
           $listener->setRequestData($requests);
           $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          if(isset($requests['_skynet']) && isset($requests['_skynet_sender_url']) && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
             if(method_exists($listener, 'onRequest'))
             {

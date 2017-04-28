@@ -4,7 +4,7 @@
  * Skynet/EventLogger/SkynetEventListenerLoggerDatabase.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -171,6 +171,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
     $tables = [];
     $fields = [];    
     
+    $queries['skynet_logs_user'] = 'CREATE TABLE skynet_logs_user (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT, listener VARCHAR (100), event VARCHAR (150), method TEXT, line INTEGER)';
     $queries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
     $queries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';    
     $queries['skynet_logs_echo'] = 'CREATE TABLE skynet_logs_echo (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
@@ -179,6 +180,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
     $queries['skynet_access_errors'] = 'CREATE TABLE skynet_access_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, remote_cluster TEXT, request_uri TEXT, remote_host TEXT, remote_ip VARCHAR (15))';   
     $queries['skynet_logs_selfupdate'] = 'CREATE TABLE skynet_logs_selfupdate (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, sender_url TEXT, source  TEXT, status TEXT, from_version VARCHAR (15), to_version VARCHAR (15))';    
    
+    $tables['skynet_logs_user'] = 'Logs: user logs';
     $tables['skynet_logs_responses'] = 'Logs: Responses';
     $tables['skynet_logs_requests'] = 'Logs: Requests';
     $tables['skynet_logs_echo'] = 'Logs: Echo';
@@ -187,6 +189,18 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
     $tables['skynet_access_errors'] = 'Logs: Access Errors';
     $tables['skynet_logs_selfupdate'] = 'Logs: Self-updates';  
     
+    $fields['skynet_logs_user'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'content' => 'Log message',
+    'sender_url' => 'Sender',
+    'receiver_url' => 'Receiver',
+    'listener' => 'Event Listener',
+    'event' => 'Event Name',
+    'method' => 'Method',
+    'line' => 'Line'
+    ];
     
     $fields['skynet_logs_responses'] = [
     'id' => '#ID',
@@ -466,6 +480,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $stmt->bindParam(':urls_chain', $urlsChainPlain, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
+        $this->addState(SkynetTypes::DB_LOG, 'ECHO FROM [from &gt;&gt; '.$senderUrl.' ] SAVED TO DB');
         return true;
       }
       
@@ -519,6 +534,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $stmt->bindParam(':urls_chain', $urlsChainPlain, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
+        $this->addState(SkynetTypes::DB_LOG, 'BROADCAST FROM [from &gt;&gt; '.$senderUrl.' ] SAVED TO DB');
         return true;    
       }
         
@@ -576,6 +592,54 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $stmt->bindParam(':to_version', $to_version, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
+        $this->addState(SkynetTypes::DB_LOG, 'SELF-UPDATE FROM [from &gt;&gt; '.$senderUrl.' ] SAVED TO DB');
+        return true;
+      }
+      
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::DB_LOG, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  }
+  
+ /**
+  * Saves User Log
+  *
+  * @param string $content Log message
+  * @param string $listener Event listener/file
+  * @param string $line Line
+  * @param string $event Event name
+  * @param string $method Method name
+  */
+  public function saveUserLogToDb($content, $listener = '', $line = 0, $event = '', $method = '')
+  {
+    try
+    {
+      $stmt = $this->db->prepare(
+      'INSERT INTO skynet_logs_user (skynet_id, created_at, content, sender_url, receiver_url, listener, event, method, line)
+      VALUES(:skynet_id, :created_at, :content, :sender_url, :receiver_url, :listener, :event, :method, :line)'
+      );
+      
+      $sender_url = $this->senderClusterUrl;
+      $receiver_url = $this->receiverClusterUrl;      
+      $time = time();
+      $id = \SkynetUser\SkynetConfig::KEY_ID;
+      $line = intval($line);
+      
+      $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
+      $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
+      $stmt->bindParam(':content', $content, \PDO::PARAM_STR);
+      $stmt->bindParam(':sender_url', $sender_url, \PDO::PARAM_STR);
+      $stmt->bindParam(':receiver_url', $receiver_url, \PDO::PARAM_STR);
+      $stmt->bindParam(':listener', $listener, \PDO::PARAM_STR);
+      $stmt->bindParam(':event', $event, \PDO::PARAM_STR);
+      $stmt->bindParam(':method', $method, \PDO::PARAM_STR);
+      $stmt->bindParam(':line', $line, \PDO::PARAM_STR);
+      
+      if($stmt->execute()) 
+      {
+        $this->addState(SkynetTypes::DB_LOG, 'USERLOG [created by &gt;&gt; '.$listener.' ] SAVED TO DB');
         return true;
       }
       

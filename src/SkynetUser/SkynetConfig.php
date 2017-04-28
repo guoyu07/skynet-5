@@ -155,6 +155,14 @@ class SkynetConfig
     Set TRUE to log errors with full error code, file, line and trace data, set FALSE to log only error messages */
     'logs_errors_with_full_trace' => true,
     
+    /* logs_txt_include_secure_data -> bool:[true|false]
+    Set TRUE to log Skynet Key ID and Hash (use this only for debug, not in production */
+    'logs_txt_include_secure_data' => true,
+    
+    /* logs_txt_include_clusters_data -> bool:[true|false]
+    Set TRUE to log clusters URLs and clusters chain (use this only for debug, not in production */
+    'logs_txt_include_clusters_data' => true,
+    
     /* logs_dir -> string:[path/]
     Specify path to dir where Skynet will save logs, or leave empty to save logs in Skynet directory */
     'logs_dir' => 'logs/',

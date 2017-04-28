@@ -54,7 +54,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {
     if($context == 'beforeSend')
     {
-      
+      $this->addLog('xxxx');
     }
     
     if($context == 'afterReceive')

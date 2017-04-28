@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerAbstract.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -30,6 +30,8 @@ use Skynet\Cluster\SkynetClustersRegistry;
 use Skynet\Console\SkynetConsole;
 use Skynet\Console\SkynetCli;
 use Skynet\Debug\SkynetDebug;
+use Skynet\EventLogger\SkynetEventListenerLoggerDatabase;
+use Skynet\EventLogger\SkynetEventListenerLoggerFiles;
 
  /**
   * Skynet Event Listener Abstract
@@ -62,8 +64,11 @@ abstract class SkynetEventListenerAbstract
   /** @var bool Status of table schema in database, true if all tables exists */
   protected $db_created = false;
 
-  /** @var string Url of receiver of sending request */
+  /** @var string Url of receiver */
   protected $receiverClusterUrl;
+  
+  /** @var string Url of sender */
+  protected $senderClusterUrl;
 
   /** @var PDO PDO connection instance */
   protected $db;
@@ -109,6 +114,12 @@ abstract class SkynetEventListenerAbstract
   
   /** @var string[] Monits */
   protected $monits = [];
+  
+  /** @var string Event */
+  protected $eventName;
+  
+  /** @var string Context */
+  protected $context;
 
 
  /**
@@ -144,6 +155,26 @@ abstract class SkynetEventListenerAbstract
       $tmpMonit = implode('<br>', $monit);
     }
     $this->monits[] = $tmpMonit;
+  }
+  
+ /**
+  * Sets event name
+  *
+  * @param string $event
+  */
+  public function setEventName($event)
+  {
+      $this->eventName = $event;
+  }
+ 
+ /**
+  * Sets context
+  *
+  * @param string $context
+  */
+  public function setContext($context)
+  {
+      $this->context = $context;
   }
   
  /**
@@ -216,9 +247,19 @@ abstract class SkynetEventListenerAbstract
   */
   public function setReceiverClusterUrl($url)
   {
-    $this->receiverClusterUrl = $url;
+    $this->receiverClusterUrl = SkynetHelper::cleanUrl($url);
   }
 
+ /**
+  * Sets URL address of sender cluster 
+  *
+  * @param string $url
+  */
+  public function setSenderClusterUrl($url)
+  {
+    $this->senderClusterUrl = SkynetHelper::cleanUrl($url);
+  }
+  
  /**
   * Sets if I'm sender
   *
@@ -338,6 +379,70 @@ abstract class SkynetEventListenerAbstract
   }
   
  /**
+  * Adds log
+  *
+  * @param string $content Log message
+  *
+  * @return bool True if success
+  */
+  public function addLog($content = '')
+  {
+    $loggerDb = new SkynetEventListenerLoggerDatabase();
+    $loggerDb->setSenderClusterUrl($this->senderClusterUrl);
+    $loggerDb->setReceiverClusterUrl($this->receiverClusterUrl);
+    
+    $loggerTxt = new SkynetEventListenerLoggerFiles();
+    $loggerTxt->setSenderClusterUrl($this->senderClusterUrl);
+    $loggerTxt->setReceiverClusterUrl($this->receiverClusterUrl);
+    
+    $argsStr = '';
+    $file = '';
+    $line = '';   
+    $method = '';
+    $args = [];
+    
+    $success = false;
+    
+    $listener = pathinfo(@debug_backtrace()[0]['file'], PATHINFO_FILENAME); 
+    $line = @debug_backtrace()[0]['line'];    
+    $method = @debug_backtrace()[1]['function']; 
+    $args = @debug_backtrace()[1]['args'];     
+   
+    $argsAry = [];
+    if(is_array($args) && count($args) > 0)
+    {
+      foreach($args as $arg)
+      {
+        if(is_array($arg))
+        {
+          $argsAry[] = implode(':', $arg);
+        } elseif(is_object($arg))
+        {
+          $argsAry[] = get_class($arg);
+        } else {
+          $argsAry[] = $arg;
+        }
+      }      
+      $argsStr = implode(',', $argsAry);
+    }
+    
+    $eventStr = $this->eventName.'('.$this->context.')';
+    $methodStr = $method.'('.$argsStr.')';   
+    
+    if($loggerDb->saveUserLogToDb($content, $listener, $line, $eventStr, $methodStr))
+    {
+      $success = true;
+    }
+    
+    if($loggerTxt->saveUserLogToFile($content, $listener, $line, $eventStr, $methodStr))
+    {
+      $success = true;
+    }
+    
+    return $success;
+  }
+  
+  /**
   * Returns monits
   *
   * @return string[] Monits

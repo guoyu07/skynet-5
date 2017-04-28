@@ -4,7 +4,7 @@
  * Skynet/SkynetVersion.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -20,10 +20,10 @@ namespace Skynet;
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.1.6-stable';
+   const VERSION = '1.2.0';
    
    /** @var string build */
-   const BUILD = '2017.04.27';
+   const BUILD = '2017.04.29';
    
    /** @var string website */
    const WEBSITE = 'https://github.com/szczyglinski/skynet';

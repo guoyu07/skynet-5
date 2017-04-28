@@ -4,7 +4,7 @@
  * Skynet/Core/SkynetResponder.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -202,6 +202,8 @@ class SkynetResponder
     $this->request->loadRequest();
     $this->request->prepareRequests();
 
+    $this->eventListenersLauncher->assignSenderClusterUrl($this->request->get('_skynet_sender_url'));
+    $this->eventListenersLauncher->assignReceiverClusterUrl(SkynetHelper::getMyUrl());
     $this->prepareListeners();
     $this->eventListenersLauncher->launch('onRequest');
     $this->eventListenersLauncher->launch('onRequestLoggers');
@@ -216,6 +218,9 @@ class SkynetResponder
     $this->clustersRegistry->add($cluster);
 
     $this->response->assignRequest($this->request);
+    
+    $this->eventListenersLauncher->assignSenderClusterUrl(SkynetHelper::getMyUrl());
+    $this->eventListenersLauncher->assignReceiverClusterUrl($this->request->get('_skynet_sender_url'));
     $this->prepareListeners();
     $this->eventListenersLauncher->launch('onResponse');    
    
