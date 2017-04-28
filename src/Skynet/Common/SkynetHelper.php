@@ -176,10 +176,13 @@ class SkynetHelper
     $titles['core_cloner'] = 'Cloner engine enabled';
     $titles['core_check_new_versions'] = 'Check GitHub for new version';
     $titles['core_urls_chain'] = 'URLs Chain Engine enabled';
+    $titles['core_mode'] = 'Default mode (0=Idle, 1=Single, 2=Broadcast)';
     $titles['core_encryptor'] = 'Data encryptor';
     $titles['core_encryptor_algorithm'] = 'Data encryptor algorithm';
     $titles['core_renderer_theme'] = 'Renderer theme';
     $titles['core_date_format'] = 'Date format';
+    $titles['core_admin_ip_whitelist'] = 'IP\'s whitelist for access to Control Panel';
+    $titles['core_open_sender'] = 'Always send requests (even without login to Control Panel)';
     
     $titles['translator_config'] = 'Translate config keys to titles';
     $titles['translator_params'] = 'Translate internal params to titles';

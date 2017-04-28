@@ -60,6 +60,10 @@ class SkynetConfig
     /* core_urls_chain -> bool:[true|false]
     If TRUE - Skynet will include urls chain to requests/responses and will be updates new clusters from it  */
     'core_urls_chain' => true,
+    
+    /* core_mode -> integer:0|1|2
+    Default Skynet Mode. 0 = Idle, 1 = Single, 2 = Broadcast */
+    'core_mode' => 2,
 
     /* core_encryptor -> string:[openSSL|mcrypt|base64|...]
     Name of registered class used for encrypting data */
@@ -76,6 +80,14 @@ class SkynetConfig
     /* core_date_format -> string
     Date format for date() function */
     'core_date_format' => 'H:i:s d.m.Y',
+    
+    /* core_admin_ip_whitelist -> string[]
+    IP Whitelist for accepting access to Control Panel */
+    'core_admin_ip_whitelist' => [],
+    
+    /*core_open_sender -> bool:[true|false]
+    If TRUE Skynet will always sends requests when open (without login to Control Panel) */
+    'core_open_sender' => true,
     
 /*
   ==================================

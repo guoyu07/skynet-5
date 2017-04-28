@@ -4,7 +4,7 @@
  * Skynet/Core/Skynet.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -153,7 +153,7 @@ class Skynet
   private $clusters = [];
 
   /** @var int connection mode */
-  private $connMode = 2;
+  private $connMode;
 
   /** @var SkynetDetector Clusters detector */
   private $clustersDetector;
@@ -198,6 +198,8 @@ class Skynet
     $this->eventListenersLauncher->assignResponse($this->response);
     $this->eventListenersLauncher->assignCli($this->cli);
     $this->eventListenersLauncher->assignConsole($this->console);
+    
+    $this->connMode = \SkynetUser\SkynetConfig::get('core_mode');
 
     $this->verifier->assignRequest($this->request);
     $this->modeController();
@@ -228,30 +230,33 @@ class Skynet
   {
     $startBroadcast = false;
 
-    /* Check for console and CLI args */
-    if($this->cli->isCli())
+    if($this->auth->isAuthorized() || $this->verifier->isOpenSender())
     {
-      $startBroadcast = $this->cliController();
-    } else {
-      $startBroadcast = $this->consoleController();
-    }
-
-    /* Start broadcasting clusters */
-    if($startBroadcast === true)
-    {
-      if($this->connMode == 2)
+      /* Check for console and CLI args */
+      if($this->cli->isCli())
       {
-        $this->broadcast();
+        $startBroadcast = $this->cliController();
+      } else {
+        $startBroadcast = $this->consoleController();
       }
-    }
 
-    /* clusters detector */
-    if(!$this->verifier->isPing())
-    {
-      $detectClusters = $this->detector->check();
-      if($detectClusters !== null)
+      /* Start broadcasting clusters */
+      if($startBroadcast === true)
       {
-        $this->monits[] = $detectClusters;
+        if($this->connMode == 2)
+        {
+          $this->broadcast();
+        }
+      }    
+
+      /* clusters detector */
+      if(!$this->verifier->isPing())
+      {
+        $detectClusters = $this->detector->check();
+        if($detectClusters !== null)
+        {
+          $this->monits[] = $detectClusters;
+        }
       }
     }
   }
@@ -266,7 +271,7 @@ class Skynet
   */
   public function broadcast()
   {    
-    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || !$this->auth->isAuthorized())
+    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || (!$this->verifier->isOpenSender() && (!$this->auth->isAuthorized() || !$this->verifier->hasAdminIpAddress())))
     {
       return false;
     }
@@ -400,7 +405,7 @@ class Skynet
   */
   public function renderOutput()
   {
-    if($this->verifier->isPing())
+    if($this->verifier->isPing() || !$this->verifier->hasAdminIpAddress())
     {
       return '';
     }
@@ -701,7 +706,7 @@ class Skynet
   */
   public function __toString()
   {
-    if($this->verifier->isPing())
+    if($this->verifier->isPing() || !$this->verifier->hasAdminIpAddress())
     {
       return '';
     }

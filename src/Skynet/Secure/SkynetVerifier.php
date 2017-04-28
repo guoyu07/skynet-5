@@ -360,6 +360,39 @@ class SkynetVerifier
   }
 
  /**
+  * Checks if open sender (always send requests)
+  *
+  * @return bool True if open sender
+  */
+  public function isOpenSender()
+  {
+    if(\SkynetUser\SkynetConfig::get('core_open_sender'))
+    {
+      return true;
+    }
+  }
+  
+ /**
+  * Checks if user IP is on white list
+  *
+  * @return bool True if have access
+  */
+  public function hasAdminIpAddress()
+  {
+    $ips = \SkynetUser\SkynetConfig::get('core_admin_ip_whitelist');
+    $myIp = SkynetHelper::getRemoteIp();
+    
+    if(is_array($ips) && count($ips) > 0)
+    {
+      if(!in_array($myIp, $ips))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+ /**
   * Checks if Skynet is not under another Skynet connection
   *
   * @return bool True if is another connection
