@@ -65,7 +65,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   {
     if($context == 'beforeSend')
     {
-      //$this->request->set('@self_update', array('source' => 'aaaa'));
+      
     }
   }
 
@@ -92,18 +92,16 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
       }
     }
 
-
     if($context == 'beforeSend')
     {      
       if($this->request->get('@self_update') !== null)
-      { 
-        
+      {         
         if(isset($this->request->get('@self_update')['source']))
         {
           $address = $this->request->get('@self_update')['source'];
         } else {
-           $this->response->set('@<<self_updateError', 'NO SOURCE: '.SkynetHelper::getMyUrl());           
-           return false;
+          $this->response->set('@<<self_updateError', 'NO SOURCE: '.SkynetHelper::getMyUrl());           
+          return false;
         }        
         
         if($address == SkynetHelper::getMyUrl()) 
@@ -200,7 +198,10 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
           $data = [];
           $data['source'] = $address;
           $data['version'] = '';          
-          if(isset($encodedData->version)) $data['version'] = $encodedData->version;          
+          if(isset($encodedData->version)) 
+          {
+            $data['version'] = $encodedData->version;
+          }
           
           $logger = new SkynetEventListenerLoggerDatabase();
           $logger->assignRequest($this->request);
@@ -230,7 +231,10 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   */ 
   private function updateSourceCode($code)
   {
-    if(empty($code)) return false;
+    if(empty($code))
+    {
+      return false;
+    }
     $myFile = SkynetHelper::getMyBasename();
     $tmpFile = '__'.$myFile;
     $bckMyFile = '___'.$myFile;    
@@ -272,13 +276,12 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   {   
     $connection = SkynetConnectionsFactory::getInstance()->getConnector(\SkynetUser\SkynetConfig::get('core_connection_type'));
     $encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
-    $verifier = new SkynetVerifier();
-    $address = \SkynetUser\SkynetConfig::get('core_connection_protocol').$address;        
+    $verifier = new SkynetVerifier();    
 
     $ary = [];
     $ary['@code'] = 1;
     $ary['_skynet_hash'] = $verifier->generateHash();    
-    $ary['_skynet_id'] = \SkynetUser\SkynetConfig::KEY_ID;
+    $ary['_skynet_id'] = $verifier->getKeyHashed();
     $ary['_skynet_sender_url'] = SkynetHelper::getMyUrl();
     $ary['_skynet_cluster_url'] = SkynetHelper::getMyUrl();
 
@@ -290,6 +293,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
       $ary['_skynet_sender_url'] = $encryptor->encrypt(SkynetHelper::getMyUrl());
       $ary['_skynet_cluster_url'] = $encryptor->encrypt(SkynetHelper::getMyUrl());
     }
+   // $ary['_skynet_cluster_url']
     $connection->setRequests($ary);        
     return $connection->connect($address);
   }
@@ -363,10 +367,8 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   public function registerCommands()
   {    
     $cli = [];
-    $console = [];
-    
-    $console[] = ['@self_update', 'source:"source_cluster_address"', 'TO ALL'];   
-    
+    $console = [];    
+    $console[] = ['@self_update', 'source:"source_cluster_address"', 'TO ALL'];       
     return array('cli' => $cli, 'console' => $console);    
   }
   

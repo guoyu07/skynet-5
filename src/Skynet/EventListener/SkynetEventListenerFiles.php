@@ -141,7 +141,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         if(!is_array($this->request->get('@fdel')))
         {
           $result = 'NO PATH IN PARAM';
-          $this->response->set('@<<fgetStatus', $result);  
+          $this->response->set('@<<fdelStatus', $result);  
           return false;
         }      
         
@@ -151,7 +151,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
           $file = $params['path'];
         } else {
            $result = 'NO PATH IN PARAM';
-           $this->response->set('@<<fgetStatus', $result);  
+           $this->response->set('@<<fdelStatus', $result);  
            return false;
         }        
        
@@ -167,7 +167,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         } else {
           $result = 'FILE NOT EXISTS: '.$file;
         }
-        $this->response->set('@<<fgetStatus', $result);  
+        $this->response->set('@<<fdelStatus', $result);  
       }
     }
   }
@@ -185,24 +185,45 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {
     if($context == 'afterReceive')
     {
+      if($this->response->get('@<<fgetStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File get status: '.$this->response->get('@<<fgetStatus'));
+      }
+      
+      if($this->response->get('@<<fputStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File put status: '.$this->response->get('@<<fputStatus'));
+      }
+      
+      if($this->response->get('@<<fdelStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
+      }      
+      
       if($this->response->get('@<<fgetFile') !== null)
-      {
+      {          
+        $this->addMonit('[SUCCESS] Remote file received: '.$this->response->get('@<<fgetFile'));
+        
         $dir = '_download';
         if(!is_dir($dir))
         {
           if(!@mkdir($dir))
           {
-            $this->addError('FGET', 'MKDIR ERROR: '.$dir);  
+            $this->addError('FGET', 'MKDIR ERROR: '.$dir); 
+            $this->addMonit('[ERROR CREATING DIR] Directory not created: '.$dir);            
             return false;
           } 
         }
         
         $fileName = time().'_'.str_replace(array("\\", "/"), "-", $this->response->get('@<<fgetFile'));
-        if(!@file_put_contents($dir.'/'.$fileName, $this->response->get('@<<fgetData')))
+        $file = $dir.'/'.$fileName;
+        if(!@file_put_contents($file, $this->response->get('@<<fgetData')))
         {
-          $this->addError('FGET', 'FILE SAVE ERROR: '.$dir.'/'.$fileName);       
+          $this->addError('FGET', 'FILE SAVE ERROR: '.$file); 
+          $this->addMonit('[ERROR SAVING FILE] Remote file received but not saved: '.$file);
         } else {
-          $this->addState('FGET', 'FILE SAVED: '.$dir.'/'.$fileName);     
+          $this->addState('FGET', 'FILE SAVED: '.$file);
+          $this->addMonit('[SUCCESS] Remote file saved: '.$file);          
         }
       }
     }

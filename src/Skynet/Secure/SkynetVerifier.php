@@ -371,6 +371,19 @@ class SkynetVerifier
       return true;
     }
   }
+ 
+ /**
+  * Checks if Skynet requests for code
+  *
+  * @return bool True if request for code
+  */
+  public function isUpdateRequest()
+  {
+    if(isset($_REQUEST['@code']))
+    {
+      return true;
+    }
+  }
   
  /**
   * Checks if Skynet has opened database view

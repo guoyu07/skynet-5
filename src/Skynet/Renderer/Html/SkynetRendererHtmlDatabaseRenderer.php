@@ -486,20 +486,26 @@ class SkynetRendererHtmlDatabaseRenderer
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteAllRecords=1&_skynetPage=1&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $allDeleteLink = '';
     
-    if($this->selectedTable != 'skynet_chain')
+    if($this->database->ops->countTableRows($this->selectedTable) > 0 && $this->selectedTable != 'skynet_chain')
     {
       $deleteLink = 'javascript:if(confirm(\'Delete ALL RECORDS from this table?\')) window.location.assign(\''.$deleteHref.'\');';
       $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'btnDelete');
-    }
+    }   
     
-    return '<form method="GET" action="">
-    Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> 
-    Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> 
-    <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
-    <input type="submit" value="Execute"/> '.$allDeleteLink.'
-    <input type="hidden" name="_skynetView" value="database"/>
-    <input type="hidden" name="_skynetDatabase" value="'.$this->selectedTable.'"/>
-    </form>';      
+    $output = [];
+    $output[] = '<form method="GET" action="">';
+    if($this->database->ops->countTableRows($this->selectedTable) > 0)
+    {
+      $output[] = 'Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> ';
+    }
+    $output[] = 'Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select>  ';
+    $output[] = '<select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select> ';
+    $output[] = '<input type="submit" value="Execute"/> '.$allDeleteLink;
+    $output[] = '<input type="hidden" name="_skynetView" value="database"/>';
+    $output[] = '<input type="hidden" name="_skynetDatabase" value="'.$this->selectedTable.'"/>';
+    $output[] = '</form>';
+
+    return implode('', $output);
   }
 
  /**

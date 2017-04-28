@@ -91,7 +91,12 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
         }
        
         $monit = '[SUCCESS] New clones addresses: <br>';
-        $monit.= implode('<br>', $cloned);
+        if(is_array($cloned))
+        {
+          $monit.= implode('<br>', $cloned);
+        } else {
+          $monit.= $cloned;
+        }
         
         if($this->response->get('@<<clones') !== null)
         {

@@ -400,6 +400,11 @@ class Skynet
   */
   public function renderOutput()
   {
+    if($this->verifier->isPing())
+    {
+      return '';
+    }
+    
     $output = new SkynetOutput();
     if(isset($_REQUEST['_skynetAjax']))
     {
@@ -434,6 +439,7 @@ class Skynet
       $_SESSION['_skynetOptions'] = [];
       $_SESSION['_skynetOptions']['viewInternal'] = \SkynetUser\SkynetConfig::get('debug_internal');
       $_SESSION['_skynetOptions']['viewEcho'] = \SkynetUser\SkynetConfig::get('debug_echo');
+      $_SESSION['_skynetOptions']['theme'] = \SkynetUser\SkynetConfig::get('core_renderer_theme');
     }
     
     if(isset($_REQUEST['_skynetSetConnMode']))
@@ -454,6 +460,11 @@ class Skynet
     if(isset($_REQUEST['_skynetOptionViewEchoParams']))
     {      
       $_SESSION['_skynetOptions']['viewEcho'] = ($_REQUEST['_skynetOptionViewEchoParams'] == 1) ? true : false;
+    }
+    
+    if(isset($_REQUEST['_skynetTheme']))
+    {      
+      $_SESSION['_skynetOptions']['theme'] = $_REQUEST['_skynetTheme'];
     }
   }
 
@@ -690,6 +701,10 @@ class Skynet
   */
   public function __toString()
   {
+    if($this->verifier->isPing())
+    {
+      return '';
+    }
     return $this->renderOutput();
   }
 }

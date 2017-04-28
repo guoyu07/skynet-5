@@ -194,7 +194,7 @@ class SkynetResponder
   */
   public function launch()
   {    
-    if(!$this->verifier->hasIpAccess() || !$this->verifier->isRequestKeyVerified() || !$this->verifier->verifyChecksum())
+    if($this->verifier->isUpdateRequest() || !$this->verifier->hasIpAccess() || !$this->verifier->isRequestKeyVerified() || !$this->verifier->verifyChecksum())
     {
       return false;
     }

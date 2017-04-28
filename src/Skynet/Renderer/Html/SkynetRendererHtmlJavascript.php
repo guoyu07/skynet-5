@@ -346,6 +346,11 @@ class SkynetRendererHtmlJavascript
     return false;    
   },
   
+  changeTheme: function(form)
+  {
+    document.getElementById('_skynetThemeForm').submit();
+  },
+  
   connectionHelper: function()
   {
     var divIntervalStatus = document.getElementById('connIntervalStatus');

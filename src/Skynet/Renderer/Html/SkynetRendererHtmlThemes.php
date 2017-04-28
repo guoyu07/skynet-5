@@ -20,23 +20,26 @@ namespace Skynet\Renderer\Html;
 class SkynetRendererHtmlThemes
 {    
   /** @var string[] Array of themes CSS's */
-  private $themes = [];
+  private $css = [];
+  
+  /** @var string[] Theme names */
+  private $availableThemes = [];
   
 
  /**
   * Constructor
   */
   public function __construct()
-  {
-    $this->themes['raw'] = '
-    <style>
+  { 
+    $this->availableThemes['dark'] = 'Dark';    
+    
+    $this->css['light'] = '    
     html, body { font-family: Verdana, Arial; font-size: 0.8rem; line-height: 1.4; } 
     textarea { padding:5px; width:100%; height:300px; } 
-    </style>';
+    ';
     
-    $this->themes['dark'] = '
-    <style>
-    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px }    
+    $this->css['dark'] = '    
+    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px; }    
     b { color:#87b989; } 
     h2 { color: #5ba15f; } 
     h3 { color:#4f8553; margin:0; } 
@@ -46,12 +49,14 @@ class SkynetRendererHtmlThemes
     textarea { padding:5px; width:100%; height:90%; background: #000; color: green; }
     select, input {  font-family: Verdana, Arial; font-size: 0.8rem; background: #000; color: #9ed4a2; }
     select:hover, input:hover {  color: #fff; }
+    
     table { font-size:1.0em; width:100%; max-width:100%; table-layout: fixed; }
     td { border-bottom: 1px solid #313c33; padding:2px; word-wrap: break-word; }
     th { color: #707070; font-weight: bold; text-align:left; }
     tr:hover { background:#0c0c0c; color: #fff; } 
     tr:hover a {  } 
     tr:hover th { background:#000; }
+    
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }
     #header { height: 10%; min-height:70px; }
     #headerLogo { float:left; width:40%; max-height:100%; }
@@ -64,6 +69,7 @@ class SkynetRendererHtmlThemes
     #loginSection input[type="password"] { width:400px; }
     
     .formConnectionDataOptions { padding:0; margin:0; line-height:1.2; }
+    .formViews { padding:0; margin:0; }
     
     .debugListenerMy { color: #3ffb6e; }    
     .debuggerField { padding:5px; background:#fff; color: #000; font-size:1.2rem; }
@@ -80,14 +86,14 @@ class SkynetRendererHtmlThemes
     .reconnectArea { font-size:0.8rem; }
     .reconnectArea input { width: 30px; }
     .hide { display:none; }
+    .panel { }
     
     .sectionAddresses { width:50%; float:left; height:100%; max-height:100%; }
     .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
     
     .innerAddresses { width:99%; height:90%; max-height:90%; overflow-y:auto; }
     .innerMode { width:100%; height:10%; max-height:24px; overflow-y:auto; }
-    .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; }    
-   
+    .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; } 
     .innerConnectionsOptions { width:100%; height:5%; max-height:5%; min-height:38px; overflow-y:auto; }
     .innerConnectionsData { width:100%; height:95%; max-height:95%; overflow-y:auto; }
     
@@ -96,7 +102,6 @@ class SkynetRendererHtmlThemes
     .hdrColumn2 { width:15%; height:100%;  max-height:100%; float:left; overflow-y:auto; }
     .hdrColumn3 { width:15%; height:100%; max-height:100%; float:left; overflow-y:auto; }    
     .hdrSwitch { width:25%; height:100%; max-height:100%; float:right; overflow-y:auto; text-align:right; }
-    
     .hdrConnection { margin-top:5px; font-size: 1.0rem; }
     .hdrConnection .active { background-color: #3ffb6e; color: #000; }
     
@@ -116,9 +121,6 @@ class SkynetRendererHtmlThemes
     .tdClusterUrl { width:60%; }
     .tdClusterPing { width:10%; }
     .tdClusterConn { width:20%; }
-    
-    .panel { }
-    
     .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
     .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
     .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
@@ -127,7 +129,6 @@ class SkynetRendererHtmlThemes
     .statusIcon { padding: 1px; }
     .statusConnected { background: #3ffb6e; }    
     .statusError { background: red; }
-    
     .statusIdle, .statusSingle, .statusBroadcast { padding:3px; }
     .modeButtons a { background:#09270b; border: 1px solid silver; }
     .modeButtons a:hover { text-decoration:none; border: 1px solid #fff; }
@@ -167,9 +168,8 @@ class SkynetRendererHtmlThemes
     .btnDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
     .clr { clear: both; }
     .loginForm { padding-top:100px; }
-    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }    
-    
-    </style>';
+    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }  
+    ';
   }    
 
  /**
@@ -181,6 +181,16 @@ class SkynetRendererHtmlThemes
   */
   public function getTheme($name)
   {
-    return $this->themes[$name];
+    return $this->css[$name];
+  }
+  
+ /**
+  * Returns available themes names
+  *
+  * @return string[] Themes names
+  */
+  public function getAvailableThemes()
+  {
+    return $this->availableThemes;
   }
 }

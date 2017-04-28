@@ -463,12 +463,17 @@ class SkynetConsole
   private function parseCmdParams($paramsStr)
   {
     $params = [];
+    $semi = false;
+    
     $paramsStr = $this->removeLastSemicolon($paramsStr);
+    //var_dump($paramsStr);
    
     if(empty($paramsStr))
     {
       return false;
-    }   
+    }
+    
+    
    
     /* if param is quoted */
     if($this->isQuoted($paramsStr))
@@ -476,7 +481,7 @@ class SkynetConsole
       $data = $this->unQuote($paramsStr);      
       return array(0 => $data);
     }    
-   
+    
     /* if not quoted explode for params */
     $e = explode(',', $paramsStr);
     $numOfParams = count($e); 
@@ -492,7 +497,7 @@ class SkynetConsole
     
     foreach($e as $param)
     {
-      $params[] = trim($param);
+      $params[] = trim($param);      
     }
     
     return $params;    
@@ -507,22 +512,30 @@ class SkynetConsole
   */    
   private function getParamType($paramStr)
   {
+    $type = '';
+    
     if(empty($paramStr))
     {
       return false;
     }
     
-    if(strpos($paramStr, ':') === false)
+    $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+    if(!preg_match($pattern, $paramStr))
     {
-      return 'value';
+      $type = 'value';
+      
     } else {
-      if(strpos($paramStr, '://') === false)
+      
+      $pattern = '/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+      if(preg_match($pattern, $paramStr))
       {
-        return 'keyvalue';
+        $type = 'keyvalue';
       } else {
-        return 'value';
+        $type = 'value';
       }
-    }    
+    }   
+   
+    return $type;
   }
 
  /**
@@ -538,7 +551,10 @@ class SkynetConsole
     {
       return false;
     }    
-    
+    if(substr($paramStr, -1) == ';')
+    {
+      $paramStr = rtrim($paramStr, ';');
+    }
     $e = explode(':', $paramStr);
     
     $parts = count($e);
@@ -561,11 +577,7 @@ class SkynetConsole
           $valueParts[] = trim($e[$i], '" ');
         }
         $value.= implode(':', $valueParts);
-      }       
-      if(substr($value, -1) == ';')
-      {
-        $value = rtrim($value, ';');
-      }
+      }   
      
       $cleanValue = $this->unQuoteValue($value);
       $ary = [$key => $cleanValue];
@@ -611,7 +623,8 @@ class SkynetConsole
     
     $data = [];
     $data['command'] = rtrim($cmdName, ';');
-    $data['params'] = $paramsAry;    
+    $data['params'] = $paramsAry;  
+    
     return $data;          
   } 
   
@@ -641,7 +654,7 @@ class SkynetConsole
       $tmpParams = [];
       foreach($data['params'] as $param)
       {                    
-        $paramType = $this->getParamType($param);
+        $paramType = $this->getParamType($param);       
         $this->addParserState('PARAM: '.$param);
         $this->addParserState('PARAM_TYPE: '.$paramType);
         
@@ -654,8 +667,9 @@ class SkynetConsole
           break;
           
           case 'keyvalue':
+            
           /* if key:value assignment add as array [key] => [value] */
-            $tmpParams[] = $this->getParamKeyVal($param);
+            $tmpParams[] = $this->getParamKeyVal($param);            
           break;
         }
       }

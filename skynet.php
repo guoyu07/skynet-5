@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.27 23:11:04 (1493334664) */
+/* Skynet Standalone | version compiled: 2017.04.28 03:10:19 (1493349019) */
 
 namespace Skynet;
 
@@ -53,7 +53,7 @@ class SkynetConfig
     
     /* core_cloner -> bool:[true|false]
     If TRUE - cloner will be enabled and listening for clone command */
-    'core_cloner' => false,
+    'core_cloner' => true,
     
     /* core_check_new_versions -> bool:[true|false]
     If TRUE - information about new version is given from GitHub */
@@ -5457,12 +5457,17 @@ class SkynetConsole
   private function parseCmdParams($paramsStr)
   {
     $params = [];
+    $semi = false;
+    
     $paramsStr = $this->removeLastSemicolon($paramsStr);
+    //var_dump($paramsStr);
    
     if(empty($paramsStr))
     {
       return false;
-    }   
+    }
+    
+    
    
     /* if param is quoted */
     if($this->isQuoted($paramsStr))
@@ -5470,7 +5475,7 @@ class SkynetConsole
       $data = $this->unQuote($paramsStr);      
       return array(0 => $data);
     }    
-   
+    
     /* if not quoted explode for params */
     $e = explode(',', $paramsStr);
     $numOfParams = count($e); 
@@ -5486,7 +5491,7 @@ class SkynetConsole
     
     foreach($e as $param)
     {
-      $params[] = trim($param);
+      $params[] = trim($param);      
     }
     
     return $params;    
@@ -5501,22 +5506,30 @@ class SkynetConsole
   */    
   private function getParamType($paramStr)
   {
+    $type = '';
+    
     if(empty($paramStr))
     {
       return false;
     }
     
-    if(strpos($paramStr, ':') === false)
+    $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+    if(!preg_match($pattern, $paramStr))
     {
-      return 'value';
+      $type = 'value';
+      
     } else {
-      if(strpos($paramStr, '://') === false)
+      
+      $pattern = '/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+      if(preg_match($pattern, $paramStr))
       {
-        return 'keyvalue';
+        $type = 'keyvalue';
       } else {
-        return 'value';
+        $type = 'value';
       }
-    }    
+    }   
+   
+    return $type;
   }
 
  /**
@@ -5532,7 +5545,10 @@ class SkynetConsole
     {
       return false;
     }    
-    
+    if(substr($paramStr, -1) == ';')
+    {
+      $paramStr = rtrim($paramStr, ';');
+    }
     $e = explode(':', $paramStr);
     
     $parts = count($e);
@@ -5555,11 +5571,7 @@ class SkynetConsole
           $valueParts[] = trim($e[$i], '" ');
         }
         $value.= implode(':', $valueParts);
-      }       
-      if(substr($value, -1) == ';')
-      {
-        $value = rtrim($value, ';');
-      }
+      }   
      
       $cleanValue = $this->unQuoteValue($value);
       $ary = [$key => $cleanValue];
@@ -5605,7 +5617,8 @@ class SkynetConsole
     
     $data = [];
     $data['command'] = rtrim($cmdName, ';');
-    $data['params'] = $paramsAry;    
+    $data['params'] = $paramsAry;  
+    
     return $data;          
   } 
   
@@ -5635,7 +5648,7 @@ class SkynetConsole
       $tmpParams = [];
       foreach($data['params'] as $param)
       {                    
-        $paramType = $this->getParamType($param);
+        $paramType = $this->getParamType($param);       
         $this->addParserState('PARAM: '.$param);
         $this->addParserState('PARAM_TYPE: '.$paramType);
         
@@ -5648,8 +5661,9 @@ class SkynetConsole
           break;
           
           case 'keyvalue':
+            
           /* if key:value assignment add as array [key] => [value] */
-            $tmpParams[] = $this->getParamKeyVal($param);
+            $tmpParams[] = $this->getParamKeyVal($param);            
           break;
         }
       }
@@ -6487,6 +6501,11 @@ class Skynet
   */
   public function renderOutput()
   {
+    if($this->verifier->isPing())
+    {
+      return '';
+    }
+    
     $output = new SkynetOutput();
     if(isset($_REQUEST['_skynetAjax']))
     {
@@ -6521,6 +6540,7 @@ class Skynet
       $_SESSION['_skynetOptions'] = [];
       $_SESSION['_skynetOptions']['viewInternal'] = SkynetConfig::get('debug_internal');
       $_SESSION['_skynetOptions']['viewEcho'] = SkynetConfig::get('debug_echo');
+      $_SESSION['_skynetOptions']['theme'] = SkynetConfig::get('core_renderer_theme');
     }
     
     if(isset($_REQUEST['_skynetSetConnMode']))
@@ -6541,6 +6561,11 @@ class Skynet
     if(isset($_REQUEST['_skynetOptionViewEchoParams']))
     {      
       $_SESSION['_skynetOptions']['viewEcho'] = ($_REQUEST['_skynetOptionViewEchoParams'] == 1) ? true : false;
+    }
+    
+    if(isset($_REQUEST['_skynetTheme']))
+    {      
+      $_SESSION['_skynetOptions']['theme'] = $_REQUEST['_skynetTheme'];
     }
   }
 
@@ -6777,6 +6802,10 @@ class Skynet
   */
   public function __toString()
   {
+    if($this->verifier->isPing())
+    {
+      return '';
+    }
     return $this->renderOutput();
   }
 }
@@ -8277,7 +8306,7 @@ class SkynetResponder
   */
   public function launch()
   {    
-    if(!$this->verifier->hasIpAccess() || !$this->verifier->isRequestKeyVerified() || !$this->verifier->verifyChecksum())
+    if($this->verifier->isUpdateRequest() || !$this->verifier->hasIpAccess() || !$this->verifier->isRequestKeyVerified() || !$this->verifier->verifyChecksum())
     {
       return false;
     }
@@ -11646,7 +11675,7 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
  * Skynet/EventListener/SkynetEventListenerCloner.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -11725,7 +11754,12 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
         }
        
         $monit = '[SUCCESS] New clones addresses: <br>';
-        $monit.= implode('<br>', $cloned);
+        if(is_array($cloned))
+        {
+          $monit.= implode('<br>', $cloned);
+        } else {
+          $monit.= $cloned;
+        }
         
         if($this->response->get('@<<clones') !== null)
         {
@@ -12469,7 +12503,7 @@ class SkynetEventListenerEcho extends SkynetEventListenerAbstract implements Sky
  * Skynet/EventListener/SkynetEventListenerExec.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -12535,21 +12569,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
         $this->response->set('@<<execReturn', $return); 
         $this->response->set('@<<execOutput', $output); 
         $this->response->set('@<<exec', $this->request->get('@exec')['cmd']);
-      }
-
-      /* shell_exec() */
-      if($this->request->get('@shellexec') !== null)
-      {
-        if(!isset($this->request->get('@shellexec')['cmd']))
-        {
-          $this->response->set('@<<shellexec', 'COMMAND IS NULL');
-          return false;
-        }
-        $cmd = $this->request->get('@shellexec')['cmd'];     
-        $result = @exec($cmd);
-        $this->response->set('@<<shellexecResult', $result); 
-        $this->response->set('@<<shellexec', $this->request->get('@shellexec')['cmd']);
-      }   
+      } 
 
       /* system() */
       if($this->request->get('@system') !== null)
@@ -12609,7 +12629,8 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
           $this->response->set('@<<eval', 'PHP CODE IS NULL');
           return false;
         }
-        $php = $this->request->get('@eval')['php'];     
+        $php = $this->request->get('@eval')['php'];  
+        
         $result = @eval($php);
         $this->response->set('@<<evalReturn', $result); 
         $this->response->set('@<<eval', $this->request->get('@eval')['php']);
@@ -12630,7 +12651,77 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
   {
     if($context == 'afterReceive')
     {
+      /* exec */
+      if($this->response->get('@<<exec') !== null)
+      {        
+        $this->addMonit('[EXEC CMD] exec($cmd, , ): '.$this->response->get('@<<exec'));
+      }
+      if($this->response->get('@<<execReturn') !== null)
+      {        
+        $this->addMonit('[EXEC RETURN] exec( , , $return): '.$this->response->get('@<<execReturn'));
+      }
+      if($this->response->get('@<<execResult') !== null)
+      {        
+        $this->addMonit('[EXEC RESULT] $result = exec(): '.$this->response->get('@<<execResult'));
+      }
+      if($this->response->get('@<<execOutput') !== null)
+      {        
+        $output = $this->response->get('@<<execOutput');
+        if(is_array($output))
+        {
+          $output = '<br>'.implode('<br>', $output);
+        }
+        $this->addMonit('[EXEC OUTPUT] exec( , $output[], ): '.$output);
+      }
       
+      
+      /* system */
+      if($this->response->get('@<<system') !== null)
+      {        
+        $this->addMonit('[SYSTEM CMD] system($cmd, ): '.$this->response->get('@<<system'));
+      }
+      if($this->response->get('@<<systemReturn') !== null)
+      {        
+        $this->addMonit('[SYSTEM RETURN] system( , $return): '.$this->response->get('@<<systemReturn'));
+      }
+      if($this->response->get('@<<systemResult') !== null)
+      {        
+        $this->addMonit('[SYSTEM RESULT] $result = system(): '.$this->response->get('@<<systemResult'));
+      }
+      
+      /* proc */
+      if($this->response->get('@<<proc') !== null)
+      {        
+        $this->addMonit('[PROCESS] proc_open($proc, , ): '.$this->response->get('@<<proc'));
+      }
+      if($this->response->get('@<<procReturn') !== null)
+      {        
+        $this->addMonit('[PROCESS RETURN] $return = proc_close($proc): '.$this->response->get('@<<procReturn'));
+      }
+      if($this->response->get('@<<procResult') !== null)
+      {        
+        $output = $this->response->get('@<<procResult');
+        if(is_array($output))
+        {
+          $output = '<br>'.implode('<br>', $output);
+        }
+        $this->addMonit('[PROCESS RESULT] $result = stream_get_contents():<br>'.$output);
+      }
+      
+      /* eval */
+      if($this->response->get('@<<eval') !== null)
+      {        
+        $this->addMonit('[EVAL]: '.$this->response->get('@<<eval'));
+      }
+      if($this->response->get('@<<evalReturn') !== null)
+      {        
+        $output = $this->response->get('@<<evalReturn');
+        if(is_array($output))
+        {
+          $output = '<br>'.implode('<br>', $output);
+        }
+        $this->addMonit('[EVAL RETURN]:<br>'.$output);
+      }
     }
 
     if($context == 'beforeSend')
@@ -12739,7 +12830,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
  * Skynet/EventListener/SkynetEventListenerFiles.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -12871,7 +12962,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         if(!is_array($this->request->get('@fdel')))
         {
           $result = 'NO PATH IN PARAM';
-          $this->response->set('@<<fgetStatus', $result);  
+          $this->response->set('@<<fdelStatus', $result);  
           return false;
         }      
         
@@ -12881,7 +12972,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
           $file = $params['path'];
         } else {
            $result = 'NO PATH IN PARAM';
-           $this->response->set('@<<fgetStatus', $result);  
+           $this->response->set('@<<fdelStatus', $result);  
            return false;
         }        
        
@@ -12897,7 +12988,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         } else {
           $result = 'FILE NOT EXISTS: '.$file;
         }
-        $this->response->set('@<<fgetStatus', $result);  
+        $this->response->set('@<<fdelStatus', $result);  
       }
     }
   }
@@ -12915,24 +13006,45 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {
     if($context == 'afterReceive')
     {
+      if($this->response->get('@<<fgetStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File get status: '.$this->response->get('@<<fgetStatus'));
+      }
+      
+      if($this->response->get('@<<fputStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File put status: '.$this->response->get('@<<fputStatus'));
+      }
+      
+      if($this->response->get('@<<fdelStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
+      }      
+      
       if($this->response->get('@<<fgetFile') !== null)
-      {
+      {          
+        $this->addMonit('[SUCCESS] Remote file received: '.$this->response->get('@<<fgetFile'));
+        
         $dir = '_download';
         if(!is_dir($dir))
         {
           if(!@mkdir($dir))
           {
-            $this->addError('FGET', 'MKDIR ERROR: '.$dir);  
+            $this->addError('FGET', 'MKDIR ERROR: '.$dir); 
+            $this->addMonit('[ERROR CREATING DIR] Directory not created: '.$dir);            
             return false;
           } 
         }
         
         $fileName = time().'_'.str_replace(array("\\", "/"), "-", $this->response->get('@<<fgetFile'));
-        if(!@file_put_contents($dir.'/'.$fileName, $this->response->get('@<<fgetData')))
+        $file = $dir.'/'.$fileName;
+        if(!@file_put_contents($file, $this->response->get('@<<fgetData')))
         {
-          $this->addError('FGET', 'FILE SAVE ERROR: '.$dir.'/'.$fileName);       
+          $this->addError('FGET', 'FILE SAVE ERROR: '.$file); 
+          $this->addMonit('[ERROR SAVING FILE] Remote file received but not saved: '.$file);
         } else {
-          $this->addState('FGET', 'FILE SAVED: '.$dir.'/'.$fileName);     
+          $this->addState('FGET', 'FILE SAVED: '.$file);
+          $this->addMonit('[SUCCESS] Remote file saved: '.$file);          
         }
       }
     }
@@ -14191,7 +14303,7 @@ class SkynetEventListenersLauncher
  * Skynet/EventListener/SkynetEventListenerSleeper.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -14447,7 +14559,7 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
  * Skynet/EventListener/SkynetEventListenerEcho.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -14492,7 +14604,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   {
     if($context == 'beforeSend')
     {
-      //$this->request->set('@self_update', array('source' => 'aaaa'));
+      
     }
   }
 
@@ -14522,14 +14634,13 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
     if($context == 'beforeSend')
     {      
       if($this->request->get('@self_update') !== null)
-      { 
-        
+      {         
         if(isset($this->request->get('@self_update')['source']))
         {
           $address = $this->request->get('@self_update')['source'];
         } else {
-           $this->response->set('@<<self_updateError', 'NO SOURCE: '.SkynetHelper::getMyUrl());           
-           return false;
+          $this->response->set('@<<self_updateError', 'NO SOURCE: '.SkynetHelper::getMyUrl());           
+          return false;
         }        
         
         if($address == SkynetHelper::getMyUrl()) 
@@ -14626,7 +14737,10 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
           $data = [];
           $data['source'] = $address;
           $data['version'] = '';          
-          if(isset($encodedData->version)) $data['version'] = $encodedData->version;          
+          if(isset($encodedData->version)) 
+          {
+            $data['version'] = $encodedData->version;
+          }
           
           $logger = new SkynetEventListenerLoggerDatabase();
           $logger->assignRequest($this->request);
@@ -14656,7 +14770,10 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   */ 
   private function updateSourceCode($code)
   {
-    if(empty($code)) return false;
+    if(empty($code))
+    {
+      return false;
+    }
     $myFile = SkynetHelper::getMyBasename();
     $tmpFile = '__'.$myFile;
     $bckMyFile = '___'.$myFile;    
@@ -14698,13 +14815,12 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   {   
     $connection = SkynetConnectionsFactory::getInstance()->getConnector(SkynetConfig::get('core_connection_type'));
     $encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
-    $verifier = new SkynetVerifier();
-    $address = SkynetConfig::get('core_connection_protocol').$address;        
+    $verifier = new SkynetVerifier();    
 
     $ary = [];
     $ary['@code'] = 1;
     $ary['_skynet_hash'] = $verifier->generateHash();    
-    $ary['_skynet_id'] = SkynetConfig::KEY_ID;
+    $ary['_skynet_id'] = $verifier->getKeyHashed();
     $ary['_skynet_sender_url'] = SkynetHelper::getMyUrl();
     $ary['_skynet_cluster_url'] = SkynetHelper::getMyUrl();
 
@@ -14716,6 +14832,7 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
       $ary['_skynet_sender_url'] = $encryptor->encrypt(SkynetHelper::getMyUrl());
       $ary['_skynet_cluster_url'] = $encryptor->encrypt(SkynetHelper::getMyUrl());
     }
+   // $ary['_skynet_cluster_url']
     $connection->setRequests($ary);        
     return $connection->connect($address);
   }
@@ -14789,10 +14906,8 @@ class SkynetEventListenerUpdater extends SkynetEventListenerAbstract implements 
   public function registerCommands()
   {    
     $cli = [];
-    $console = [];
-    
-    $console[] = ['@self_update', 'source:"source_cluster_address"', 'TO ALL'];   
-    
+    $console = [];    
+    $console[] = ['@self_update', 'source:"source_cluster_address"', 'TO ALL'];       
     return array('cli' => $cli, 'console' => $console);    
   }
   
@@ -16362,7 +16477,7 @@ class SkynetCloner
   */
   public function startCloning()
   {   
-    $dirsList = $this->inspectDirs('');
+    $dirsList = $this->inspectDirs('sandbox');
     $success = [];
     
     if($dirsList !== false)
@@ -16420,7 +16535,7 @@ class SkynetCloner
   *
   * @return string[] Array of dirs paths or false
   */  
-  public function inspectDirs($from =  null)
+  public function inspectDirs($from = null)
   {
     if($from !== null && !empty($from))
     {
@@ -16441,7 +16556,11 @@ class SkynetCloner
     {
       if(is_dir($path))
       {
-        $dirs[] = $path;
+        $base = basename($path);
+        if($base != 'logs')
+        {
+          $dirs[] = $path;
+        }
       }
     }
     
@@ -19665,20 +19784,26 @@ class SkynetRendererHtmlDatabaseRenderer
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteAllRecords=1&_skynetPage=1&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $allDeleteLink = '';
     
-    if($this->selectedTable != 'skynet_chain')
+    if($this->database->ops->countTableRows($this->selectedTable) > 0 && $this->selectedTable != 'skynet_chain')
     {
       $deleteLink = 'javascript:if(confirm(\'Delete ALL RECORDS from this table?\')) window.location.assign(\''.$deleteHref.'\');';
       $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'btnDelete');
-    }
+    }   
     
-    return '<form method="GET" action="">
-    Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> 
-    Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> 
-    <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
-    <input type="submit" value="Execute"/> '.$allDeleteLink.'
-    <input type="hidden" name="_skynetView" value="database"/>
-    <input type="hidden" name="_skynetDatabase" value="'.$this->selectedTable.'"/>
-    </form>';      
+    $output = [];
+    $output[] = '<form method="GET" action="">';
+    if($this->database->ops->countTableRows($this->selectedTable) > 0)
+    {
+      $output[] = 'Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> ';
+    }
+    $output[] = 'Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select>  ';
+    $output[] = '<select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select> ';
+    $output[] = '<input type="submit" value="Execute"/> '.$allDeleteLink;
+    $output[] = '<input type="hidden" name="_skynetView" value="database"/>';
+    $output[] = '<input type="hidden" name="_skynetDatabase" value="'.$this->selectedTable.'"/>';
+    $output[] = '</form>';
+
+    return implode('', $output);
   }
 
  /**
@@ -20013,7 +20138,13 @@ class SkynetRendererHtmlElements
   {
     $this->themes = new SkynetRendererHtmlThemes();
     $this->js = new SkynetRendererHtmlJavascript();
-    $this->css = $this->themes->getTheme(SkynetConfig::get('core_renderer_theme'));
+    
+    $theme = SkynetConfig::get('core_renderer_theme');
+    if(isset($_SESSION['_skynetOptions']['theme']) && !empty($_SESSION['_skynetOptions']['theme']))
+    {
+      $theme = $_SESSION['_skynetOptions']['theme'];
+    }   
+    $this->css = $this->themes->getTheme($theme);
     $this->nl = '<br/>';
     $this->gt = '&gt;';
     $this->lt = '&lt;';
@@ -20486,7 +20617,7 @@ class SkynetRendererHtmlElements
   {
     $html = '<html><head>';
     $html.= '<title>'.pathinfo($_SERVER['PHP_SELF'], PATHINFO_FILENAME).' ('.SkynetVersion::VERSION.')</title>';
-    $html.= $this->css;
+    $html.= '<style>'.$this->css.'</style>';
     $html.= '<meta charset="utf-8">';
     $html.= '<link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,">';
     $html.= '</head><body>';
@@ -20597,6 +20728,9 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
   
   /** @var SkynetAuth Authorization */
   private $auth;
+  
+  /** @var SkynetThemes Themes */
+  private $themes;
 
  /**
   * Constructor
@@ -20608,6 +20742,29 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();
     $this->databaseSchema = new SkynetDatabaseSchema;    
     $this->auth = new SkynetAuth();
+    $this->themes = new SkynetRendererHtmlThemes();  
+  }  
+ 
+ /**
+  * Renders theme switcher
+  *
+  * @return string HTML code
+  */   
+  private function renderThemeSwitcher()
+  {    
+    $themes = $this->themes->getAvailableThemes();
+    $options = [];
+    
+    foreach($themes as $k => $v)
+    {
+      if(isset($_SESSION['_skynetOptions']['theme']) && $_SESSION['_skynetOptions']['theme'] == $k)
+      {
+        $options[] = '<option value="'.$k.'" selected>'.$v.'</option>';
+      } else {
+        $options[] = '<option value="'.$k.'">'.$v.'</option>';
+      }
+    }    
+    return '<select onchange="skynetControlPanel.changeTheme(this)" name="_skynetTheme">'.implode('', $options).'</select> ';
   }  
  
  /**
@@ -20667,8 +20824,13 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     
     
     $output[] = $this->elements->addSectionClass('hdrSwitch');
-    $output[] = $this->elements->addHtml('Select view mode: '.$this->renderViewSwitcher());
+    
+    $output[] = '<form method="get" action="" class="formViews" id="_skynetThemeForm">';
+    $output[] = '<input type="hidden" name="_skynetView" value="'.$this->mode.'">';
+    $output[] = 'View: '.$this->renderViewSwitcher();
+    $output[] = ' Theme: '.$this->renderThemeSwitcher();
     $output[] = $this->renderLogoutLink();
+    $output[] = '</form>';
     
     if($this->mode == 'connections')
     {
@@ -21040,6 +21202,11 @@ class SkynetRendererHtmlJavascript
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=utf-8');
     xhttp.send(params);
     return false;    
+  },
+  
+  changeTheme: function(form)
+  {
+    document.getElementById('_skynetThemeForm').submit();
   },
   
   connectionHelper: function()
@@ -22041,23 +22208,26 @@ class SkynetRendererHtmlSummaryRenderer
 class SkynetRendererHtmlThemes
 {    
   /** @var string[] Array of themes CSS's */
-  private $themes = [];
+  private $css = [];
+  
+  /** @var string[] Theme names */
+  private $availableThemes = [];
   
 
  /**
   * Constructor
   */
   public function __construct()
-  {
-    $this->themes['raw'] = '
-    <style>
+  { 
+    $this->availableThemes['dark'] = 'Dark';    
+    
+    $this->css['light'] = '    
     html, body { font-family: Verdana, Arial; font-size: 0.8rem; line-height: 1.4; } 
     textarea { padding:5px; width:100%; height:300px; } 
-    </style>';
+    ';
     
-    $this->themes['dark'] = '
-    <style>
-    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px }    
+    $this->css['dark'] = '    
+    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px; }    
     b { color:#87b989; } 
     h2 { color: #5ba15f; } 
     h3 { color:#4f8553; margin:0; } 
@@ -22067,12 +22237,14 @@ class SkynetRendererHtmlThemes
     textarea { padding:5px; width:100%; height:90%; background: #000; color: green; }
     select, input {  font-family: Verdana, Arial; font-size: 0.8rem; background: #000; color: #9ed4a2; }
     select:hover, input:hover {  color: #fff; }
+    
     table { font-size:1.0em; width:100%; max-width:100%; table-layout: fixed; }
     td { border-bottom: 1px solid #313c33; padding:2px; word-wrap: break-word; }
     th { color: #707070; font-weight: bold; text-align:left; }
     tr:hover { background:#0c0c0c; color: #fff; } 
     tr:hover a {  } 
     tr:hover th { background:#000; }
+    
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }
     #header { height: 10%; min-height:70px; }
     #headerLogo { float:left; width:40%; max-height:100%; }
@@ -22085,6 +22257,7 @@ class SkynetRendererHtmlThemes
     #loginSection input[type="password"] { width:400px; }
     
     .formConnectionDataOptions { padding:0; margin:0; line-height:1.2; }
+    .formViews { padding:0; margin:0; }
     
     .debugListenerMy { color: #3ffb6e; }    
     .debuggerField { padding:5px; background:#fff; color: #000; font-size:1.2rem; }
@@ -22101,14 +22274,14 @@ class SkynetRendererHtmlThemes
     .reconnectArea { font-size:0.8rem; }
     .reconnectArea input { width: 30px; }
     .hide { display:none; }
+    .panel { }
     
     .sectionAddresses { width:50%; float:left; height:100%; max-height:100%; }
     .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
     
     .innerAddresses { width:99%; height:90%; max-height:90%; overflow-y:auto; }
     .innerMode { width:100%; height:10%; max-height:24px; overflow-y:auto; }
-    .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; }    
-   
+    .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; } 
     .innerConnectionsOptions { width:100%; height:5%; max-height:5%; min-height:38px; overflow-y:auto; }
     .innerConnectionsData { width:100%; height:95%; max-height:95%; overflow-y:auto; }
     
@@ -22117,7 +22290,6 @@ class SkynetRendererHtmlThemes
     .hdrColumn2 { width:15%; height:100%;  max-height:100%; float:left; overflow-y:auto; }
     .hdrColumn3 { width:15%; height:100%; max-height:100%; float:left; overflow-y:auto; }    
     .hdrSwitch { width:25%; height:100%; max-height:100%; float:right; overflow-y:auto; text-align:right; }
-    
     .hdrConnection { margin-top:5px; font-size: 1.0rem; }
     .hdrConnection .active { background-color: #3ffb6e; color: #000; }
     
@@ -22137,9 +22309,6 @@ class SkynetRendererHtmlThemes
     .tdClusterUrl { width:60%; }
     .tdClusterPing { width:10%; }
     .tdClusterConn { width:20%; }
-    
-    .panel { }
-    
     .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
     .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
     .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
@@ -22148,7 +22317,6 @@ class SkynetRendererHtmlThemes
     .statusIcon { padding: 1px; }
     .statusConnected { background: #3ffb6e; }    
     .statusError { background: red; }
-    
     .statusIdle, .statusSingle, .statusBroadcast { padding:3px; }
     .modeButtons a { background:#09270b; border: 1px solid silver; }
     .modeButtons a:hover { text-decoration:none; border: 1px solid #fff; }
@@ -22188,9 +22356,8 @@ class SkynetRendererHtmlThemes
     .btnDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
     .clr { clear: both; }
     .loginForm { padding-top:100px; }
-    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }    
-    
-    </style>';
+    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }  
+    ';
   }    
 
  /**
@@ -22202,7 +22369,17 @@ class SkynetRendererHtmlThemes
   */
   public function getTheme($name)
   {
-    return $this->themes[$name];
+    return $this->css[$name];
+  }
+  
+ /**
+  * Returns available themes names
+  *
+  * @return string[] Themes names
+  */
+  public function getAvailableThemes()
+  {
+    return $this->availableThemes;
   }
 }
 
@@ -22859,6 +23036,19 @@ class SkynetVerifier
   public function isPing()
   {
     if(isset($_REQUEST['_skynet_cluster_url']) && isset($_REQUEST['_skynet']))
+    {
+      return true;
+    }
+  }
+ 
+ /**
+  * Checks if Skynet requests for code
+  *
+  * @return bool True if request for code
+  */
+  public function isUpdateRequest()
+  {
+    if(isset($_REQUEST['@code']))
     {
       return true;
     }
@@ -23872,7 +24062,7 @@ class SkynetPwdGen
  * Skynet/Updater/SkynetUpdater.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -23888,9 +24078,6 @@ class SkynetPwdGen
 class SkynetUpdater
 {
   use SkynetErrorsTrait, SkynetStatesTrait;
-  
-   /** @var string File with updating php code */
-   private $skynetBaseFile;
    
    /** @var SkynetVerifier SkynetVerifier instance */
    protected $verifier;
@@ -23911,19 +24098,29 @@ class SkynetUpdater
    {
      if(isset($_REQUEST['@code']))
      {
+        $encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
+        
         if(!$this->verifier->isRequestKeyVerified())
         {
-          $this->addError(SkynetTypes::VERIFY, 'SELF-UPDATER: UNAUTHORIZED REQUEST FOR SOURCE CODE FROM: '.$_SERVER['REMOTE_HOST'].$_SERVER['REQUEST_URI'].' IP: '.$_SERVER['REMOTE_ADDR']);
+          $request = "\r\n";
+          foreach($_REQUEST as $k => $v)
+          {
+            $request.= $k.'='.$encryptor->decrypt($v)."\r\n";
+          }
+          
+          $this->addError(SkynetTypes::VERIFY, 'SELF-UPDATER: UNAUTHORIZED REQUEST FOR SOURCE CODE FROM: '.$_SERVER['REMOTE_HOST'].$_SERVER['REQUEST_URI'].' IP: '.$_SERVER['REMOTE_ADDR'].$request);
+          exit;
           return false;
         }
       
         $ary = [];
-        $file = file_get_contents(SkynetHelper::getMyBasename());
+        $file = @file_get_contents(SkynetHelper::getMyBasename());
         
         $ary['version'] = SkynetVersion::VERSION;
         $ary['code'] = $file;
         $ary['checksum'] = md5($file);
         
+        header('Content-type:application/json;charset=utf-8');
         echo json_encode($ary);
         exit;
      }
