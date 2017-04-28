@@ -6,7 +6,7 @@
  * Checking and veryfing access to skynet
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -75,6 +75,23 @@ class SkynetVerifier
   {
     $this->request = $request;
   }  
+ 
+ /**
+  * Checks if my Url
+  *
+  * @return bool True if my Url
+  */  
+  public function isMyUrl($url)
+  {
+    $myUrl = SkynetHelper::getMyUrl();
+    $url = SkynetHelper::cleanUrl($url);    
+    $myIp = SkynetHelper::getMyUrlByIp();
+    
+    if(strcmp($myUrl, $url) === 0 || strcmp($myIp, $url) === 0)
+    {
+      return true;
+    }    
+  }
   
  /**
   * Returns hashed key
@@ -258,6 +275,21 @@ class SkynetVerifier
   }
 
  /**
+  * Checks for keys pass
+  * 
+  * @param string $remoteKey Remote hashed key
+  *
+  * @return bool True if valid
+  */  
+  public function isMyKey($remoteKey)
+  {
+    if(password_verify($this->packageKey, $remoteKey))
+    {
+      return true;
+    }    
+  }
+  
+ /**
   * Validates skynetID key from request
   *
   * If requested key not match with my key then return false
@@ -285,14 +317,14 @@ class SkynetVerifier
       }
       
       /* Verify when responder gets request */
-      if(password_verify($this->packageKey, $this->requestKey))
+      if($this->isMyKey($this->requestKey))
       {        
         if(!$sender && $this->isRequestHash() && $this->isRequestSenderUrl())
         {
           $strToVerify = $this->requestSenderUrl.$this->packageKey;
           if(password_verify($strToVerify, $this->requestHash))
           {
-            if(strcmp(SkynetHelper::getMyUrl(), $this->requestSenderUrl) !== 0)
+            if(!$this->isMyUrl($responseData['_skynet_cluster_url']))
             {
               $success = true;
             }
@@ -309,7 +341,7 @@ class SkynetVerifier
               $strToVerify = $responseData['_skynet_cluster_url'].$this->packageKey;
               if(password_verify($strToVerify, $responseData['_skynet_hash']))
               {
-                if(strcmp(SkynetHelper::getMyUrl(), $responseData['_skynet_cluster_url']) !== 0)
+                if(!$this->isMyUrl($responseData['_skynet_cluster_url']))
                 {                  
                   $success = true;
                 }
@@ -353,7 +385,7 @@ class SkynetVerifier
   */
   public function isAddressCorrect($address)
   {
-    if(!empty($address) && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address) && $address != 'http://'.SkynetHelper::getMyUrl() && $address != 'https://'.SkynetHelper::getMyUrl())
+    if(!empty($address) && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address) && !$this->isMyUrl($address))
     {
       return true;
     }
@@ -405,6 +437,19 @@ class SkynetVerifier
     }
   }
  
+ /**
+  * Checks if Skynet connects from client
+  *
+  * @return bool True if is client connection
+  */
+  public function isClient()
+  {
+    if(isset($_REQUEST['_skynet_cluster_url']) && isset($_REQUEST['_skynet']) && isset($_REQUEST['_skynet_client']))
+    {
+      return true;
+    }
+  }
+  
  /**
   * Checks if Skynet requests for code
   *

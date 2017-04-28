@@ -133,6 +133,16 @@ class SkynetHelper
   }
 
  /**
+  * Returns cluster full address by IP
+  *
+  * @return string
+  */
+  public static function getMyUrlByIp()
+  {
+    return self::getServerIp().self::getMyself();
+  }
+  
+ /**
   * Validates URL
   *
   * @param string $url

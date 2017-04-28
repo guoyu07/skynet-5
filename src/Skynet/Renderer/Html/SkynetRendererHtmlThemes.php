@@ -90,6 +90,7 @@ class SkynetRendererHtmlThemes
     
     .sectionAddresses { width:50%; float:left; height:100%; max-height:100%; }
     .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
+    .sectionOptions { width:100%; height:5%; max-height:5%; overflow-y:auto; }
     
     .innerAddresses { width:99%; height:90%; max-height:90%; overflow-y:auto; }
     .innerMode { width:100%; height:10%; max-height:24px; overflow-y:auto; }
@@ -132,6 +133,8 @@ class SkynetRendererHtmlThemes
     .statusIdle, .statusSingle, .statusBroadcast { padding:3px; }
     .modeButtons a { background:#09270b; border: 1px solid silver; }
     .modeButtons a:hover { text-decoration:none; border: 1px solid #fff; }
+    
+    .dbTitle { text-align:center; }
     
     a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
     a.btn:hover { background:#3ffb6e; color:#000; }

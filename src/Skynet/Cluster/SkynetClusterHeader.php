@@ -384,7 +384,7 @@ class SkynetClusterHeader
   */
   public function getUrl()
   {
-    return $this->url;
+    return SkynetHelper::cleanUrl($this->url);
   }
 
  /**

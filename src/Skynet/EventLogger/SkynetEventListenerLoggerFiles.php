@@ -185,7 +185,7 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
       return $val;
     }
     
-    if($key == '_skynet_clusters' || $key == '@_skynet_clusters')
+    if($key == '_skynet_clusters_chain' || $key == '@_skynet_clusters_chain')
     {
       $ret = [];
       $clusters = explode(';', $val);
@@ -196,7 +196,7 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
       return implode('; ', $ret);
     }
 
-    $toDecode = ['_skynet_clusters_chain', '@_skynet_clusters_chain'];
+    $toDecode = [];
     if(in_array($key, $toDecode))
     {      
       return base64_decode($val);

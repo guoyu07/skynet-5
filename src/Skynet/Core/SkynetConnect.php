@@ -238,6 +238,8 @@ class SkynetConnect
   */
   private function storeCluster()
   {
+    $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
+    
     /* Add cluster to database if not exists */
     if($this->isConnected)
     {
@@ -305,6 +307,7 @@ class SkynetConnect
     {
       $this->isConnected = true;
     } else {
+      $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
       $this->clustersRegistry->addBlocked($this->cluster);
       $this->cluster->getHeader()->setResult(-1);
     }

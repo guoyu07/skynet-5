@@ -306,8 +306,9 @@ class SkynetRendererHtmlDatabaseRenderer
       
       $allRecords = $this->database->ops->countTableRows($this->selectedTable);
       
-      $output[] = $this->elements->beginTable('dbTable');   
-      $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle($this->selectedTable.' ('.$i.'/'.$allRecords.')').$this->getNewButton(), count($fields) + 1);      
+      $output[] = $this->elements->beginTable('dbTable');  
+      $dbTitle =  $this->elements->addSectionClass('dbTitle').$this->elements->addSubtitle($this->dbTables[$this->selectedTable]).$this->elements->getNl().$this->selectedTable.' ('.$i.'/'.$allRecords.')'.$this->elements->addSectionEnd();
+      $output[] = $this->elements->addHeaderRow($dbTitle.$this->getNewButton(), count($fields) + 1);      
       $output[] = implode('', $recordRows);
       $output[] = $this->elements->endTable();
       
@@ -566,7 +567,7 @@ class SkynetRendererHtmlDatabaseRenderer
       $rowValue = '-';
     }
     
-    return str_replace("; ", ";<br>", $rowValue);
+    return str_replace(array("; ", "\n"), array(";<br>", "<br>"), $rowValue);
   }
   
  /**

@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.28 03:10:19 (1493349019) */
+/* Skynet Standalone | version compiled: 2017.04.28 19:50:03 (1493409003) */
 
 namespace Skynet;
 
@@ -9,6 +9,7 @@ namespace Skynet;
  * Skynet/SkynetConfig.php
  *
  * @package Skynet
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -58,6 +59,14 @@ class SkynetConfig
     /* core_check_new_versions -> bool:[true|false]
     If TRUE - information about new version is given from GitHub */
     'core_check_new_versions' => true,
+    
+    /* core_urls_chain -> bool:[true|false]
+    If TRUE - Skynet will include urls chain to requests/responses and will be updates new clusters from it  */
+    'core_urls_chain' => true,
+    
+    /* core_mode -> integer:0|1|2
+    Default Skynet Mode. 0 = Idle, 1 = Single, 2 = Broadcast */
+    'core_mode' => 2,
 
     /* core_encryptor -> string:[openSSL|mcrypt|base64|...]
     Name of registered class used for encrypting data */
@@ -74,6 +83,14 @@ class SkynetConfig
     /* core_date_format -> string
     Date format for date() function */
     'core_date_format' => 'H:i:s d.m.Y',
+    
+    /* core_admin_ip_whitelist -> string[]
+    IP Whitelist for accepting access to Control Panel */
+    'core_admin_ip_whitelist' => [],
+    
+    /*core_open_sender -> bool:[true|false]
+    If TRUE Skynet will always sends requests when open (without login to Control Panel) */
+    'core_open_sender' => true,
     
 /*
   ==================================
@@ -152,6 +169,14 @@ class SkynetConfig
      /* logs_errors_with_full_trace -> bool:[true|false]
     Set TRUE to log errors with full error code, file, line and trace data, set FALSE to log only error messages */
     'logs_errors_with_full_trace' => true,
+    
+    /* logs_txt_include_secure_data -> bool:[true|false]
+    Set TRUE to log Skynet Key ID and Hash (use this only for debug, not in production */
+    'logs_txt_include_secure_data' => true,
+    
+    /* logs_txt_include_clusters_data -> bool:[true|false]
+    Set TRUE to log clusters URLs and clusters chain (use this only for debug, not in production */
+    'logs_txt_include_clusters_data' => true,
     
     /* logs_dir -> string:[path/]
     Specify path to dir where Skynet will save logs, or leave empty to save logs in Skynet directory */
@@ -450,7 +475,7 @@ abstract class SkynetConnectionAbstract
  * Skynet/EventListener/SkynetEventListenerAbstract.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -489,8 +514,11 @@ abstract class SkynetEventListenerAbstract
   /** @var bool Status of table schema in database, true if all tables exists */
   protected $db_created = false;
 
-  /** @var string Url of receiver of sending request */
+  /** @var string Url of receiver */
   protected $receiverClusterUrl;
+  
+  /** @var string Url of sender */
+  protected $senderClusterUrl;
 
   /** @var PDO PDO connection instance */
   protected $db;
@@ -536,6 +564,12 @@ abstract class SkynetEventListenerAbstract
   
   /** @var string[] Monits */
   protected $monits = [];
+  
+  /** @var string Event */
+  protected $eventName;
+  
+  /** @var string Context */
+  protected $context;
 
  /**
   * Constructor
@@ -570,6 +604,26 @@ abstract class SkynetEventListenerAbstract
       $tmpMonit = implode('<br>', $monit);
     }
     $this->monits[] = $tmpMonit;
+  }
+  
+ /**
+  * Sets event name
+  *
+  * @param string $event
+  */
+  public function setEventName($event)
+  {
+      $this->eventName = $event;
+  }
+ 
+ /**
+  * Sets context
+  *
+  * @param string $context
+  */
+  public function setContext($context)
+  {
+      $this->context = $context;
   }
   
  /**
@@ -642,9 +696,19 @@ abstract class SkynetEventListenerAbstract
   */
   public function setReceiverClusterUrl($url)
   {
-    $this->receiverClusterUrl = $url;
+    $this->receiverClusterUrl = SkynetHelper::cleanUrl($url);
   }
 
+ /**
+  * Sets URL address of sender cluster 
+  *
+  * @param string $url
+  */
+  public function setSenderClusterUrl($url)
+  {
+    $this->senderClusterUrl = SkynetHelper::cleanUrl($url);
+  }
+  
  /**
   * Sets if I'm sender
   *
@@ -764,6 +828,70 @@ abstract class SkynetEventListenerAbstract
   }
   
  /**
+  * Adds log
+  *
+  * @param string $content Log message
+  *
+  * @return bool True if success
+  */
+  public function addLog($content = '')
+  {
+    $loggerDb = new SkynetEventListenerLoggerDatabase();
+    $loggerDb->setSenderClusterUrl($this->senderClusterUrl);
+    $loggerDb->setReceiverClusterUrl($this->receiverClusterUrl);
+    
+    $loggerTxt = new SkynetEventListenerLoggerFiles();
+    $loggerTxt->setSenderClusterUrl($this->senderClusterUrl);
+    $loggerTxt->setReceiverClusterUrl($this->receiverClusterUrl);
+    
+    $argsStr = '';
+    $file = '';
+    $line = '';   
+    $method = '';
+    $args = [];
+    
+    $success = false;
+    
+    $listener = pathinfo(@debug_backtrace()[0]['file'], PATHINFO_FILENAME); 
+    $line = @debug_backtrace()[0]['line'];    
+    $method = @debug_backtrace()[1]['function']; 
+    $args = @debug_backtrace()[1]['args'];     
+   
+    $argsAry = [];
+    if(is_array($args) && count($args) > 0)
+    {
+      foreach($args as $arg)
+      {
+        if(is_array($arg))
+        {
+          $argsAry[] = implode(':', $arg);
+        } elseif(is_object($arg))
+        {
+          $argsAry[] = get_class($arg);
+        } else {
+          $argsAry[] = $arg;
+        }
+      }      
+      $argsStr = implode(',', $argsAry);
+    }
+    
+    $eventStr = $this->eventName.'('.$this->context.')';
+    $methodStr = $method.'('.$argsStr.')';   
+    
+    if($loggerDb->saveUserLogToDb($content, $listener, $line, $eventStr, $methodStr))
+    {
+      $success = true;
+    }
+    
+    if($loggerTxt->saveUserLogToFile($content, $listener, $line, $eventStr, $methodStr))
+    {
+      $success = true;
+    }
+    
+    return $success;
+  }
+  
+  /**
   * Returns monits
   *
   * @return string[] Monits
@@ -2615,7 +2743,7 @@ class SkynetClusterHeader
  * Skynet/Cluster/SkynetClustersRegistry.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -2661,6 +2789,9 @@ class SkynetClustersRegistry
   
   /** @var string[] Monits */
   private $monits = [];
+  
+  /** @var string Registrator */
+  private $registrator;
 
  /**
   * Constructor
@@ -2672,6 +2803,8 @@ class SkynetClustersRegistry
     $this->db_created = $dbInstance->isDbCreated();
     $this->db = $dbInstance->getDB();
     $this->verifier = new SkynetVerifier();
+    
+    $this->registrator = SkynetHelper::getMyUrl();
   }
 
  /**
@@ -2732,14 +2865,16 @@ class SkynetClustersRegistry
   * @return bool
   */  
   public function add(SkynetCluster $cluster = null)
-  {
-    /* Update from remote list from header */
+  {    
+    $this->registrator = SkynetHelper::getMyUrl();
+    
     if($cluster === null)
     {
         return false;
     }
     
-    if($cluster->getHeader() !== null  && !empty($cluster->getHeader()->getClusters()))
+    /* Update via remote list from urls chain */
+    if(SkynetConfig::get('core_urls_chain') && $cluster->getHeader() !== null  && !empty($cluster->getHeader()->getClusters()))
     {
       $this->updateFromHeader($cluster);
     }  
@@ -3053,6 +3188,11 @@ class SkynetClustersRegistry
       $version = $cluster->getHeader()->getVersion();
     }
 
+    if($this->verifier->isMyKey($id))
+    {
+      $id = SkynetConfig::KEY_ID;
+    }
+      
     try
     {
       if(!empty($id))
@@ -3258,23 +3398,27 @@ class SkynetClustersRegistry
       
       $id = '';
       $ip = '';
-      $version = '';
-      $registrator = '';
+      $version = '';     
       
       if($cluster->getHeader() !== null)
       {
         $id = $cluster->getHeader()->getId();
         $ip = $cluster->getHeader()->getIp();
         $version = $cluster->getHeader()->getVersion();
-        $registrator = $cluster->getHeader()->getUrl();
+        $this->registrator = $cluster->getHeader()->getUrl();
       } 
+      
+      if($this->verifier->isMyKey($id))
+      {
+        $id = SkynetConfig::KEY_ID;
+      }
 
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
       $stmt->bindParam(':ip', $ip, \PDO::PARAM_STR);
       $stmt->bindParam(':version', $version, \PDO::PARAM_STR);
       $stmt->bindParam(':last_connect', $last_connect, \PDO::PARAM_INT);
-      $stmt->bindParam(':registrator', $registrator, \PDO::PARAM_STR);
+      $stmt->bindParam(':registrator', $this->registrator, \PDO::PARAM_STR);
 
       if($stmt->execute())
       {
@@ -3349,22 +3493,26 @@ class SkynetClustersRegistry
       $id = '';
       $ip = '';
       $version = '';
-      $registrator = '';
-      
+           
       if($cluster->getHeader() !== null)
       {
         $id = $cluster->getHeader()->getId();
         $ip = $cluster->getHeader()->getIp();
         $version = $cluster->getHeader()->getVersion();
-        $registrator = $cluster->getHeader()->getUrl();
+        $this->registrator = $cluster->getHeader()->getUrl();
       } 
+      
+      if($this->verifier->isMyKey($id))
+      {
+        $id = SkynetConfig::KEY_ID;
+      }
 
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':url', $url, \PDO::PARAM_STR);
       $stmt->bindParam(':ip', $ip, \PDO::PARAM_STR);
       $stmt->bindParam(':version', $version, \PDO::PARAM_STR);
       $stmt->bindParam(':last_connect', $last_connect, \PDO::PARAM_INT);
-      $stmt->bindParam(':registrator', $registrator, \PDO::PARAM_STR);
+      $stmt->bindParam(':registrator', $this->registrator, \PDO::PARAM_STR);
 
       if($stmt->execute())
       {
@@ -3392,6 +3540,7 @@ class SkynetClustersRegistry
   private function updateFromHeader(SkynetCluster $cluster)
   {
     $clusters_encoded = $cluster->getHeader()->getClusters();
+    $this->registrator = SkynetHelper::cleanUrl($cluster->getHeader()->getUrl());
 
     $clustersUrls = explode(';', $clusters_encoded);
     $newClusters = [];
@@ -3438,7 +3587,7 @@ class SkynetClustersRegistry
  * Skynet/Cluster/SkynetClustersUrlsChain.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -3471,8 +3620,11 @@ class SkynetClustersUrlsChain
   /** @var string Sender URL */
   private $senderUrl;
   
- /** @var SkynetVerifier Verifier instance */
+  /** @var SkynetVerifier Verifier instance */
   private $verifier;
+  
+  /** @var SkynetClustersRegistry ClustersRegistry instance */
+  private $clustersRegistry;
 
  /**
   * Constructor
@@ -3481,6 +3633,7 @@ class SkynetClustersUrlsChain
   {
     $this->myUrl = SkynetHelper::getMyUrl();
     $this->verifier = new SkynetVerifier();
+    $this->clustersRegistry = new SkynetClustersRegistry();
   }
 
  /**
@@ -3493,6 +3646,36 @@ class SkynetClustersUrlsChain
     $this->request = $request;
   }
 
+ /**
+  * Parses clusters from dataabse into urls chain
+  *
+  * Creates urls chain from saved clusters. This chain will be sended with request to update clusters on another clusters
+  *
+  * @return string Parsed chain
+  */
+  public function parseMyClusters()
+  {
+    $clusters = $this->clustersRegistry->getAll();
+    $ary = [];
+    $ret = '';
+    $ary[] = base64_encode(SkynetHelper::getMyUrl());
+    if(count($clusters) > 0)
+    {
+      foreach($clusters as $cluster)
+      {
+        if(!$this->clustersRegistry->isClusterBlocked($cluster))
+        {
+          if(!empty($cluster->getUrl())) 
+          {
+            $ary[] = base64_encode($cluster->getUrl());
+          }
+        }
+      }
+      $ret = implode(';', $ary);
+    }   
+    return $ret;
+  }
+  
  /**
   * Loads clusters urls saved in request into $this->clusters[] array
   */
@@ -3645,7 +3828,7 @@ class SkynetClustersUrlsChain
  * Skynet/Common/SkynetHelper.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -3814,10 +3997,14 @@ class SkynetHelper
     $titles['core_updater'] = 'Updater engine enabled';
     $titles['core_cloner'] = 'Cloner engine enabled';
     $titles['core_check_new_versions'] = 'Check GitHub for new version';
+    $titles['core_urls_chain'] = 'URLs Chain Engine enabled';
+    $titles['core_mode'] = 'Default mode (0=Idle, 1=Single, 2=Broadcast)';
     $titles['core_encryptor'] = 'Data encryptor';
     $titles['core_encryptor_algorithm'] = 'Data encryptor algorithm';
     $titles['core_renderer_theme'] = 'Renderer theme';
     $titles['core_date_format'] = 'Date format';
+    $titles['core_admin_ip_whitelist'] = 'IP\'s whitelist for access to Control Panel';
+    $titles['core_open_sender'] = 'Always send requests (even without login to Control Panel)';
     
     $titles['translator_config'] = 'Translate config keys to titles';
     $titles['translator_params'] = 'Translate internal params to titles';
@@ -3837,6 +4024,8 @@ class SkynetHelper
     $titles['response_include_request'] = 'Include @request in response';
     
     $titles['logs_errors_with_full_trace'] = 'Log errors with full trace';
+    $titles['logs_txt_include_secure_data'] = 'Include Key ID and Hash in txt logs';
+    $titles['logs_txt_include_clusters_data'] = 'Include clusters URLs in txt logs';
     
     $titles['logs_dir'] = 'Directory for logs';
     
@@ -6134,7 +6323,7 @@ class SkynetConsoleInput
  * Skynet/Core/Skynet.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -6254,7 +6443,7 @@ class Skynet
   private $clusters = [];
 
   /** @var int connection mode */
-  private $connMode = 2;
+  private $connMode;
 
   /** @var SkynetDetector Clusters detector */
   private $clustersDetector;
@@ -6299,6 +6488,8 @@ class Skynet
     $this->eventListenersLauncher->assignResponse($this->response);
     $this->eventListenersLauncher->assignCli($this->cli);
     $this->eventListenersLauncher->assignConsole($this->console);
+    
+    $this->connMode = SkynetConfig::get('core_mode');
 
     $this->verifier->assignRequest($this->request);
     $this->modeController();
@@ -6329,30 +6520,33 @@ class Skynet
   {
     $startBroadcast = false;
 
-    /* Check for console and CLI args */
-    if($this->cli->isCli())
+    if($this->auth->isAuthorized() || $this->verifier->isOpenSender())
     {
-      $startBroadcast = $this->cliController();
-    } else {
-      $startBroadcast = $this->consoleController();
-    }
-
-    /* Start broadcasting clusters */
-    if($startBroadcast === true)
-    {
-      if($this->connMode == 2)
+      /* Check for console and CLI args */
+      if($this->cli->isCli())
       {
-        $this->broadcast();
+        $startBroadcast = $this->cliController();
+      } else {
+        $startBroadcast = $this->consoleController();
       }
-    }
 
-    /* clusters detector */
-    if(!$this->verifier->isPing())
-    {
-      $detectClusters = $this->detector->check();
-      if($detectClusters !== null)
+      /* Start broadcasting clusters */
+      if($startBroadcast === true)
       {
-        $this->monits[] = $detectClusters;
+        if($this->connMode == 2)
+        {
+          $this->broadcast();
+        }
+      }    
+
+      /* clusters detector */
+      if(!$this->verifier->isPing())
+      {
+        $detectClusters = $this->detector->check();
+        if($detectClusters !== null)
+        {
+          $this->monits[] = $detectClusters;
+        }
       }
     }
   }
@@ -6367,7 +6561,7 @@ class Skynet
   */
   public function broadcast()
   {    
-    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || !$this->auth->isAuthorized())
+    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || (!$this->verifier->isOpenSender() && (!$this->auth->isAuthorized() || !$this->verifier->hasAdminIpAddress())))
     {
       return false;
     }
@@ -6501,7 +6695,7 @@ class Skynet
   */
   public function renderOutput()
   {
-    if($this->verifier->isPing())
+    if($this->verifier->isPing() || !$this->verifier->hasAdminIpAddress())
     {
       return '';
     }
@@ -6802,7 +6996,7 @@ class Skynet
   */
   public function __toString()
   {
-    if($this->verifier->isPing())
+    if($this->verifier->isPing() || !$this->verifier->hasAdminIpAddress())
     {
       return '';
     }
@@ -6814,7 +7008,7 @@ class Skynet
  * Skynet/Core/SkynetChain.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -6870,36 +7064,6 @@ class SkynetChain
 
     $this->updateMyChain();
     $this->showMyChain();
-  }
-
- /**
-  * Parses clusters from dataabse into urls chain
-  *
-  * Creates urls chain from saved clusters. This chain will be sended with request to update clusters on another clusters
-  *
-  * @return string Parsed chain
-  */
-  public function parseMyClusters()
-  {
-    $clusters = $this->clustersRegistry->getAll();
-    $ary = [];
-    $ret = '';
-    $ary[] = base64_encode(SkynetHelper::getMyUrl());
-    if(count($clusters) > 0)
-    {
-      foreach($clusters as $cluster)
-      {
-        if(!$this->clustersRegistry->isClusterBlocked($cluster))
-        {
-          if(!empty($cluster->getUrl())) 
-          {
-            $ary[] = base64_encode($cluster->getUrl());
-          }
-        }
-      }
-      $ret = implode(';', $ary);
-    }
-    return $ret;
   }
 
  /**
@@ -6987,7 +7151,7 @@ class SkynetChain
       $ary['_skynet_cluster_url'] = $this->encrypt(SkynetHelper::getMyUrl());
       $ary['_skynet_cluster_ip'] = $this->encrypt($_SERVER['REMOTE_ADDR']);
       $ary['_skynet_version'] = $this->encrypt(SkynetVersion::VERSION);
-      $ary['_skynet_clusters'] = $this->encrypt($this->clustersRegistry->parseMyClusters());
+      $ary['_skynet_clusters_chain'] = $this->encrypt($this->clustersRegistry->parseMyClusters());
 
       echo json_encode($ary);
 
@@ -7189,7 +7353,7 @@ class SkynetChain
  * Skynet/Core/SkynetConnect.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -7326,6 +7490,8 @@ class SkynetConnect
       $this->newData();
     }
 
+    $this->eventListenersLauncher->assignSenderClusterUrl(SkynetHelper::getMyUrl());
+    $this->eventListenersLauncher->assignReceiverClusterUrl($this->cluster->getUrl());
     $this->prepareListeners();
 
     $this->prepareRequest($chain);
@@ -7347,6 +7513,9 @@ class SkynetConnect
       $this->prepareResponse();
       $this->updateClusterHeader();
       $this->storeCluster();
+      
+      $this->eventListenersLauncher->assignSenderClusterUrl($this->cluster->getUrl());
+      $this->eventListenersLauncher->assignReceiverClusterUrl(SkynetHelper::getMyUrl());
       $this->launchResponseListeners();
       $result = true;
     }
@@ -8136,7 +8305,7 @@ class SkynetPeer
  * Skynet/Core/SkynetResponder.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -8314,6 +8483,8 @@ class SkynetResponder
     $this->request->loadRequest();
     $this->request->prepareRequests();
 
+    $this->eventListenersLauncher->assignSenderClusterUrl($this->request->get('_skynet_sender_url'));
+    $this->eventListenersLauncher->assignReceiverClusterUrl(SkynetHelper::getMyUrl());
     $this->prepareListeners();
     $this->eventListenersLauncher->launch('onRequest');
     $this->eventListenersLauncher->launch('onRequestLoggers');
@@ -8328,6 +8499,9 @@ class SkynetResponder
     $this->clustersRegistry->add($cluster);
 
     $this->response->assignRequest($this->request);
+    
+    $this->eventListenersLauncher->assignSenderClusterUrl(SkynetHelper::getMyUrl());
+    $this->eventListenersLauncher->assignReceiverClusterUrl($this->request->get('_skynet_sender_url'));
     $this->prepareListeners();
     $this->eventListenersLauncher->launch('onResponse');    
    
@@ -8807,7 +8981,7 @@ class SkynetParams
  * Skynet/Data/SkynetRequest.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -8835,6 +9009,9 @@ class SkynetRequest
 
   /** @var SkynetClustersRegistry SkynetClustersRegistry instance */
   private $clustersRegistry;
+  
+  /** @var clustersUrlsChain clustersUrlsChain instance */
+  private $clustersUrlsChain;
 
   /** @var SkynetChain SkynetChain instance */
   private $skynetChain;
@@ -8856,6 +9033,7 @@ class SkynetRequest
   public function __construct()
   {
     $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersUrlsChain = new SkynetClustersUrlsChain();
     $this->skynetChain = new SkynetChain();
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->verifier = new SkynetVerifier();
@@ -8891,7 +9069,7 @@ class SkynetRequest
     }
   }
   
-   /**
+ /**
   * Quick alias for add new request field
   *
   * @param string $name Field name/key
@@ -9083,12 +9261,6 @@ class SkynetRequest
     /* Prepare my header */
     $clusterHeader = new SkynetClusterHeader();
     $clusterHeader->generate();
-
-    /* If urls chain is empty (possibly it is the first connection) then generate chain and add my cluster to it */
-    if(!$this->isField('_skynet_clusters_chain'))
-    {
-      $this->set('_skynet_clusters_chain', base64_encode(SkynetHelper::getMyUrl()));      
-    }
     
     $milliseconds = round(microtime(true) * 1000);
 
@@ -9102,10 +9274,14 @@ class SkynetRequest
     $this->set('_skynet_version', $clusterHeader->getVersion());
     $this->set('_skynet_cluster_url', $clusterHeader->getUrl());
     $this->set('_skynet_cluster_ip', $clusterHeader->getIp());
-    $this->set('_skynet_cluster_time', time());
-    $this->set('_skynet_clusters', $this->skynetChain->parseMyClusters());
+    $this->set('_skynet_cluster_time', time());   
     $this->set('_skynet_sender_time', time());
     $this->set('_skynet_sender_url', SkynetHelper::getMyUrl());
+    
+    if(SkynetConfig::get('core_urls_chain'))
+    {
+      $this->set('_skynet_clusters_chain', $this->clustersUrlsChain->parseMyClusters());
+    }
   }
 
  /**
@@ -9144,7 +9320,7 @@ class SkynetRequest
  * Skynet/Data/SkynetResponse.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -9190,6 +9366,9 @@ class SkynetResponse
 
   /** @var SkynetClusterHeader SkynetClusterHeader instance */
   private $clusterHeader;
+  
+  /** @var clustersUrlsChain clustersUrlsChain instance */
+  private $clustersUrlsChain;
 
   /** @var SkynetEncryptorInterface SkynetEncryptorInterface instance */
   private $encryptor;
@@ -9210,6 +9389,7 @@ class SkynetResponse
     $this->verifier = new SkynetVerifier();
     $this->clustersRegistry = new SkynetClustersRegistry();
     $this->clusterHeader = new SkynetClusterHeader();
+    $this->clustersUrlsChain = new SkynetClustersUrlsChain();
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->paramsParser = new SkynetParams();
     $this->skynetChain = new SkynetChain();
@@ -9435,7 +9615,11 @@ class SkynetResponse
     $this->set('_skynet_cluster_url', $clusterHeader->getUrl());
     $this->set('_skynet_cluster_ip', $clusterHeader->getIp());
     $this->set('_skynet_cluster_time', time());
-    $this->set('_skynet_clusters', $this->skynetChain->parseMyClusters());
+    
+    if(SkynetConfig::get('core_urls_chain'))
+    {
+      $this->set('_skynet_clusters_chain', $this->clustersUrlsChain->parseMyClusters());
+    }
   }
 
  /**
@@ -12875,7 +13059,7 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {
     if($context == 'beforeSend')
     {
-      
+      $this->addLog('xxxx');
     }
     
     if($context == 'afterReceive')
@@ -13781,7 +13965,7 @@ class SkynetEventListenersFactory
  * Skynet/EventListener/SkynetEventListenersLauncher.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -13806,6 +13990,12 @@ class SkynetEventListenersLauncher
   
   /** @var string Cluster UR */
   private $clusterUrl;
+  
+  /** @var string Sender cluster UR */
+  private $senderClusterUrl;
+  
+  /** @var string Receiver cluster UR */
+  private $receiverClusterUrl;
   
   /** @var SkynetCli CLI object */
   private $cli;
@@ -13883,6 +14073,26 @@ class SkynetEventListenersLauncher
     $this->clusterUrl = $clusterUrl;
   }
  
+ /**
+  * Assigns sender clusterURL
+  *
+  * @param string $clusterUrl
+  */   
+  public function assignSenderClusterUrl($clusterUrl)
+  {
+    $this->senderClusterUrl = $clusterUrl;
+  }
+ 
+ /**
+  * Assigns receiver clusterURL
+  *
+  * @param string $clusterUrl
+  */   
+  public function assignReceiverClusterUrl($clusterUrl)
+  {
+    $this->receiverClusterUrl = $clusterUrl;
+  }
+  
  /**
   * Assigns CLI
   *
@@ -13998,6 +14208,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onResponse');
+          $listener->setContext('afterReceive');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
@@ -14030,6 +14246,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onRequest');
+          $listener->setContext('beforeSend');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
@@ -14056,6 +14278,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onResponseLoggers');
+          $listener->setContext('afterReceive');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
@@ -14088,6 +14316,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onRequestLoggers');
+          $listener->setContext('beforeSend');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $listener->assignRequest($this->request);
           $listener->assignResponse($this->response);
@@ -14106,6 +14340,12 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->resetMonits();
+          $listener->setEventName('onCli');
+          $listener->setContext('onCli');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->assignCli($this->cli);
           if(method_exists($listener, 'onCli'))
           {
@@ -14124,6 +14364,12 @@ class SkynetEventListenersLauncher
         foreach($this->eventListeners as $listener)
         {
           $listener->resetMonits();
+          $listener->setEventName('onConsole');
+          $listener->setContext('onConsole');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->assignConsole($this->console);
           if(method_exists($listener, 'onConsole'))
           {
@@ -14160,6 +14406,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onResponse');
+          $listener->setContext('beforeSend');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $this->request->loadRequest();
           $listener->assignRequest($this->request);
@@ -14167,9 +14419,7 @@ class SkynetEventListenersLauncher
           $requests = $this->request->getRequestsData();
           $listener->setRequestData($requests);
           $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          if(isset($requests['_skynet']) && isset($requests['_skynet_sender_url']) && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
             if(method_exists($listener, 'onResponse'))
             {
@@ -14200,6 +14450,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onRequest');
+          $listener->setContext('afterReceive');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $this->request->loadRequest();
           $listener->assignRequest($this->request);
@@ -14207,9 +14463,7 @@ class SkynetEventListenersLauncher
           $requests = $this->request->getRequestsData();
           $listener->setRequestData($requests);
           $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          if(isset($requests['_skynet']) && isset($requests['_skynet_sender_url']) && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
             if(method_exists($listener, 'onRequest'))
             {
@@ -14226,6 +14480,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onResponseLoggers');
+          $listener->setContext('beforeSend');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $this->request->loadRequest();
           $listener->assignRequest($this->request);
@@ -14233,9 +14493,7 @@ class SkynetEventListenersLauncher
           $requests = $this->request->getRequestsData();
           $listener->setRequestData($requests);
           $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          if(isset($requests['_skynet']) && isset($requests['_skynet_sender_url']) && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
             if(method_exists($listener, 'onResponse'))
             {
@@ -14266,6 +14524,12 @@ class SkynetEventListenersLauncher
         {
           $listener->resetMonits();
           $listener->setConnId($this->connectId);
+          $listener->setEventName('onRequestLoggers');
+          $listener->setContext('afterReceive');
+          
+          $listener->setReceiverClusterUrl($this->receiverClusterUrl);
+          $listener->setSenderClusterUrl($this->senderClusterUrl);
+          
           $listener->setSender($this->sender);
           $this->request->loadRequest();
           $listener->assignRequest($this->request);
@@ -14273,9 +14537,7 @@ class SkynetEventListenersLauncher
           $requests = $this->request->getRequestsData();
           $listener->setRequestData($requests);
           $listener->assignResponse($this->response);
-          if(isset($requests['_skynet']) 
-            && isset($requests['_skynet_sender_url']) 
-            && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
+          if(isset($requests['_skynet']) && isset($requests['_skynet_sender_url']) && $requests['_skynet_sender_url'] != SkynetHelper::getMyUrl())
           {
             if(method_exists($listener, 'onRequest'))
             {
@@ -15332,7 +15594,7 @@ class SkynetEventListenerEmailer extends SkynetEventListenerAbstract implements 
  * Skynet/EventLogger/SkynetEventListenerLoggerDatabase.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -15488,6 +15750,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
     $tables = [];
     $fields = [];    
     
+    $queries['skynet_logs_user'] = 'CREATE TABLE skynet_logs_user (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT, listener VARCHAR (100), event VARCHAR (150), method TEXT, line INTEGER)';
     $queries['skynet_logs_responses'] = 'CREATE TABLE skynet_logs_responses (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';
     $queries['skynet_logs_requests'] = 'CREATE TABLE skynet_logs_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, content TEXT, sender_url TEXT, receiver_url TEXT)';    
     $queries['skynet_logs_echo'] = 'CREATE TABLE skynet_logs_echo (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, ping_from TEXT, ping_to TEXT, urls_chain TEXT)';
@@ -15496,6 +15759,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
     $queries['skynet_access_errors'] = 'CREATE TABLE skynet_access_errors (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, remote_cluster TEXT, request_uri TEXT, remote_host TEXT, remote_ip VARCHAR (15))';   
     $queries['skynet_logs_selfupdate'] = 'CREATE TABLE skynet_logs_selfupdate (id INTEGER PRIMARY KEY AUTOINCREMENT, skynet_id VARCHAR (100), created_at INTEGER, request TEXT, sender_url TEXT, source  TEXT, status TEXT, from_version VARCHAR (15), to_version VARCHAR (15))';    
    
+    $tables['skynet_logs_user'] = 'Logs: user logs';
     $tables['skynet_logs_responses'] = 'Logs: Responses';
     $tables['skynet_logs_requests'] = 'Logs: Requests';
     $tables['skynet_logs_echo'] = 'Logs: Echo';
@@ -15504,6 +15768,18 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
     $tables['skynet_access_errors'] = 'Logs: Access Errors';
     $tables['skynet_logs_selfupdate'] = 'Logs: Self-updates';  
     
+    $fields['skynet_logs_user'] = [
+    'id' => '#ID',
+    'skynet_id' => 'SkynetID',
+    'created_at' => 'Sended/received At',
+    'content' => 'Log message',
+    'sender_url' => 'Sender',
+    'receiver_url' => 'Receiver',
+    'listener' => 'Event Listener',
+    'event' => 'Event Name',
+    'method' => 'Method',
+    'line' => 'Line'
+    ];
     
     $fields['skynet_logs_responses'] = [
     'id' => '#ID',
@@ -15616,24 +15892,20 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $logInfo = '';
 
       if($context == 'beforeSend')
-      {
-         if(isset($this->requestsData['_skynet_sender_url'])) 
-         {
-           $receiver = $this->requestsData['_skynet_sender_url'];
-         }
-         $sender = $this->myAddress;
-         $skynet_id = $this->requestsData['_skynet_id'];
-         $logInfo = 'to &gt;&gt; '.$receiver;
-         
-      } else {
-         if(isset($this->responseData['_skynet_cluster_url'])) 
-         {
-           $sender = $this->responseData['_skynet_cluster_url'];
-         }
-         $receiver = $this->myAddress;
+      {         
+         $skynet_id = SkynetConfig::KEY_ID;
+         $logInfo = 'to &gt;&gt; '.$receiver;         
+      } else {        
          $skynet_id = $this->responseData['_skynet_id'];
+         if($this->verifier->isMyKey($skynet_id))
+         {
+           $skynet_id = SkynetConfig::KEY_ID;
+         }
          $logInfo = 'from &lt;&lt; '.$sender;
       }
+      
+      $sender = $this->senderClusterUrl;
+      $receiver = $this->receiverClusterUrl;
       
       $sender = SkynetHelper::cleanUrl($sender);
       $receiver = SkynetHelper::cleanUrl($receiver);
@@ -15698,21 +15970,22 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $skynet_id = '';
 
       if($context == 'afterReceive')
-      {
-         if(isset($this->requestsData['_skynet_sender_url'])) 
-         {
-           $sender = $this->requestsData['_skynet_sender_url'];
-         }
-         $receiver = $this->myAddress;
+      {         
          if(isset($this->requestsData['_skynet_id'])) 
          {
            $skynet_id = $this->requestsData['_skynet_id'];
+           if($this->verifier->isMyKey($skynet_id))
+           {
+             $skynet_id = SkynetConfig::KEY_ID;
+           }
          }
-      } else {
-         $sender = $this->myAddress;
-         $receiver = $this->receiverClusterUrl;
+         
+      } else {        
          $skynet_id = SkynetConfig::KEY_ID;
       }
+      
+      $sender = $this->senderClusterUrl;
+      $receiver = $this->receiverClusterUrl;
       
       $sender = SkynetHelper::cleanUrl($sender);
       $receiver = SkynetHelper::cleanUrl($receiver);
@@ -15763,8 +16036,6 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
          }
       }
     }
-    
-    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
 
     try
     {
@@ -15772,17 +16043,21 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       'INSERT INTO skynet_logs_echo (skynet_id, created_at, request, ping_from, ping_to, urls_chain)
       VALUES(:skynet_id, :created_at, :request, :ping_from,  :ping_to, :urls_chain)'
       );
-      $senderUrl = $this->request->getSenderClusterUrl();
+      
+      $sender = $this->senderClusterUrl;
+      $sender = SkynetHelper::cleanUrl($sender);
+      
       $time = time();
       $id = SkynetConfig::KEY_ID;
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
       $stmt->bindParam(':request', $requestData, \PDO::PARAM_STR);
-      $stmt->bindParam(':ping_from', $senderUrl, \PDO::PARAM_STR);
+      $stmt->bindParam(':ping_from', $sender, \PDO::PARAM_STR);
       $stmt->bindParam(':ping_to', $receivers_urls, \PDO::PARAM_STR);
       $stmt->bindParam(':urls_chain', $urlsChainPlain, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
+        $this->addState(SkynetTypes::DB_LOG, 'ECHO FROM [from &gt;&gt; '.$senderUrl.' ] SAVED TO DB');
         return true;
       }
       
@@ -15817,7 +16092,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       }
     }
     
-    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
+    $sender = $this->senderClusterUrl;
+    $sender = SkynetHelper::cleanUrl($sender);
     
     try
     {
@@ -15831,11 +16107,12 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
       $stmt->bindParam(':request', $requestData, \PDO::PARAM_STR);
-      $stmt->bindParam(':ping_from', $senderUrl, \PDO::PARAM_STR);
+      $stmt->bindParam(':ping_from', $sender, \PDO::PARAM_STR);
       $stmt->bindParam(':ping_to', $receivers_urls, \PDO::PARAM_STR);
       $stmt->bindParam(':urls_chain', $urlsChainPlain, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
+        $this->addState(SkynetTypes::DB_LOG, 'BROADCAST FROM [from &gt;&gt; '.$senderUrl.' ] SAVED TO DB');
         return true;    
       }
         
@@ -15868,7 +16145,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       }
     }
     
-    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
+    $sender = $this->senderClusterUrl;
+    $sender = SkynetHelper::cleanUrl($sender);
 
     try
     {
@@ -15886,13 +16164,65 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
       $stmt->bindParam(':request', $requestData, \PDO::PARAM_STR);
-      $stmt->bindParam(':sender_url', $senderUrl, \PDO::PARAM_STR);
+      $stmt->bindParam(':sender_url', $sender, \PDO::PARAM_STR);
       $stmt->bindParam(':source', $source, \PDO::PARAM_STR);
       $stmt->bindParam(':status', $status, \PDO::PARAM_STR);
       $stmt->bindParam(':from_version', $from_version, \PDO::PARAM_STR);
       $stmt->bindParam(':to_version', $to_version, \PDO::PARAM_STR);
       if($stmt->execute()) 
       {
+        $this->addState(SkynetTypes::DB_LOG, 'SELF-UPDATE FROM [from &gt;&gt; '.$senderUrl.' ] SAVED TO DB');
+        return true;
+      }
+      
+    } catch(\PDOException $e)
+    {
+      $this->addState(SkynetTypes::DB_LOG, SkynetTypes::DBCONN_ERR.' : '. $e->getMessage());
+      $this->addError(SkynetTypes::PDO, 'DB CONNECTION ERROR: '.$e->getMessage(), $e);
+    }
+  }
+  
+ /**
+  * Saves User Log
+  *
+  * @param string $content Log message
+  * @param string $listener Event listener/file
+  * @param string $line Line
+  * @param string $event Event name
+  * @param string $method Method name
+  */
+  public function saveUserLogToDb($content, $listener = '', $line = 0, $event = '', $method = '')
+  {
+    try
+    {
+      $stmt = $this->db->prepare(
+      'INSERT INTO skynet_logs_user (skynet_id, created_at, content, sender_url, receiver_url, listener, event, method, line)
+      VALUES(:skynet_id, :created_at, :content, :sender_url, :receiver_url, :listener, :event, :method, :line)'
+      );
+      
+      $sender = $this->senderClusterUrl;
+      $receiver = $this->receiverClusterUrl;
+      
+      $sender = SkynetHelper::cleanUrl($sender);
+      $receiver = SkynetHelper::cleanUrl($receiver);
+      
+      $time = time();
+      $id = SkynetConfig::KEY_ID;
+      $line = intval($line);
+      
+      $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
+      $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
+      $stmt->bindParam(':content', $content, \PDO::PARAM_STR);
+      $stmt->bindParam(':sender_url', $sender, \PDO::PARAM_STR);
+      $stmt->bindParam(':receiver_url', $receiver, \PDO::PARAM_STR);
+      $stmt->bindParam(':listener', $listener, \PDO::PARAM_STR);
+      $stmt->bindParam(':event', $event, \PDO::PARAM_STR);
+      $stmt->bindParam(':method', $method, \PDO::PARAM_STR);
+      $stmt->bindParam(':line', $line, \PDO::PARAM_STR);
+      
+      if($stmt->execute()) 
+      {
+        $this->addState(SkynetTypes::DB_LOG, 'USERLOG [created by &gt;&gt; '.$listener.' ] SAVED TO DB');
         return true;
       }
       
@@ -15908,7 +16238,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
  * Skynet/EventLogger/SkynetEventListenerLoggerFiles.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -16079,7 +16409,7 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
       return $val;
     }
     
-    if($key == '_skynet_clusters' || $key == '@_skynet_clusters')
+    if($key == '_skynet_clusters_chain' || $key == '@_skynet_clusters_chain')
     {
       $ret = [];
       $clusters = explode(';', $val);
@@ -16090,7 +16420,7 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
       return implode('; ', $ret);
     }
 
-    $toDecode = ['_skynet_clusters_chain', '@_skynet_clusters_chain'];
+    $toDecode = [];
     if(in_array($key, $toDecode))
     {      
       return base64_decode($val);
@@ -16133,20 +16463,32 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $logFile = new SkynetLogFile('RESPONSE');
     $logFile->setFileName($fileName);
     $logFile->setCounter($this->connId);
-    $logFile->setHeader("Response ".$direction.": ".$remote);
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("Response ".$direction.": ".$remote);
+    }
 
     foreach($this->responseData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
     /* If from response sender */
     if($direction == 'to')
     {
       $logFile->addSeparator();
-      $logFile->addLine("RESPONSE FOR THIS REQUEST FROM [".$remote."]");
+      if(SkynetConfig::get('logs_txt_include_clusters_data'))
+      {
+        $logFile->addLine("RESPONSE FOR THIS REQUEST FROM [".$remote."]");
+      }
       foreach($this->requestsData as $k => $v)
       {
-        $logFile->addLine($this->parseLine($k, $v));
+        if($this->canSave($k))
+        {
+          $logFile->addLine($this->parseLine($k, $v));
+        }
       }
     }
     return $logFile->save();
@@ -16187,10 +16529,16 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $logFile = new SkynetLogFile('REQUEST');
     $logFile->setFileName($fileName);
     $logFile->setCounter($this->connId);
-    $logFile->setHeader("Request ".$direction.": ".$receiver);
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("Request ".$direction.": ".$receiver);
+    }
     foreach($this->requestsData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
     return $logFile->save();
   }
@@ -16218,15 +16566,21 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $fileName = 'echo';
     $logFile = new SkynetLogFile('ECHO');
     $logFile->setFileName($fileName);
-    $logFile->setHeader("@Echo From (sended to me from): ".$senderUrl);
-    $logFile->setHeader("@Echo To (resended to): ".$receivers_urls);
-    $logFile->addLine("URLS CHAIN: ".$urlsChainPlain);
-    $logFile->addSeparator();
-    $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("@Echo From (sended to me from): ".$senderUrl);
+      $logFile->setHeader("@Echo To (resended to): ".$receivers_urls);
+      $logFile->addLine("URLS CHAIN: ".$urlsChainPlain);
+      $logFile->addSeparator();
+      $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    }
 
     foreach($this->requestsData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
     return $logFile->save();
   }
@@ -16255,24 +16609,40 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $fileName = 'broadcast';
     $logFile = new SkynetLogFile('BROADCAST');
     $logFile->setFileName($fileName);
-    $logFile->setHeader("@Broadcast From (sended to me from): ".$senderUrl);
-    $logFile->setHeader("@Broadcast To (resended to): ".$receivers_urls);
-    $logFile->addLine("URLS CHAIN: ".$urlsChainPlain);
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("@Broadcast From (sended to me from): ".$senderUrl);
+      $logFile->setHeader("@Broadcast To (resended to): ".$receivers_urls);
+      $logFile->addLine("URLS CHAIN: ".$urlsChainPlain);
+    }
     $logFile->addSeparator();
-    $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    }
 
     foreach($this->requestsData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
 
     if(is_array($broadcastedRequests) && count($broadcastedRequests) > 0)
     {
       $logFile->addSeparator();
-      $logFile->addLine("@BROADCASTED REQUEST TO [".$receivers_urls."]:");
+      if(SkynetConfig::get('logs_txt_include_clusters_data'))
+      {
+        $logFile->addLine("@BROADCASTED REQUEST TO [".$receivers_urls."]:");
+      }
+      
       foreach($broadcastedRequests as $k => $v)
       {
-        $logFile->addLine($this->parseLine($k, $v, true));
+        if($this->canSave($k))
+        {
+          $logFile->addLine($this->parseLine($k, $v, true));
+        }
       }
     }
     return $logFile->save();
@@ -16292,7 +16662,10 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     $fileName = 'self-update';
     $logFile = new SkynetLogFile('SELF-UPDATE');
     $logFile->setFileName($fileName);
-    $logFile->setHeader("@Self-update request From (sended to me from): ".$senderUrl);
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->setHeader("@Self-update request From (sended to me from): ".$senderUrl);
+    }
     $logFile->addLine("UPDATE LOG:");
     foreach($logs as $k => $v)
     {     
@@ -16300,17 +16673,66 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
     }    
     
     $logFile->addSeparator();
-    $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->addLine("#REQUEST FROM [".$senderUrl."]:");
+    }
 
     foreach($this->requestsData as $k => $v)
     {
-      $logFile->addLine($this->parseLine($k, $v));
+      if($this->canSave($k))
+      {
+        $logFile->addLine($this->parseLine($k, $v));
+      }
     }
+    return $logFile->save();
+  }
+  
+ /**
+  * Saves User Log
+  *
+  * @param string $content Log message
+  * @param string $listener Event listener/file
+  * @param string $line Line
+  * @param string $event Event name
+  * @param string $method Method name
+  */
+  public function saveUserLogToFile($content, $listener = '', $line = 0, $event = '', $method = '')
+  {   
+    $logs = [];
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logs['Sender URL'] = $this->senderClusterUrl;
+      $logs['Receiver URL'] = $this->receiverClusterUrl;
+    }
+    $logs['Listener'] = $listener;
+    $logs['Event'] = $event;
+    $logs['Method'] = $method;
+    $logs['Line'] = $line;   
+    $logs['Message'] = $content;    
+    
+    $fileName = 'log';
+    $logFile = new SkynetLogFile('USERLOG');
+    $logFile->setFileName($fileName);
+    $logFile->setHeader("@User log from Event Listener: ".$listener);
+    $logFile->addLine("LOG:");
+    foreach($logs as $k => $v)
+    {     
+      $logFile->addLine($this->parseLine($k, $v));     
+    }    
+    
+    $logFile->addSeparator();
+    if(SkynetConfig::get('logs_txt_include_clusters_data'))
+    {
+      $logFile->addLine("#SENDER [".$this->senderClusterUrl."]");
+      $logFile->addLine("#RECEIVER [".$this->receiverClusterUrl."]");
+    }
+
     return $logFile->save();
   }
 
  /**
-  * Parse single line
+  * Parses single line
   *
   * @param string $k Field name/key
   * @param string $v Field value
@@ -16320,7 +16742,7 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
   */
   private function parseLine($k, $v, $force = false)
   {     
-    $row = '';
+    $row = '';    
     if(SkynetConfig::get('logs_txt_include_internal_data') || $force)
     {
        $row = "  ".$k.": ".$this->decodeIfNeeded($k, $v);
@@ -16331,6 +16753,34 @@ class SkynetEventListenerLoggerFiles extends SkynetEventListenerAbstract impleme
        }
     }       
     return $row;
+  }
+
+ /**
+  * Checks for secure data
+  *
+  * @param string $key Field key
+  *
+  * @return bool True if can save
+  */  
+  private function canSave($key)
+  {
+    if($key == '_skynet_id' || $key == '_skynet_hash' || $key == '@_skynet_id' || $key == '@_skynet_hash')
+    {
+      if(!SkynetConfig::get('logs_txt_include_secure_data'))
+      {
+        return false;
+      }
+    }
+    
+    if($key == '_skynet_cluster_url' || $key == '_skynet_sender_url' || $key == '@_skynet_cluster_url' || $key == '@_skynet_sender_url' || $key == '_skynet_clusters_chain' || $key == '@_skynet_clusters_chain')
+    {
+      if(!SkynetConfig::get('logs_txt_include_clusters_data'))
+      {
+        return false;
+      }
+    }
+    
+    return true;
   }
 }
 
@@ -16442,7 +16892,7 @@ class SkynetEventLoggersFactory
  * Skynet/Filesystem/SkynetCloner.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -16477,7 +16927,7 @@ class SkynetCloner
   */
   public function startCloning()
   {   
-    $dirsList = $this->inspectDirs('sandbox');
+    $dirsList = $this->inspectDirs();
     $success = [];
     
     if($dirsList !== false)
@@ -16552,12 +17002,27 @@ class SkynetCloner
     
     $dir = @glob($from.'*');
     $dirs = [];
+    
+    $toExcludeDirs = [];
+    $excludeDirs = [];
+    
+    $toExcludeDirs[] = SkynetConfig::get('logs_dir');
+    
+    foreach($toExcludeDirs as $excludeDir)
+    {
+      if(!empty($exludeDir) && substr($excludeDir, -1) == '/')
+      {
+        $excludeDir = rtrim($excludeDir, '/');
+        $excludeDirs[] = $excludeDir;
+      }      
+    }
+    
     foreach($dir as $path)
     {
       if(is_dir($path))
       {
         $base = basename($path);
-        if($base != 'logs')
+        if(!in_array($base, $excludeDirs))
         {
           $dirs[] = $path;
         }
@@ -16596,7 +17061,7 @@ class SkynetCloner
     
     try
     {      
-      if(copy($myFile, $newFile))
+      if(@copy($myFile, $newFile))
       {
         $this->addState(SkynetTypes::CLONER,'CLONED TO: '.$newFile);  
         $address = $_SERVER['HTTP_HOST'].str_replace(basename($_SERVER['PHP_SELF']), '', $_SERVER['PHP_SELF']).$newFile;       
@@ -16617,12 +17082,12 @@ class SkynetCloner
  * Skynet/Filesystem/SkynetDetector.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
- * @since 1.0.0
+ * @since 1.1.0
  */
 
  /**
@@ -16653,20 +17118,26 @@ class SkynetDetector
   private function checkDir($dir = '')
   {   
     $clusters = [];
-    $d = glob($dir.'skynet*.php');
+    
+    if(!empty($dir))
+    {
+      if(substr($dir, -1) != '/')
+      {
+        $dir.= '/';
+      }
+    }    
+    
+    $d = glob($dir.'*skynet*.php');
     foreach($d as $file)
     {
-      $name = str_replace($d, '', $file);
+      $name = str_replace($d, '', $file);      
+      $address = SkynetHelper::getMyServer().'/'.$file;
+      
+      if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl())
       {
-        $address = SkynetHelper::getMyServer().'/'.$file;
-        
-        if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl())
-        {
-          $clusters[] = $address; 
-        }          
-      }      
-    } 
-    
+        $clusters[] = $address; 
+      }   
+    }     
     return $clusters;
   }   
   
@@ -16703,7 +17174,7 @@ class SkynetDetector
  * Checking and veryfing access to skynet
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -16760,13 +17231,20 @@ class SkynetLogFile
     $this->name = $name;
     $this->ext = '.txt';
     
-    if(!empty(SkynetConfig::get('logs_dir')) && !is_dir(SkynetConfig::get('logs_dir'))) 
+    $logsDir = SkynetConfig::get('logs_dir');
+    if(!empty($logsDir) && substr($logsDir, -1) != '/')
+    {
+      $logsDir.= '/';
+      SkynetConfig::set('logs_dir', $logsDir);
+    }
+    
+    if(!empty($logsDir) && !is_dir($logsDir)) 
     {
       try
       {
-        if(!mkdir(SkynetConfig::get('logs_dir')))
+        if(!mkdir($logsDir))
         {
-          throw new SkynetException('ERROR CREATING DIRECTORY: '.SkynetConfig::get('logs_dir'));
+          throw new SkynetException('ERROR CREATING DIRECTORY: '.$logsDir);
         }          
       } catch(SkynetException $e)
       {
@@ -16953,6 +17431,8 @@ class SkynetLogFile
   */
   public function save($mode = null, $toFile = true)
   {   
+    $logsDir = SkynetConfig::get('logs_dir');    
+    
     if($this->selfSuffix === null) 
     {
       $this->selfSuffix = str_replace("/", "-", SkynetHelper::getMyUrl());
@@ -16966,8 +17446,11 @@ class SkynetLogFile
     }
     
     $time = '';
-    if($this->timePrefix) $time = time().'_';    
-    $file = SkynetConfig::get('logs_dir').$time.$this->fileName.$suffix.$counter.$this->ext;
+    if($this->timePrefix) 
+    {
+      $time = time().'_';    
+    }
+    $file = $logsDir.$time.$this->fileName.$suffix.$counter.$this->ext;
     
     /* Save mode */
     if($mode !== null)
@@ -19310,7 +19793,7 @@ class SkynetRendererHtmlConsoleRenderer
  * Skynet/Renderer/Html//SkynetRendererHtmlDatabaseRenderer.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -19604,8 +20087,9 @@ class SkynetRendererHtmlDatabaseRenderer
       
       $allRecords = $this->database->ops->countTableRows($this->selectedTable);
       
-      $output[] = $this->elements->beginTable('dbTable');   
-      $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle($this->selectedTable.' ('.$i.'/'.$allRecords.')').$this->getNewButton(), count($fields) + 1);      
+      $output[] = $this->elements->beginTable('dbTable');  
+      $dbTitle =  $this->elements->addSectionClass('dbTitle').$this->elements->addSubtitle($this->dbTables[$this->selectedTable]).$this->elements->getNl().$this->selectedTable.' ('.$i.'/'.$allRecords.')'.$this->elements->addSectionEnd();
+      $output[] = $this->elements->addHeaderRow($dbTitle.$this->getNewButton(), count($fields) + 1);      
       $output[] = implode('', $recordRows);
       $output[] = $this->elements->endTable();
       
@@ -19662,7 +20146,7 @@ class SkynetRendererHtmlDatabaseRenderer
   private function getNewButton()
   {
     $newHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetNewRecord=1&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;    
-    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('New record'), false, 'btnNormal').$this->elements->getNl().$this->elements->getNl();
+    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('[+] New record'), false, 'btnNormal').$this->elements->getNl().$this->elements->getNl();
   }  
   
  /**
@@ -22321,6 +22805,8 @@ class SkynetRendererHtmlThemes
     .modeButtons a { background:#09270b; border: 1px solid silver; }
     .modeButtons a:hover { text-decoration:none; border: 1px solid #fff; }
     
+    .dbTitle { text-align:center; }
+    
     a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
     a.btn:hover { background:#3ffb6e; color:#000; }
     
@@ -22927,6 +23413,21 @@ class SkynetVerifier
   }
 
  /**
+  * Checks for keys pass
+  * 
+  * @param string $remoteKey Remote hashed key
+  *
+  * @return bool True if valid
+  */  
+  public function isMyKey($remoteKey)
+  {
+    if(password_verify($this->packageKey, $remoteKey))
+    {
+      return true;
+    }    
+  }
+  
+ /**
   * Validates skynetID key from request
   *
   * If requested key not match with my key then return false
@@ -22954,7 +23455,7 @@ class SkynetVerifier
       }
       
       /* Verify when responder gets request */
-      if(password_verify($this->packageKey, $this->requestKey))
+      if($this->isMyKey($this->requestKey))
       {        
         if(!$sender && $this->isRequestHash() && $this->isRequestSenderUrl())
         {
@@ -23029,6 +23530,39 @@ class SkynetVerifier
   }
 
  /**
+  * Checks if open sender (always send requests)
+  *
+  * @return bool True if open sender
+  */
+  public function isOpenSender()
+  {
+    if(SkynetConfig::get('core_open_sender'))
+    {
+      return true;
+    }
+  }
+  
+ /**
+  * Checks if user IP is on white list
+  *
+  * @return bool True if have access
+  */
+  public function hasAdminIpAddress()
+  {
+    $ips = SkynetConfig::get('core_admin_ip_whitelist');
+    $myIp = SkynetHelper::getRemoteIp();
+    
+    if(is_array($ips) && count($ips) > 0)
+    {
+      if(!in_array($myIp, $ips))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+ /**
   * Checks if Skynet is not under another Skynet connection
   *
   * @return bool True if is another connection
@@ -23041,6 +23575,19 @@ class SkynetVerifier
     }
   }
  
+ /**
+  * Checks if Skynet connects from client
+  *
+  * @return bool True if is client connection
+  */
+  public function isClient()
+  {
+    if(isset($_REQUEST['_skynet_cluster_url']) && isset($_REQUEST['_skynet']) && isset($_REQUEST['_skynet_client']))
+    {
+      return true;
+    }
+  }
+  
  /**
   * Checks if Skynet requests for code
   *
@@ -23333,7 +23880,7 @@ class SkynetLauncher
  * Skynet/SkynetVersion.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -23347,10 +23894,10 @@ class SkynetLauncher
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.1.6-stable';
+   const VERSION = '1.2.0';
    
    /** @var string build */
-   const BUILD = '2017.04.27';
+   const BUILD = '2017.04.29';
    
    /** @var string website */
    const WEBSITE = 'https://github.com/szczyglinski/skynet';

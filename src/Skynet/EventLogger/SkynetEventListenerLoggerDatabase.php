@@ -313,24 +313,20 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $logInfo = '';
 
       if($context == 'beforeSend')
-      {
-         if(isset($this->requestsData['_skynet_sender_url'])) 
-         {
-           $receiver = $this->requestsData['_skynet_sender_url'];
-         }
-         $sender = $this->myAddress;
-         $skynet_id = $this->requestsData['_skynet_id'];
-         $logInfo = 'to &gt;&gt; '.$receiver;
-         
-      } else {
-         if(isset($this->responseData['_skynet_cluster_url'])) 
-         {
-           $sender = $this->responseData['_skynet_cluster_url'];
-         }
-         $receiver = $this->myAddress;
+      {         
+         $skynet_id = \SkynetUser\SkynetConfig::KEY_ID;
+         $logInfo = 'to &gt;&gt; '.$receiver;         
+      } else {        
          $skynet_id = $this->responseData['_skynet_id'];
+         if($this->verifier->isMyKey($skynet_id))
+         {
+           $skynet_id = \SkynetUser\SkynetConfig::KEY_ID;
+         }
          $logInfo = 'from &lt;&lt; '.$sender;
       }
+      
+      $sender = $this->senderClusterUrl;
+      $receiver = $this->receiverClusterUrl;
       
       $sender = SkynetHelper::cleanUrl($sender);
       $receiver = SkynetHelper::cleanUrl($receiver);
@@ -395,21 +391,22 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $skynet_id = '';
 
       if($context == 'afterReceive')
-      {
-         if(isset($this->requestsData['_skynet_sender_url'])) 
-         {
-           $sender = $this->requestsData['_skynet_sender_url'];
-         }
-         $receiver = $this->myAddress;
+      {         
          if(isset($this->requestsData['_skynet_id'])) 
          {
            $skynet_id = $this->requestsData['_skynet_id'];
+           if($this->verifier->isMyKey($skynet_id))
+           {
+             $skynet_id = \SkynetUser\SkynetConfig::KEY_ID;
+           }
          }
-      } else {
-         $sender = $this->myAddress;
-         $receiver = $this->receiverClusterUrl;
+         
+      } else {        
          $skynet_id = \SkynetUser\SkynetConfig::KEY_ID;
       }
+      
+      $sender = $this->senderClusterUrl;
+      $receiver = $this->receiverClusterUrl;
       
       $sender = SkynetHelper::cleanUrl($sender);
       $receiver = SkynetHelper::cleanUrl($receiver);
@@ -460,8 +457,6 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
          }
       }
     }
-    
-    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
 
     try
     {
@@ -469,13 +464,16 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       'INSERT INTO skynet_logs_echo (skynet_id, created_at, request, ping_from, ping_to, urls_chain)
       VALUES(:skynet_id, :created_at, :request, :ping_from,  :ping_to, :urls_chain)'
       );
-      $senderUrl = $this->request->getSenderClusterUrl();
+      
+      $sender = $this->senderClusterUrl;
+      $sender = SkynetHelper::cleanUrl($sender);
+      
       $time = time();
       $id = \SkynetUser\SkynetConfig::KEY_ID;
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
       $stmt->bindParam(':request', $requestData, \PDO::PARAM_STR);
-      $stmt->bindParam(':ping_from', $senderUrl, \PDO::PARAM_STR);
+      $stmt->bindParam(':ping_from', $sender, \PDO::PARAM_STR);
       $stmt->bindParam(':ping_to', $receivers_urls, \PDO::PARAM_STR);
       $stmt->bindParam(':urls_chain', $urlsChainPlain, \PDO::PARAM_STR);
       if($stmt->execute()) 
@@ -515,7 +513,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       }
     }
     
-    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
+    $sender = $this->senderClusterUrl;
+    $sender = SkynetHelper::cleanUrl($sender);
     
     try
     {
@@ -529,7 +528,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
       $stmt->bindParam(':request', $requestData, \PDO::PARAM_STR);
-      $stmt->bindParam(':ping_from', $senderUrl, \PDO::PARAM_STR);
+      $stmt->bindParam(':ping_from', $sender, \PDO::PARAM_STR);
       $stmt->bindParam(':ping_to', $receivers_urls, \PDO::PARAM_STR);
       $stmt->bindParam(':urls_chain', $urlsChainPlain, \PDO::PARAM_STR);
       if($stmt->execute()) 
@@ -567,7 +566,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       }
     }
     
-    $senderUrl = SkynetHelper::cleanUrl($senderUrl);
+    $sender = $this->senderClusterUrl;
+    $sender = SkynetHelper::cleanUrl($sender);
 
     try
     {
@@ -585,7 +585,7 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
       $stmt->bindParam(':request', $requestData, \PDO::PARAM_STR);
-      $stmt->bindParam(':sender_url', $senderUrl, \PDO::PARAM_STR);
+      $stmt->bindParam(':sender_url', $sender, \PDO::PARAM_STR);
       $stmt->bindParam(':source', $source, \PDO::PARAM_STR);
       $stmt->bindParam(':status', $status, \PDO::PARAM_STR);
       $stmt->bindParam(':from_version', $from_version, \PDO::PARAM_STR);
@@ -621,8 +621,12 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       VALUES(:skynet_id, :created_at, :content, :sender_url, :receiver_url, :listener, :event, :method, :line)'
       );
       
-      $sender_url = $this->senderClusterUrl;
-      $receiver_url = $this->receiverClusterUrl;      
+      $sender = $this->senderClusterUrl;
+      $receiver = $this->receiverClusterUrl;
+      
+      $sender = SkynetHelper::cleanUrl($sender);
+      $receiver = SkynetHelper::cleanUrl($receiver);
+      
       $time = time();
       $id = \SkynetUser\SkynetConfig::KEY_ID;
       $line = intval($line);
@@ -630,8 +634,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       $stmt->bindParam(':skynet_id', $id, \PDO::PARAM_STR);
       $stmt->bindParam(':created_at', $time, \PDO::PARAM_INT);
       $stmt->bindParam(':content', $content, \PDO::PARAM_STR);
-      $stmt->bindParam(':sender_url', $sender_url, \PDO::PARAM_STR);
-      $stmt->bindParam(':receiver_url', $receiver_url, \PDO::PARAM_STR);
+      $stmt->bindParam(':sender_url', $sender, \PDO::PARAM_STR);
+      $stmt->bindParam(':receiver_url', $receiver, \PDO::PARAM_STR);
       $stmt->bindParam(':listener', $listener, \PDO::PARAM_STR);
       $stmt->bindParam(':event', $event, \PDO::PARAM_STR);
       $stmt->bindParam(':method', $method, \PDO::PARAM_STR);

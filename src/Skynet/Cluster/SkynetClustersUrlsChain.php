@@ -38,6 +38,9 @@ class SkynetClustersUrlsChain
   /** @var SkynetRequest Assigned request */
   private $request;
 
+  /** @var string My cluster IP */
+  private $myIP;
+  
   /** @var string My cluster URL */
   private $myUrl;
 
@@ -56,6 +59,7 @@ class SkynetClustersUrlsChain
   public function __construct()
   {
     $this->myUrl = SkynetHelper::getMyUrl();
+    $this->myIP = SkynetHelper::getMyUrlByIp();
     $this->verifier = new SkynetVerifier();
     $this->clustersRegistry = new SkynetClustersRegistry();
   }
@@ -96,7 +100,7 @@ class SkynetClustersUrlsChain
         }
       }
       $ret = implode(';', $ary);
-    }
+    }   
     return $ret;
   }
   
@@ -140,7 +144,7 @@ class SkynetClustersUrlsChain
   */
   public function isMyClusterInChain()
   {
-    if(in_array($this->myUrl, $this->clusters))
+    if(in_array($this->myUrl, $this->clusters) || in_array($this->myIP, $this->clusters))
     {
       return true;
     }

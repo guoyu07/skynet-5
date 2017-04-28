@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlConnectionsRenderer.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -170,6 +170,41 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
   }
  
  /**
+  * Parses fields with clusters chain
+  * 
+  * @param string $key
+  * @param string $value
+  *
+  * @return string Parsed clusters chain
+  */  
+  private function parseParamClusters($key, $value)
+  {
+    if(!\SkynetUser\SkynetConfig::get('translator_params'))
+    {
+      return $value;
+    }
+    
+    $clustersParams = ['_skynet_clusters_chain', '@_skynet_clusters_chain'];
+    if(in_array($key, $clustersParams) && !empty($value))
+    {
+      $e = explode(';', $value);
+      $clustersDecoded = [];
+      if(count($e) > 0)
+      {
+        foreach($e as $clusterEncoded)
+        {
+          $decoded = base64_decode($clusterEncoded);
+          $clustersDecoded[] =  $decoded;          
+        }       
+      }     
+      
+      return implode('; ', $clustersDecoded);      
+    } else {
+      return $value;
+    }
+  }
+  
+ /**
   * Parses array 
   * 
   * @param mixed $fields Array with fields
@@ -230,7 +265,8 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
       
       if($render)
       {
-        $value = $this->parseParamTime($field->getName(), $field->getValue());        
+        $value = $this->parseParamTime($field->getName(), $field->getValue());         
+        $value = $this->parseParamClusters($field->getName(), $value);
         
         if($this->params->isPacked($value))
         {
