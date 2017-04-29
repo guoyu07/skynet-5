@@ -1,5 +1,5 @@
-/_compiled/*.*
-/_download/*.*
+/_compiled/*.php
+/_download/*.txt
 /logs/*.txt
 *.db
 /sandbox/*

@@ -2,6 +2,8 @@
 
 - user custom logger added
 - log secure/clusters config added
+- txt logs viewer added
+- Skynet Client added
 
 1.1.6-stable (2017.04.27)
 
