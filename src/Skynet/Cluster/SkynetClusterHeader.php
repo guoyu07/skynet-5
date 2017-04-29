@@ -72,10 +72,13 @@ class SkynetClusterHeader
   /** @var SkynetConnectionInterface Connector instance */
   private $connection;
   
+  /** @var int Ping */
   private $ping = 0;  
     
+  /** @var int Result  */
   private $result = 0;
   
+  /** @var int ConnectionID  */
   private $connId = 0;
 
  /**

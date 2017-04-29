@@ -215,8 +215,11 @@ class SkynetResponder
 
     $cluster = new SkynetCluster();
     $cluster->fromRequest($this->request);
-    $this->clustersRegistry->setRegistrator($cluster->getUrl());
-    $this->clustersRegistry->add($cluster);
+    if(!$this->verifier->isClient() || \SkynetUser\SkynetConfig::get('client_registry_responder'))
+    {
+      $this->clustersRegistry->setRegistrator($cluster->getUrl());
+      $this->clustersRegistry->add($cluster);
+    }
 
     $this->response->assignRequest($this->request);
     

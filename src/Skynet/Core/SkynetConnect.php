@@ -112,13 +112,19 @@ class SkynetConnect
 
   /** @var bool True if adding new to DB */
   private $addition = false;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
 
  /**
   * Constructor
+  *
+  * @param bool $isClient True if Client
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;
     $this->eventListenersLauncher = new SkynetEventListenersLauncher();
     $this->eventListenersLauncher->setSender(true);
     $this->eventListenersLauncher->assignRequest($this->request);
@@ -127,7 +133,7 @@ class SkynetConnect
     $this->eventListenersLauncher->assignConsole($this->console);
     $this->connection = SkynetConnectionsFactory::getInstance()->getConnector(\SkynetUser\SkynetConfig::get('core_connection_type'));
     $this->verifier = new SkynetVerifier();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
     $this->debugger = new SkynetDebug();
   }
 
@@ -238,6 +244,11 @@ class SkynetConnect
   */
   private function storeCluster()
   {
+    if($this->isClient && !\SkynetUser\SkynetConfig::get('client_registry'))
+    {
+      return false;
+    }
+        
     $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
     
     /* Add cluster to database if not exists */
@@ -307,8 +318,13 @@ class SkynetConnect
     {
       $this->isConnected = true;
     } else {
-      $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
-      $this->clustersRegistry->addBlocked($this->cluster);
+      
+      if(!$this->isClient || \SkynetUser\SkynetConfig::get('client_registry'))
+      {
+        $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
+        $this->clustersRegistry->addBlocked($this->cluster);
+      }
+      
       $this->cluster->getHeader()->setResult(-1);
     }
     return $this->responseData;
@@ -500,6 +516,16 @@ class SkynetConnect
     $this->isBroadcast = $isBroadcast;
   }
 
+ /**
+  * Sets if Client
+  *
+  * @param bool $isClient
+  */
+  public function setIsClient($isClientt)
+  {
+    $this->isClient = $isClient;
+  }
+  
  /**
   * Assigns Request
   *

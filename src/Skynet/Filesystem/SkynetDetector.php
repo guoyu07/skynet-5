@@ -65,7 +65,7 @@ class SkynetDetector
       $name = str_replace($d, '', $file);      
       $address = SkynetHelper::getMyServer().'/'.$file;
       
-      if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl())
+      if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl() && $file != 'skynet_client.php')
       {
         $clusters[] = $address; 
       }   

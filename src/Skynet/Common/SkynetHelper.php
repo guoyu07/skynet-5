@@ -194,6 +194,9 @@ class SkynetHelper
     $titles['core_admin_ip_whitelist'] = 'IP\'s whitelist for access to Control Panel';
     $titles['core_open_sender'] = 'Always send requests (even without login to Control Panel)';
     
+    $titles['client_registry'] = 'Use Clusters Registry on Client';
+    $titles['client_registry_responder'] = 'Use Clusters Registry when connection from Client';
+    
     $titles['translator_config'] = 'Translate config keys to titles';
     $titles['translator_params'] = 'Translate internal params to titles';
     

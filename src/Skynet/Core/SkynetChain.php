@@ -56,19 +56,25 @@ class SkynetChain
 
   /** @var integer Time of last chain update */
   private $updated_at;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
+  *
+  * @param bool $isClient True if Client
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;    
     $dbInstance = SkynetDatabase::getInstance();
     $this->db_connected = $dbInstance->isDbConnected();
     $this->db_created = $dbInstance->isDbCreated();
-    $this->db = $dbInstance->getDB();
+    $this->db = $dbInstance->getDB();    
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->verifier = new SkynetVerifier();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
 
     $this->updateMyChain();
     $this->showMyChain();

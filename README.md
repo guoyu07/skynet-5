@@ -1,7 +1,7 @@
 ### Donate project in BTC: 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr or PayPal: [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
 ------------
-Current version: 1.1.6-stable (2017.04.27)
+Current version: 1.2.0 (2017.04.29)
 [https://skynetframework.blogspot.com](https://skynetframework.blogspot.com)
 
 
@@ -82,6 +82,7 @@ After you download and unpack (or clone) repository from GitHub then you should 
 - **manual/** - manual and API documentation
 - **src/** - Skynet core, source classes
 - **skynet_dev.php** - Non-compiled Skynet cluster (works on classes from */src* directory via autoloader)
+- **skynet_client.php** - Example of Skynet Client (intergration with other applications)
 - **skynet.php** - Compiled Skynet cluster (all classes are compiled into single standalone file)
 - **compiler.php** - Comilater script whitch compiling sources from */src* folder into single standalone file
 - **keygen.php** - Skynet Key ID generator
@@ -92,10 +93,11 @@ After you download and unpack (or clone) repository from GitHub then you should 
 - **LICENSE.txt** - License
 - **VERSION** - version info
 
-As you see you have two versions of Skynet cluster by default: 
+As you see you have three versions of Skynet cluster by default: 
 
 - **skynet_dev.php** - version with autoloader works on classes from *src/* directory. You can use this version for development and tests
 - **skynet.php** - compiled version with all classes from *src/* directory included itself. This is the "production version" - one single file to put on server after compile from *src/*
+- **skynet_client.php** - Client for Skynet connections. This is an simple example how to integrate Skynet connections with other applications
 
 You can work on this two versions (when you launch both you will see that these two works exacly the same at now), but the idea od Skynet clusters is to operate on standalone compiled versions called here "clusters".
 

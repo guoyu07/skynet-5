@@ -26,7 +26,7 @@ class SkynetConfig
   const KEY_ID = '1234567890';
   
   /** @var string SKYNET PASSWORD, default: empty */
-  const PASSWORD = '$2y$10$iEuGSDkQ/1xhrDIaog5eaeVVpVaRt6PVtxGyXDf9YmfwQSqecv9fi';
+  const PASSWORD = '';
   
   
   /** @var string[] Array of configuration options */
@@ -51,7 +51,7 @@ class SkynetConfig
     
     /* core_cloner -> bool:[true|false]
     If TRUE - cloner will be enabled and listening for clone command */
-    'core_cloner' => true,
+    'core_cloner' => false,
     
     /* core_check_new_versions -> bool:[true|false]
     If TRUE - information about new version is given from GitHub */
@@ -87,7 +87,20 @@ class SkynetConfig
     
     /*core_open_sender -> bool:[true|false]
     If TRUE Skynet will always sends requests when open (without login to Control Panel) */
-    'core_open_sender' => true,
+    'core_open_sender' => false,
+ 
+/*
+  ==================================
+  Client configuration - base options:
+  ==================================
+*/
+    /* core_registry -> bool:[true|false]
+    If TRUE, Skynet Client will store clusters in registry */
+    'client_registry' => false,
+    
+    /* core_registry_responder -> bool:[true|false]
+    If TRUE, Skynet Responder will save cluster when receive connection from client */
+    'client_registry_responder' => false,
     
 /*
   ==================================

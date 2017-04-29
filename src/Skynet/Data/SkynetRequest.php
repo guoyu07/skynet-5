@@ -62,18 +62,24 @@ class SkynetRequest
   
   /** @var SkynetParams Params Operations */
   protected $paramsParser;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
 
  /**
   * Constructor
   *
+  * @param bool $isClient True if Client
+  *
   * @return SkynetRequest $this Instance of $this
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
-    $this->clustersRegistry = new SkynetClustersRegistry();
-    $this->clustersUrlsChain = new SkynetClustersUrlsChain();
-    $this->skynetChain = new SkynetChain();
+    $this->isClient = $isClient;
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
+    $this->clustersUrlsChain = new SkynetClustersUrlsChain($isClient);
+    $this->skynetChain = new SkynetChain($isClient);
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->verifier = new SkynetVerifier();
     $this->paramsParser = new SkynetParams();
@@ -319,7 +325,10 @@ class SkynetRequest
     
     if(\SkynetUser\SkynetConfig::get('core_urls_chain'))
     {
-      $this->set('_skynet_clusters_chain', $this->clustersUrlsChain->parseMyClusters());
+      if(!$this->isClient || \SkynetUser\SkynetConfig::get('client_registry'))
+      {
+        $this->set('_skynet_clusters_chain', $this->clustersUrlsChain->parseMyClusters());
+      }
     }
   }
 

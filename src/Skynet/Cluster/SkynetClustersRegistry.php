@@ -62,18 +62,23 @@ class SkynetClustersRegistry
   
   /** @var string Registrator */
   private $registrator;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
+  *
+  * @param bool $isClient True if Client
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;    
     $dbInstance = SkynetDatabase::getInstance();
     $this->db_connected = $dbInstance->isDbConnected();
     $this->db_created = $dbInstance->isDbCreated();
-    $this->db = $dbInstance->getDB();
-    $this->verifier = new SkynetVerifier();
-    
+    $this->db = $dbInstance->getDB();    
+    $this->verifier = new SkynetVerifier();    
     $this->registrator = SkynetHelper::getMyUrl();
   }
 
@@ -146,6 +151,11 @@ class SkynetClustersRegistry
   */  
   public function add(SkynetCluster $cluster = null)
   {     
+    if($this->isClient && !\SkynetUser\SkynetConfig::get('client_registry'))
+    {
+      return false;
+    }
+    
     if($cluster === null)
     {
       return false;

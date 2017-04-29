@@ -49,9 +49,9 @@ class SkynetClient
   */
   public function __construct()
   {
-    $this->request = new SkynetRequest();
-    $this->response = new SkynetResponse();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->request = new SkynetRequest(true);
+    $this->response = new SkynetResponse(true);
+    $this->clustersRegistry = new SkynetClustersRegistry(true);
     $this->verifier = new SkynetVerifier();
     return $this;
   }  
@@ -63,7 +63,8 @@ class SkynetClient
   */  
   public function connect($cluster = null, $chain = null)
   {
-    $connect = new SkynetConnect();
+    $this->request->set('_skynet_client', 1);
+    $connect = new SkynetConnect(true);   
     $connect->assignRequest($this->request);
     $connect->assignResponse($this->response);
     $connect->assignConnectId(1);

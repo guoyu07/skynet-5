@@ -52,16 +52,22 @@ class SkynetClustersUrlsChain
   
   /** @var SkynetClustersRegistry ClustersRegistry instance */
   private $clustersRegistry;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
+  *
+  * @param bool $isClient True if Client
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;
     $this->myUrl = SkynetHelper::getMyUrl();
     $this->myIP = SkynetHelper::getMyUrlByIp();
     $this->verifier = new SkynetVerifier();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
   }
 
  /**

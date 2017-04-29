@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.28 21:57:09 (1493416629) */
+/* Skynet Standalone | version compiled: 2017.04.29 02:08:49 (1493431729) */
 
 namespace Skynet;
 
@@ -29,7 +29,7 @@ class SkynetConfig
   const KEY_ID = '1234567890';
   
   /** @var string SKYNET PASSWORD, default: empty */
-  const PASSWORD = '$2y$10$iEuGSDkQ/1xhrDIaog5eaeVVpVaRt6PVtxGyXDf9YmfwQSqecv9fi';
+  const PASSWORD = '';
   
   
   /** @var string[] Array of configuration options */
@@ -54,7 +54,7 @@ class SkynetConfig
     
     /* core_cloner -> bool:[true|false]
     If TRUE - cloner will be enabled and listening for clone command */
-    'core_cloner' => true,
+    'core_cloner' => false,
     
     /* core_check_new_versions -> bool:[true|false]
     If TRUE - information about new version is given from GitHub */
@@ -90,7 +90,20 @@ class SkynetConfig
     
     /*core_open_sender -> bool:[true|false]
     If TRUE Skynet will always sends requests when open (without login to Control Panel) */
-    'core_open_sender' => true,
+    'core_open_sender' => false,
+ 
+/*
+  ==================================
+  Client configuration - base options:
+  ==================================
+*/
+    /* core_registry -> bool:[true|false]
+    If TRUE, Skynet Client will store clusters in registry */
+    'client_registry' => false,
+    
+    /* core_registry_responder -> bool:[true|false]
+    If TRUE, Skynet Responder will save cluster when receive connection from client */
+    'client_registry_responder' => false,
     
 /*
   ==================================
@@ -987,7 +1000,11 @@ abstract class SkynetRendererAbstract
           
           case 'database':       
             $this->mode = 'database';
-          break;          
+          break;  
+
+          case 'logs':       
+            $this->mode = 'logs';
+          break;             
         } 
       }
     } else {
@@ -2255,10 +2272,13 @@ class SkynetClusterHeader
   /** @var SkynetConnectionInterface Connector instance */
   private $connection;
   
+  /** @var int Ping */
   private $ping = 0;  
     
+  /** @var int Result  */
   private $result = 0;
   
+  /** @var int ConnectionID  */
   private $connId = 0;
 
  /**
@@ -2792,18 +2812,23 @@ class SkynetClustersRegistry
   
   /** @var string Registrator */
   private $registrator;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
+  *
+  * @param bool $isClient True if Client
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;    
     $dbInstance = SkynetDatabase::getInstance();
     $this->db_connected = $dbInstance->isDbConnected();
     $this->db_created = $dbInstance->isDbCreated();
-    $this->db = $dbInstance->getDB();
-    $this->verifier = new SkynetVerifier();
-    
+    $this->db = $dbInstance->getDB();    
+    $this->verifier = new SkynetVerifier();    
     $this->registrator = SkynetHelper::getMyUrl();
   }
 
@@ -2876,6 +2901,11 @@ class SkynetClustersRegistry
   */  
   public function add(SkynetCluster $cluster = null)
   {     
+    if($this->isClient && !SkynetConfig::get('client_registry'))
+    {
+      return false;
+    }
+    
     if($cluster === null)
     {
       return false;
@@ -3634,16 +3664,22 @@ class SkynetClustersUrlsChain
   
   /** @var SkynetClustersRegistry ClustersRegistry instance */
   private $clustersRegistry;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
+  *
+  * @param bool $isClient True if Client
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;
     $this->myUrl = SkynetHelper::getMyUrl();
     $this->myIP = SkynetHelper::getMyUrlByIp();
     $this->verifier = new SkynetVerifier();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
   }
 
  /**
@@ -4025,6 +4061,9 @@ class SkynetHelper
     $titles['core_date_format'] = 'Date format';
     $titles['core_admin_ip_whitelist'] = 'IP\'s whitelist for access to Control Panel';
     $titles['core_open_sender'] = 'Always send requests (even without login to Control Panel)';
+    
+    $titles['client_registry'] = 'Use Clusters Registry on Client';
+    $titles['client_registry_responder'] = 'Use Clusters Registry when connection from Client';
     
     $titles['translator_config'] = 'Translate config keys to titles';
     $titles['translator_params'] = 'Translate internal params to titles';
@@ -7068,19 +7107,25 @@ class SkynetChain
 
   /** @var integer Time of last chain update */
   private $updated_at;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
+  *
+  * @param bool $isClient True if Client
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;    
     $dbInstance = SkynetDatabase::getInstance();
     $this->db_connected = $dbInstance->isDbConnected();
     $this->db_created = $dbInstance->isDbCreated();
-    $this->db = $dbInstance->getDB();
+    $this->db = $dbInstance->getDB();    
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->verifier = new SkynetVerifier();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
 
     $this->updateMyChain();
     $this->showMyChain();
@@ -7463,12 +7508,18 @@ class SkynetConnect
 
   /** @var bool True if adding new to DB */
   private $addition = false;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
+  *
+  * @param bool $isClient True if Client
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;
     $this->eventListenersLauncher = new SkynetEventListenersLauncher();
     $this->eventListenersLauncher->setSender(true);
     $this->eventListenersLauncher->assignRequest($this->request);
@@ -7477,7 +7528,7 @@ class SkynetConnect
     $this->eventListenersLauncher->assignConsole($this->console);
     $this->connection = SkynetConnectionsFactory::getInstance()->getConnector(SkynetConfig::get('core_connection_type'));
     $this->verifier = new SkynetVerifier();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
     $this->debugger = new SkynetDebug();
   }
 
@@ -7588,6 +7639,11 @@ class SkynetConnect
   */
   private function storeCluster()
   {
+    if($this->isClient && !SkynetConfig::get('client_registry'))
+    {
+      return false;
+    }
+        
     $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
     
     /* Add cluster to database if not exists */
@@ -7657,8 +7713,13 @@ class SkynetConnect
     {
       $this->isConnected = true;
     } else {
-      $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
-      $this->clustersRegistry->addBlocked($this->cluster);
+      
+      if(!$this->isClient || SkynetConfig::get('client_registry'))
+      {
+        $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
+        $this->clustersRegistry->addBlocked($this->cluster);
+      }
+      
       $this->cluster->getHeader()->setResult(-1);
     }
     return $this->responseData;
@@ -7735,8 +7796,9 @@ class SkynetConnect
         $this->cluster = $remote_cluster;
         $this->clusterUrl = $this->cluster->getUrl();
 
-      } elseif(is_string($remote_cluster))
+      } elseif(is_string($remote_cluster) && !empty($remote_cluster))
       {
+        $remote_cluster = SkynetHelper::cleanUrl($remote_cluster);
         $this->cluster = new SkynetCluster();
         $this->cluster->setUrl($remote_cluster);
         $this->clusterUrl = $remote_cluster;
@@ -7849,6 +7911,16 @@ class SkynetConnect
     $this->isBroadcast = $isBroadcast;
   }
 
+ /**
+  * Sets if Client
+  *
+  * @param bool $isClient
+  */
+  public function setIsClient($isClientt)
+  {
+    $this->isClient = $isClient;
+  }
+  
  /**
   * Assigns Request
   *
@@ -8519,8 +8591,11 @@ class SkynetResponder
 
     $cluster = new SkynetCluster();
     $cluster->fromRequest($this->request);
-    $this->clustersRegistry->setRegistrator($cluster->getUrl());
-    $this->clustersRegistry->add($cluster);
+    if(!$this->verifier->isClient() || SkynetConfig::get('client_registry_responder'))
+    {
+      $this->clustersRegistry->setRegistrator($cluster->getUrl());
+      $this->clustersRegistry->add($cluster);
+    }
 
     $this->response->assignRequest($this->request);
     
@@ -9048,17 +9123,23 @@ class SkynetRequest
   
   /** @var SkynetParams Params Operations */
   protected $paramsParser;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
   *
+  * @param bool $isClient True if Client
+  *
   * @return SkynetRequest $this Instance of $this
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
-    $this->clustersRegistry = new SkynetClustersRegistry();
-    $this->clustersUrlsChain = new SkynetClustersUrlsChain();
-    $this->skynetChain = new SkynetChain();
+    $this->isClient = $isClient;
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
+    $this->clustersUrlsChain = new SkynetClustersUrlsChain($isClient);
+    $this->skynetChain = new SkynetChain($isClient);
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->verifier = new SkynetVerifier();
     $this->paramsParser = new SkynetParams();
@@ -9304,7 +9385,10 @@ class SkynetRequest
     
     if(SkynetConfig::get('core_urls_chain'))
     {
-      $this->set('_skynet_clusters_chain', $this->clustersUrlsChain->parseMyClusters());
+      if(!$this->isClient || SkynetConfig::get('client_registry'))
+      {
+        $this->set('_skynet_clusters_chain', $this->clustersUrlsChain->parseMyClusters());
+      }
     }
   }
 
@@ -9402,21 +9486,27 @@ class SkynetResponse
   
   /** @var SkynetChain SkynetChain instance */
   private $skynetChain;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
  /**
   * Constructor
   *
+  * @param bool $isClient True if Client
+  *
   * @return SkynetResponse $this Instance of $this
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;
     $this->verifier = new SkynetVerifier();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
     $this->clusterHeader = new SkynetClusterHeader();
-    $this->clustersUrlsChain = new SkynetClustersUrlsChain();
+    $this->clustersUrlsChain = new SkynetClustersUrlsChain($isClient);
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->paramsParser = new SkynetParams();
-    $this->skynetChain = new SkynetChain();
+    $this->skynetChain = new SkynetChain($isClient);
     return $this;
   }
   
@@ -17157,7 +17247,7 @@ class SkynetDetector
       $name = str_replace($d, '', $file);      
       $address = SkynetHelper::getMyServer().'/'.$file;
       
-      if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl())
+      if(!$this->clustersRegistry->addressExists($address) && $address != SkynetHelper::getMyUrl() && $file != 'skynet_client.php')
       {
         $clusters[] = $address; 
       }   
@@ -17269,7 +17359,10 @@ class SkynetLogFile
         if(!mkdir($logsDir))
         {
           throw new SkynetException('ERROR CREATING DIRECTORY: '.$logsDir);
-        }          
+        }
+        
+        @file_put_contents($logsDir.'index.php', '');
+        @file_put_contents($logsDir.'.htaccess', 'Options -Indexes'); 
       } catch(SkynetException $e)
       {
         $this->addError(SkynetTypes::LOGFILE, 'LOGS DIR: '.$e->getMessage(), $e);
@@ -18875,7 +18968,7 @@ class SkynetRendererCliElements
  * Skynet/Renderer/Html/SkynetRendererHtml.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -18900,6 +18993,9 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   /** @var SkynetRendererHtmlDatabaseRenderer Database Renderer */
   private $databaseRenderer;
   
+  /** @var SkynetRendererHtmlLogsRenderer Logs Renderer */
+  private $logsRenderer;
+  
   /** @var SkynetRendererHtmlConnectionsRenderer Connections Renderer */
   private $connectionsRenderer;   
   
@@ -18922,6 +19018,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
      
     $this->elements = new SkynetRendererHtmlElements();       
     $this->databaseRenderer = new  SkynetRendererHtmlDatabaseRenderer();
+    $this->logsRenderer = new  SkynetRendererHtmlLogsRenderer();
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();   
     $this->headerRenderer = new  SkynetRendererHtmlHeaderRenderer();    
     $this->statusRenderer = new  SkynetRendererHtmlStatusRenderer(); 
@@ -19039,6 +19136,14 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
            $this->output[] = $this->elements->addSectionEnd();
            
            $this->output[] = $this->elements->addSectionId('dbRecords'); 
+           $this->output[] = $records;
+           $this->output[] = $this->elements->addSectionEnd();
+        break;
+        
+        case 'logs':
+        
+           $records = $this->logsRenderer->render();
+           $this->output[] = $this->elements->addSectionId('txtRecords'); 
            $this->output[] = $records;
            $this->output[] = $this->elements->addSectionEnd();
         break;
@@ -19613,7 +19718,9 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $output = [];   
     /* Center Main : Right Column: */
     $output[] = $this->elements->addSectionClass('columnConnections'); 
+    $output[] = $this->elements->addSectionClass('innerGotoConnection'); 
     $output[] = $this->renderGoToConnection($this->connectionsData);
+    $output[] = $this->elements->addSectionEnd();
     $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
     $output[] = $this->elements->addSectionClass('reconnectArea'); 
     $output[] = $this->renderOptions();
@@ -21241,7 +21348,7 @@ class SkynetRendererHtmlElements
  * Skynet/Renderer/Html//SkynetRendererHtmlHeaderRenderer.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -21298,6 +21405,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $modes = [];
     $modes['connections'] = 'CONNECTIONS (<span class="numConnections">'.$this->connectionsCounter.'</span>)';
     $modes['database'] = 'DATABASE ('.$this->databaseSchema->countTables().')';   
+    $modes['logs'] = 'TXT LOGS';   
     
     $links = [];
     foreach($modes as $k => $v)
@@ -22049,6 +22157,374 @@ class SkynetRendererHtmlListenersRenderer
 }
 
 /**
+ * Skynet/Renderer/Html//SkynetRendererHtmLogsRenderer.php
+ *
+ * @package Skynet
+ * @version 1.2.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.2.0
+ */
+
+ /**
+  * Skynet Renderer HTML Database Renderer
+  *
+  */
+class SkynetRendererHtmlLogsRenderer
+{   
+  /** @var SkynetRendererHtmlElements HTML Tags generator */
+  private $elements;
+  
+  /** @var string Error types */
+  protected $showType = 'all';
+  
+  /** @var SkynetVerifier Verifier */
+  protected $verifier;
+  
+
+ /**
+  * Constructor
+  */
+  public function __construct()
+  {
+    $this->elements = new SkynetRendererHtmlElements();      
+    $this->verifier = new SkynetVerifier();
+    
+    /* Switch types */
+    if(isset($_REQUEST['_skynetLogShowType']) && !empty($_REQUEST['_skynetLogShowType']))
+    {
+      $this->showType = $_REQUEST['_skynetLogShowType'];
+    }    
+  }   
+  
+ /**
+  * Assigns Elements Generator
+  *
+  * @param SkynetRendererHtmlElements $elements
+  */
+  public function assignElements($elements)
+  {
+    $this->elements = $elements;   
+  }  
+  
+ /**
+  * Delete controller
+  *
+  * @return string HTML code
+  */   
+  private function deleteFiles()
+  {
+    $output = [];    
+    
+    if(isset($_REQUEST['_skynetDeleteLogFile']) && isset($_REQUEST['_skynetLogFile']) && !empty($_REQUEST['_skynetLogFile']))
+    {
+      if(@unlink(urldecode($_REQUEST['_skynetLogFile'])))
+      {
+        $output[] = $this->elements->addMonitOk('File "'.urldecode($_REQUEST['_skynetLogFile']).'" deleted.');
+      } else {
+        $output[] = $this->elements->addMonitError('File "'.urldecode($_REQUEST['_skynetLogFile']).'" delete error.');
+      }
+    }
+    
+    if(isset($_REQUEST['_skynetDeleteAllLogFiles']))
+    {
+      $logsDir = SkynetConfig::get('logs_dir');
+      if(!empty($logsDir) && substr($logsDir, -1) != '/')
+      {
+        $logsDir.= '/';
+      }
+      
+      $prefix = '';      
+      if($this->showType != 'all')
+      {
+        $prefix = '*_'.$this->showType.'_';
+      }        
+      
+      $pattern = $prefix.'*.txt';
+      $d = glob($logsDir.$pattern);    
+      $countFiles = count($d);
+      
+      if($countFiles > 0)
+      {
+        $i = 0; 
+        foreach($d as $file)
+        {
+          if(@unlink($file))
+          {
+            $i++;
+          }
+        }      
+      } 
+      
+      if($i > 0)
+      {
+        $output[] = $this->elements->addMonitOk($i.' files deleted in directory "'.$logsDir.'"');
+      } else {
+        $output[] = $this->elements->addMonitError('Files delete error. Deleted files: 0');
+      }      
+    }
+    
+    return implode('', $output);
+  }
+    
+ /**
+  * Renders and returns txt logs
+  *
+  * @return string HTML code
+  */  
+  public function render()
+  {  
+    $output = [];
+    $fields = [];
+    $fields['no'] = 'No.'; 
+    $fields['filename'] = 'File name'; 
+    $fields['time'] = 'Time';      
+    $fields['type'] = 'Event';  
+    $fields['context'] = 'Context';  
+    $fields['cluster'] = 'Cluster';  
+    
+    $output[] = $this->renderTypesSorter();
+    
+    $output[] = $this->deleteFiles();
+
+    $logsDir = SkynetConfig::get('logs_dir');
+    if(!empty($logsDir) && substr($logsDir, -1) != '/')
+    {
+      $logsDir.= '/';
+    }
+    
+    $prefix = '';
+    
+    $types = [];
+    $types['all'] = '--All--';
+    $types['log'] = 'User Logs';
+    $types['error'] = 'Errors-';
+    $types['access'] = 'Access Errors';
+    $types['request'] = 'Requests';
+    $types['response'] = 'Responses';   
+    $types['echo'] = 'Echo';
+    $types['broadcast'] = 'Broadcast';
+    $types['selfupdate'] = 'Self-update';
+    
+    if($this->showType != 'all')
+    {
+      $prefix = '*_'.$this->showType.'_';
+    }        
+    
+    $pattern = $prefix.'*.txt';
+    $d = glob($logsDir.$pattern);    
+    $countFiles = count($d);
+    
+    if($countFiles > 0)
+    {
+      $i = 1;
+      rsort($d);
+      $files = [];
+      foreach($d as $file)
+      {
+        $files[] = $this->renderTableRow($i, $logsDir, $file);
+        $i++;
+      }      
+    }    
+    
+    $dirPath = SkynetHelper::getMyServer().'/'.$logsDir;
+    $dirName = $logsDir.$pattern;
+    $header = $this->renderTableHeader($fields);    
+    $txtTitle =  $this->elements->addSectionClass('txtTitle').$this->elements->addSubtitle($dirName).$this->elements->getNl().$dirPath.' ('.$countFiles.')'.$this->elements->addSectionEnd();    
+    
+    $output[] = $this->elements->beginTable('txtTable'); 
+    $output[] = $this->elements->addHeaderRow($txtTitle, count($fields) + 1);
+    $output[] = $header;
+    if($countFiles > 0)
+    {
+      $output[] = implode('', $files);
+      
+    } else {
+      
+      $output[] = $this->elements->addRow('No .txt log files', count($fields) + 1);
+    }
+    $output[] = $this->elements->endTable();
+    
+    return implode('', $output);
+  } 
+   
+ /**
+  * Renders and returns types switch
+  *
+  * @return string HTML code
+  */   
+  private function renderTypesSorter()
+  {
+    $options = [];      
+   
+    $types = [];
+    $types['all'] = '--All--';
+    $types['log'] = 'User Logs';
+    $types['error'] = 'Errors-';
+    $types['access'] = 'Access Errors';
+    $types['request'] = 'Requests';
+    $types['response'] = 'Responses';   
+    $types['echo'] = 'Echo';
+    $types['broadcast'] = 'Broadcast';
+    $types['selfupdate'] = 'Self-update';
+    
+    foreach($types as $k => $v)
+    {     
+      if($k == $this->showType)
+      {
+        $options[] = $this->elements->addOption($k, $v, true);
+      } else {
+        $options[] = $this->elements->addOption($k, $v);
+      }
+    }     
+    
+    $deleteHref = '?_skynetView=logs&_skynetDeleteAllLogFiles=1&_skynetLogShowType='.$this->showType;   
+    $allDeleteLink = '';  
+    $deleteLink = 'javascript:if(confirm(\'Delete ALL TXT LOG FILES?\')) window.location.assign(\''.$deleteHref.'\');';
+    $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL TXT FILES'), false, 'btnDelete');
+         
+    $output = [];
+    $output[] = '<form method="GET" action="">';   
+    $output[] = 'Show logs: <select name="_skynetLogShowType">'.implode('', $options).'</select>  ';  
+    $output[] = '<input type="submit" value="Show"/> '.$allDeleteLink;
+    $output[] = '<input type="hidden" name="_skynetView" value="logs"/>';    
+    $output[] = '</form>';
+
+    return implode('', $output);
+  }
+
+ /**
+  * Renders and returns table header
+  *
+  * @param string[] $fields Array with table fields
+  *
+  * @return string HTML code
+  */  
+  private function renderTableHeader($fields)
+  {
+    $td = [];
+    foreach($fields as $k => $v)
+    {     
+      $td[] = '<th>'.$v.'</th>';         
+    }
+    $td[] = '<th>Delete</th>';         
+    return '<tr>'.implode('', $td).'</tr>';    
+  }
+ 
+ /**
+  * Renders and returns single record
+  *  
+  * @param int $number Row number
+  * @param string $logsDir Dir
+  * @param string $file Filename
+  *
+  * @return string HTML code
+  */   
+  private function renderTableRow($number, $logsDir, $file)
+  {    
+    $td = [];
+    $file = str_replace($logsDir, '', $file);    
+    
+    $parts = explode('_', $file);
+    $time = '';
+    $direction = '';
+    $context = '';
+    $type = '';
+    $cluster = '';
+    
+    if(isset($parts[0]))
+    {
+      $time = intval($parts[0]);
+    }    
+    
+    if(isset($parts[1]) && $parts[1] == 'log')
+    {
+      $type = $parts[1];
+      
+      if(isset($parts[2]))
+      {
+        $cluster = $parts[2];
+      }
+      
+      if(isset($parts[3]))
+      {
+        for($i=3; $i < count($parts); $i++)
+        {
+          $cluster.= '_'.$parts[$i];
+        }
+      }
+      
+    } elseif(isset($parts[1]))
+    {
+      $type = $parts[1];
+      
+      if(isset($parts[2]))
+      {
+        $direction = $parts[2]; 
+      }  
+      
+      if(isset($parts[3]))
+      {
+        $cluster = $parts[3];
+      }
+      
+      if(isset($parts[4]))
+      {
+        for($i=4; $i < count($parts); $i++)
+        {
+          $cluster.= '_'.$parts[$i];
+        }
+      }     
+    }    
+    
+    $cluster = str_replace(array('-', '.txt'), array('/', ''), $cluster);
+    $clusterAddr = $cluster;
+    $clusterParts = explode('.php', $cluster);
+    if(isset($clusterParts[0]))
+    {
+      $clusterAddr = $clusterParts[0].'.php';
+    }
+    
+    $class = '';
+    
+    switch($direction)
+    {
+      case 'in':
+        $context = 'RECEIVER';
+      break;
+      
+      case 'out':
+        $context = 'SENDER';
+        $class = 'marked';
+      break;      
+    }
+    
+    $clusterPrefix = '';
+    if($this->verifier->isMyUrl($clusterAddr))
+    {
+      $clusterPrefix = '#[ME] ';
+    }
+    
+    $td[] = '<td>'.$this->elements->addSectionClass($class).$number.')'.$this->elements->addSectionEnd().'</td>';
+    $td[] = '<td>'.$this->elements->addUrl($logsDir.$file, $this->elements->addSectionClass($class).$file.$this->elements->addSectionEnd()).'</td>';
+    $td[] = '<td>'.$this->elements->addSectionClass($class).date(SkynetConfig::get('core_date_format'), $time).$this->elements->addSectionEnd().'</td>';
+    $td[] = '<td>'.$this->elements->addSectionClass($class).$type.$this->elements->addSectionEnd().'</td>';
+    $td[] = '<td>'.$this->elements->addSectionClass($class).$context.$this->elements->addSectionEnd().'</td>';
+    $td[] = '<td>'.$this->elements->addUrl(SkynetConfig::get('core_connection_protocol').$clusterAddr, $this->elements->addSectionClass($class).$clusterPrefix.$clusterAddr.$this->elements->addSectionEnd()).'</td>';
+   
+    $deleteStr = '';   
+    $deleteHref = '?_skynetLogFile='.urlencode($logsDir.$file).'&_skynetView=logs&_skynetDeleteLogFile=1&_skynetLogShowType='.$this->showType;   
+    $deleteLink = 'javascript:if(confirm(\'Delete .txt file?\')) window.location.assign(\''.$deleteHref.'\');';
+    $deleteStr = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete'), false, 'btnDelete');    
+    $td[] = '<td class="tdActions">'.$deleteStr.'</td>';
+    
+    return '<tr>'.implode('', $td).'</tr>';    
+  }
+}
+
+/**
  * Skynet/Renderer/Html//SkynetRendererHtmlModeRenderer.php
  *
  * @package Skynet
@@ -22134,7 +22610,7 @@ class SkynetRendererHtmlModeRenderer extends SkynetRendererAbstract
  * Skynet/Renderer/Html//SkynetRendererHtmlStatusRenderer.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -22448,7 +22924,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
       $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Skynet ID KEY is empty or set to default value. Use [keygen.php] to generate new random ID KEY and place generated key into [/src/SkynetUser/SkynetConfig.php]', 'error');
     }
     
-    return implode($output);   
+    return implode('', $output);   
   }
   
  /**
@@ -22467,7 +22943,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addSectionEnd(); 
     $output[] = $this->renderOptions(); 
     
-    return implode($output);   
+    return implode('', $output);   
   }
   
  /**
@@ -22601,13 +23077,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
       /* end sectionStatus */
       $output[] = $this->elements->addSectionEnd();     
       
-      $output[] = $this->renderConsole();   
-      
-      
-      $output[] = $this->elements->addSectionClass('sectionOptions');
-      $output[] = 'aaaa';
-      $output[] = $this->elements->addSectionEnd();       
-      
+      $output[] = $this->renderConsole();  
 
     /* Center Main : Left Column: END */  
     $output[] = $this->elements->addSectionEnd(); 
@@ -22798,7 +23268,7 @@ class SkynetRendererHtmlThemes
     tr:hover th { background:#000; }
     
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }
-    #header { height: 10%; min-height:95px; }
+    #header { height: 10%; min-height:95px; white-space: nowrap; }
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
     #authMain { text-align: center; }    
@@ -22817,7 +23287,7 @@ class SkynetRendererHtmlThemes
     .debuggerField { padding:5px; background:#fff; color: #000; font-size:1.2rem; }
     
     .main { height: 90%; }
-    .dbTable { table-layout: auto; }
+    .dbTable, .txtTable { table-layout: auto; }
     .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
     .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }    
     
@@ -22838,12 +23308,12 @@ class SkynetRendererHtmlThemes
     .innerMode { width:100%; height:10%; max-height:24px; overflow-y:auto; }
     .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; } 
     .innerConnectionsOptions { text-align:right; width:100%; height:5%; max-height:5%; min-height:38px; overflow-y:auto; }
-    .innerConnectionsData { width:100%; height:94%; max-height:94%; overflow-y:auto; }
+    .innerConnectionsData { width:100%; height:90%; max-height:90%; overflow-y:auto; }
     
-    .hdrLogo { width:15%; height:100%; max-height:100%; max-width:284px; min-width:284px; float:left; overflow-y:auto; }
+    .hdrLogo { width:25%; height:100%; max-height:100%; max-width:25%; min-width:25%; float:left; overflow-y:auto; }
     .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
-    .hdrColumn2 { width:15%; height:100%;  max-height:100%; float:left; overflow-y:auto; }
-    .hdrColumn3 { width:15%; height:100%; max-height:100%; float:left; overflow-y:auto; }    
+    .hdrColumn2 { width:25%; height:100%;  max-height:100%; float:left; overflow-y:auto; }
+    .hdrColumn3 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }    
     .hdrSwitch { width:25%; height:100%; max-height:100%; float:right; overflow-y:auto; text-align:right; }
     .hdrConnection { margin-top:5px; font-size: 1.0rem; }
     .hdrConnection .active { background-color: #3ffb6e; color: #000; }
@@ -22876,7 +23346,7 @@ class SkynetRendererHtmlThemes
     .modeButtons a { background:#09270b; border: 1px solid silver; }
     .modeButtons a:hover { text-decoration:none; border: 1px solid #fff; }
     
-    .dbTitle { text-align:center; }
+    .dbTitle, .txtTitle { text-align:center; }
     
     a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
     a.btn:hover { background:#3ffb6e; color:#000; }
@@ -23918,6 +24388,82 @@ class SkynetVerifier
     {  
       $this->addError(SkynetTypes::PDO, 'DB SAVE ACCESS ERROR: '.$e->getMessage(), $e);
     }
+  }
+}
+
+/**
+ * Skynet/SkynetClient.php
+ *
+ * @package Skynet
+ * @version 1.2.0
+ * @author Marcin Szczyglinski <szczyglis83@gmail.com>
+ * @link http://github.com/szczyglinski/skynet
+ * @copyright 2017 Marcin Szczyglinski
+ * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
+ * @since 1.2.0
+ */
+
+ /**
+  * Skynet Client
+  */
+class SkynetClient
+{  
+  /** @var SkynetResponse Assigned response */
+  public $response;
+
+  /** @var SkynetRequest Assigned request */
+  public $request;  
+  
+  /** @var SkynetClustersRegistry ClustersRegistry instance */
+  public $clustersRegistry;
+  
+  /** @var SkynetVerifier Verifier instance */
+  public $verifier;
+  
+  /** @var bool Status od connection with cluster */
+  public $isConnected = false;
+  
+ /**
+  * Constructor
+  *
+  * @return SkynetClient This instance
+  */
+  public function __construct()
+  {
+    $this->request = new SkynetRequest(true);
+    $this->response = new SkynetResponse(true);
+    $this->clustersRegistry = new SkynetClustersRegistry(true);
+    $this->verifier = new SkynetVerifier();
+    return $this;
+  }  
+
+ /**
+  * Connects to single skynet cluster via URL
+  *
+  * @return Skynet $this Instance of this
+  */  
+  public function connect($cluster = null, $chain = null)
+  {
+    $this->request->set('_skynet_client', 1);
+    $connect = new SkynetConnect(true);   
+    $connect->assignRequest($this->request);
+    $connect->assignResponse($this->response);
+    $connect->assignConnectId(1);
+    $connect->setIsBroadcast(false);
+    
+    try
+    {
+      $connResult = $connect->connect($cluster, $chain);           
+      if($connResult)
+      {            
+        $this->isConnected = true;             
+      } 
+
+    } catch(SkynetException $e)
+    {       
+      $this->addError('Connection error: '.$e->getMessage(), $e);
+    }     
+    return $this;
   }
 }
 

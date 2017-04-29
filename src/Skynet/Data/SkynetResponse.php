@@ -76,22 +76,28 @@ class SkynetResponse
   
   /** @var SkynetChain SkynetChain instance */
   private $skynetChain;
+  
+  /** @var bool True if connection from Client */
+  private $isClient = false;
 
 
  /**
   * Constructor
   *
+  * @param bool $isClient True if Client
+  *
   * @return SkynetResponse $this Instance of $this
   */
-  public function __construct()
+  public function __construct($isClient = false)
   {
+    $this->isClient = $isClient;
     $this->verifier = new SkynetVerifier();
-    $this->clustersRegistry = new SkynetClustersRegistry();
+    $this->clustersRegistry = new SkynetClustersRegistry($isClient);
     $this->clusterHeader = new SkynetClusterHeader();
-    $this->clustersUrlsChain = new SkynetClustersUrlsChain();
+    $this->clustersUrlsChain = new SkynetClustersUrlsChain($isClient);
     $this->encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
     $this->paramsParser = new SkynetParams();
-    $this->skynetChain = new SkynetChain();
+    $this->skynetChain = new SkynetChain($isClient);
     return $this;
   }
   
