@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.29 02:08:49 (1493431729) */
+/* Skynet Standalone | version compiled: 2017.04.29 02:22:04 (1493432524) */
 
 namespace Skynet;
 
@@ -19616,7 +19616,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $rows[] = 
       $this->elements->addHtml('<a name="_connection'.$connData['id'].'"></a>').
       $this->elements->addH2('@'.$connData['id'].' Connection {').
-      $this->elements->addH3('@ClusterAddress: '.$this->elements->addUrl($connData['CLUSTER URL']));    
+      $this->elements->addH3('@ClusterAddress: '.$this->elements->addUrl(SkynetConfig::get('core_connection_protocol').SkynetHelper::cleanUrl($connData['CLUSTER URL'])));    
     
     $rows[] = $this->renderConnectionTabs($connData['id']);
       
@@ -19624,7 +19624,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $rawDataFields = ['RECEIVED RAW DATA'];
     
     $rows[] = $this->elements->beginTable();
-    $parsedValue = $this->elements->addUrl($connData['CLUSTER URL']);
+    $parsedValue = $this->elements->addUrl(SkynetConfig::get('core_connection_protocol').SkynetHelper::cleanUrl($connData['CLUSTER URL']));
     $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('CLUSTER URL').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $parsedValue);    
     $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Connection number').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['id']);    
     $rows[] = $this->elements->addValRow($this->elements->addBold('#'.strtoupper('Ping').' '.$this->elements->getGt().$this->elements->getGt().$this->elements->getGt(), 'marked'), $connData['Ping']);   
