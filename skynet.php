@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.29 02:24:21 (1493432661) */
+/* Skynet Standalone | version compiled: 2017.04.29 02:31:12 (1493433072) */
 
 namespace Skynet;
 
@@ -24439,6 +24439,9 @@ class SkynetClient
 
  /**
   * Connects to single skynet cluster via URL
+  *
+  * @param string|SkynetCluster $remote_cluster URL to remote skynet cluster, e.g. http://server.com/skynet.php, default: NULL
+  * @param integer $chain Forces new connection chain value, default: NULL
   *
   * @return Skynet $this Instance of this
   */  

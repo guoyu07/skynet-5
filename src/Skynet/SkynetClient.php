@@ -59,6 +59,9 @@ class SkynetClient
  /**
   * Connects to single skynet cluster via URL
   *
+  * @param string|SkynetCluster $remote_cluster URL to remote skynet cluster, e.g. http://server.com/skynet.php, default: NULL
+  * @param integer $chain Forces new connection chain value, default: NULL
+  *
   * @return Skynet $this Instance of this
   */  
   public function connect($cluster = null, $chain = null)
