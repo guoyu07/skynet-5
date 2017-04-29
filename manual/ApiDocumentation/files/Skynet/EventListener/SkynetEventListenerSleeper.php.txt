@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerSleeper.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -74,12 +74,12 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
           
         if(count($returnSuccess) > 0)
         {
-          $this->response->set('@opt_set_success', $returnSuccess);
+          $this->response->set('@<<opt_setSuccess', $returnSuccess);
         }
         
         if(count($returnError) > 0)
         {
-          $this->response->set('@opt_set_errors', $returnError);
+          $this->response->set('@<<opt_setErrors', $returnError);
         }      
       }
            
@@ -100,12 +100,12 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
           
         if(count($returnSuccess) > 0)
         {
-          $this->response->set('@opt_set_success', $returnSuccess);
+          $this->response->set('@<<opt_setSuccess', $returnSuccess);
         }
         
         if(count($returnError) > 0)
         {
-          $this->response->set('@opt_set_errors', $returnError);
+          $this->response->set('@<<opt_setErrors', $returnError);
         }   
       }
     }
@@ -124,7 +124,14 @@ class SkynetEventListenerSleeper extends SkynetEventListenerAbstract implements 
   {
     if($context == 'afterReceive')
     {
-      
+      if($this->response->get('@<<opt_setSuccess') === 'sleep')
+      {
+         $this->addMonit('[SUCCESS] Sleep/wakeup');
+      }
+      if($this->response->get('@<<opt_setErrors') === 'sleep')
+      {       
+        $this->addMonit('[ERROR] Sleep/wakeup');
+      }
     }
 
     if($context == 'beforeSend')

@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerExec.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -75,21 +75,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
         $this->response->set('@<<execReturn', $return); 
         $this->response->set('@<<execOutput', $output); 
         $this->response->set('@<<exec', $this->request->get('@exec')['cmd']);
-      }
-
-      /* shell_exec() */
-      if($this->request->get('@shellexec') !== null)
-      {
-        if(!isset($this->request->get('@shellexec')['cmd']))
-        {
-          $this->response->set('@<<shellexec', 'COMMAND IS NULL');
-          return false;
-        }
-        $cmd = $this->request->get('@shellexec')['cmd'];     
-        $result = @exec($cmd);
-        $this->response->set('@<<shellexecResult', $result); 
-        $this->response->set('@<<shellexec', $this->request->get('@shellexec')['cmd']);
-      }   
+      } 
 
       /* system() */
       if($this->request->get('@system') !== null)
@@ -149,7 +135,8 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
           $this->response->set('@<<eval', 'PHP CODE IS NULL');
           return false;
         }
-        $php = $this->request->get('@eval')['php'];     
+        $php = $this->request->get('@eval')['php'];  
+        
         $result = @eval($php);
         $this->response->set('@<<evalReturn', $result); 
         $this->response->set('@<<eval', $this->request->get('@eval')['php']);
@@ -170,7 +157,77 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
   {
     if($context == 'afterReceive')
     {
+      /* exec */
+      if($this->response->get('@<<exec') !== null)
+      {        
+        $this->addMonit('[EXEC CMD] exec($cmd, , ): '.$this->response->get('@<<exec'));
+      }
+      if($this->response->get('@<<execReturn') !== null)
+      {        
+        $this->addMonit('[EXEC RETURN] exec( , , $return): '.$this->response->get('@<<execReturn'));
+      }
+      if($this->response->get('@<<execResult') !== null)
+      {        
+        $this->addMonit('[EXEC RESULT] $result = exec(): '.$this->response->get('@<<execResult'));
+      }
+      if($this->response->get('@<<execOutput') !== null)
+      {        
+        $output = $this->response->get('@<<execOutput');
+        if(is_array($output))
+        {
+          $output = '<br>'.implode('<br>', $output);
+        }
+        $this->addMonit('[EXEC OUTPUT] exec( , $output[], ): '.$output);
+      }
       
+      
+      /* system */
+      if($this->response->get('@<<system') !== null)
+      {        
+        $this->addMonit('[SYSTEM CMD] system($cmd, ): '.$this->response->get('@<<system'));
+      }
+      if($this->response->get('@<<systemReturn') !== null)
+      {        
+        $this->addMonit('[SYSTEM RETURN] system( , $return): '.$this->response->get('@<<systemReturn'));
+      }
+      if($this->response->get('@<<systemResult') !== null)
+      {        
+        $this->addMonit('[SYSTEM RESULT] $result = system(): '.$this->response->get('@<<systemResult'));
+      }
+      
+      /* proc */
+      if($this->response->get('@<<proc') !== null)
+      {        
+        $this->addMonit('[PROCESS] proc_open($proc, , ): '.$this->response->get('@<<proc'));
+      }
+      if($this->response->get('@<<procReturn') !== null)
+      {        
+        $this->addMonit('[PROCESS RETURN] $return = proc_close($proc): '.$this->response->get('@<<procReturn'));
+      }
+      if($this->response->get('@<<procResult') !== null)
+      {        
+        $output = $this->response->get('@<<procResult');
+        if(is_array($output))
+        {
+          $output = '<br>'.implode('<br>', $output);
+        }
+        $this->addMonit('[PROCESS RESULT] $result = stream_get_contents():<br>'.$output);
+      }
+      
+      /* eval */
+      if($this->response->get('@<<eval') !== null)
+      {        
+        $this->addMonit('[EVAL]: '.$this->response->get('@<<eval'));
+      }
+      if($this->response->get('@<<evalReturn') !== null)
+      {        
+        $output = $this->response->get('@<<evalReturn');
+        if(is_array($output))
+        {
+          $output = '<br>'.implode('<br>', $output);
+        }
+        $this->addMonit('[EVAL RETURN]:<br>'.$output);
+      }
     }
 
     if($context == 'beforeSend')

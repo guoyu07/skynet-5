@@ -4,6 +4,7 @@
  * Skynet/SkynetConfig.php
  *
  * @package Skynet
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -55,11 +56,22 @@ class SkynetConfig
     /* core_check_new_versions -> bool:[true|false]
     If TRUE - information about new version is given from GitHub */
     'core_check_new_versions' => true,
+    
+    /* core_urls_chain -> bool:[true|false]
+    If TRUE - Skynet will include urls chain to requests/responses and will be updates new clusters from it  */
+    'core_urls_chain' => true,
+    
+    /* core_mode -> integer:0|1|2
+    Default Skynet Mode. 0 = Idle, 1 = Single, 2 = Broadcast */
+    'core_mode' => 2,
 
-
-    /* core_encryptor -> string:[base64|...]
+    /* core_encryptor -> string:[openSSL|mcrypt|base64|...]
     Name of registered class used for encrypting data */
-    'core_encryptor' => 'base64',
+    'core_encryptor' => 'openSSL',
+    
+    /* core_encryptor_algorithm -> string]
+    Algorithm for OpenSSL encryption */
+    'core_encryptor_algorithm' => 'aes-256-ctr',
     
     /* core_renderer_theme -> string:[dark|light|raw|...]
     Theme CSS configuration for HTML Renderer */
@@ -68,6 +80,27 @@ class SkynetConfig
     /* core_date_format -> string
     Date format for date() function */
     'core_date_format' => 'H:i:s d.m.Y',
+    
+    /* core_admin_ip_whitelist -> string[]
+    IP Whitelist for accepting access to Control Panel */
+    'core_admin_ip_whitelist' => [],
+    
+    /*core_open_sender -> bool:[true|false]
+    If TRUE Skynet will always sends requests when open (without login to Control Panel) */
+    'core_open_sender' => false,
+ 
+/*
+  ==================================
+  Client configuration - base options:
+  ==================================
+*/
+    /* core_registry -> bool:[true|false]
+    If TRUE, Skynet Client will store clusters in registry */
+    'client_registry' => false,
+    
+    /* core_registry_responder -> bool:[true|false]
+    If TRUE, Skynet Responder will save cluster when receive connection from client */
+    'client_registry_responder' => false,
     
 /*
   ==================================
@@ -107,7 +140,11 @@ class SkynetConfig
     
     /* core_connection_curl_cli_echo -> bool:[true|false]
     If true CURL will display connection output in CLI mode (VERBOSE OPTION) */
-    'core_connection_curl_output' => false,
+    'core_connection_curl_output' => true,
+    
+    /* core_connection_ip_whitelist -> string[]
+    IP Whitelist for accepting requests from, if empty then all IP's has access to response */
+    'core_connection_ip_whitelist' => [],
 
 
 /*
@@ -146,6 +183,14 @@ class SkynetConfig
      /* logs_errors_with_full_trace -> bool:[true|false]
     Set TRUE to log errors with full error code, file, line and trace data, set FALSE to log only error messages */
     'logs_errors_with_full_trace' => true,
+    
+    /* logs_txt_include_secure_data -> bool:[true|false]
+    Set TRUE to log Skynet Key ID and Hash (use this only for debug, not in production */
+    'logs_txt_include_secure_data' => true,
+    
+    /* logs_txt_include_clusters_data -> bool:[true|false]
+    Set TRUE to log clusters URLs and clusters chain (use this only for debug, not in production */
+    'logs_txt_include_clusters_data' => true,
     
     /* logs_dir -> string:[path/]
     Specify path to dir where Skynet will save logs, or leave empty to save logs in Skynet directory */
@@ -224,7 +269,15 @@ class SkynetConfig
     
     /* debug_internal -> bool:[true|false]
      If TRUE, internal params will be show in debug data */
-    'debug_internal' => true,
+    'debug_internal' => true,  
+    
+    /* debug_echo-> bool:[true|false]
+     If TRUE, internal @echo params will be show in debug data */
+    'debug_echo' => true,
+    
+     /* debug_key-> bool:[true|false]
+     If TRUE, KEY ID will be in debug data */
+    'debug_key' => true
 
 /*
  -------- end of config.

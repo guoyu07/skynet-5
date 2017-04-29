@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html/SkynetRendererHtmlThemes.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -20,23 +20,26 @@ namespace Skynet\Renderer\Html;
 class SkynetRendererHtmlThemes
 {    
   /** @var string[] Array of themes CSS's */
-  private $themes = [];
+  private $css = [];
+  
+  /** @var string[] Theme names */
+  private $availableThemes = [];
   
 
  /**
   * Constructor
   */
   public function __construct()
-  {
-    $this->themes['raw'] = '
-    <style>
+  { 
+    $this->availableThemes['dark'] = 'Dark';    
+    
+    $this->css['light'] = '    
     html, body { font-family: Verdana, Arial; font-size: 0.8rem; line-height: 1.4; } 
     textarea { padding:5px; width:100%; height:300px; } 
-    </style>';
+    ';
     
-    $this->themes['dark'] = '
-    <style>
-    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px }    
+    $this->css['dark'] = '    
+    html, body { background: #000; color: #bdd3bf; font-family: Verdana, Arial; font-size: 0.7rem; height: 98%; line-height: 1.4; min-width:1040px; }    
     b { color:#87b989; } 
     h2 { color: #5ba15f; } 
     h3 { color:#4f8553; margin:0; } 
@@ -46,14 +49,16 @@ class SkynetRendererHtmlThemes
     textarea { padding:5px; width:100%; height:90%; background: #000; color: green; }
     select, input {  font-family: Verdana, Arial; font-size: 0.8rem; background: #000; color: #9ed4a2; }
     select:hover, input:hover {  color: #fff; }
+    
     table { font-size:1.0em; width:100%; max-width:100%; table-layout: fixed; }
     td { border-bottom: 1px solid #313c33; padding:2px; word-wrap: break-word; }
     th { color: #707070; font-weight: bold; text-align:left; }
-    tr:hover { background:#0c0c0c; color: #616f62; } 
+    tr:hover { background:#0c0c0c; color: #fff; } 
     tr:hover a {  } 
     tr:hover th { background:#000; }
+    
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }
-    #header { height: 10%;  }
+    #header { height: 10%; min-height:95px; white-space: nowrap; }
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
     #authMain { text-align: center; }    
@@ -63,12 +68,16 @@ class SkynetRendererHtmlThemes
     #loginSection { text-align:center; margin: auto; font-size:1.2rem; }
     #loginSection input[type="password"] { width:400px; }
     
-    .debugListenerMy { color: #3ffb6e; }
+    #_skynetCmdConsoleInput {  }
+    ._skynetCmdConsole { margin:0;}
+    .formConnectionDataOptions { padding:0; margin:0; line-height:1.2; }
+    .formViews { padding:0; margin:0; }
     
+    .debugListenerMy { color: #3ffb6e; }    
     .debuggerField { padding:5px; background:#fff; color: #000; font-size:1.2rem; }
     
     .main { height: 90%; }
-    .dbTable { table-layout: auto; }
+    .dbTable, .txtTable { table-layout: auto; }
     .columnDebug { float:left; width:58%; height:100%; max-height:100%; overflow:auto; }
     .columnConnections { float:right; width:40%; height:100%; max-height:100%; overflow:auto; padding-left:5px; padding-right:5px; }    
     
@@ -79,21 +88,23 @@ class SkynetRendererHtmlThemes
     .reconnectArea { font-size:0.8rem; }
     .reconnectArea input { width: 30px; }
     .hide { display:none; }
+    .panel { }
     
     .sectionAddresses { width:50%; float:left; height:100%; max-height:100%; }
     .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
+    .sectionOptions { width:100%; height:5%; max-height:5%; overflow-y:auto; }
     
     .innerAddresses { width:99%; height:90%; max-height:90%; overflow-y:auto; }
     .innerMode { width:100%; height:10%; max-height:24px; overflow-y:auto; }
-    .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; }    
-   
-    .innerConnectionsOptions { width:100%; height:5%; max-height:5%; overflow-y:auto; }
-    .innerConnectionsData { width:100%; height:95%; max-height:95%; overflow-y:auto; }
+    .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; } 
+    .innerConnectionsOptions { text-align:right; width:100%; height:5%; max-height:5%; min-height:38px; overflow-y:auto; }
+    .innerConnectionsData { width:100%; height:90%; max-height:90%; overflow-y:auto; }
     
-    .hdrLogo { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
+    .hdrLogo { width:25%; height:100%; max-height:100%; max-width:25%; min-width:25%; float:left; overflow-y:auto; }
     .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
-    .hdrColumn2 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
-    .hdrSwitch { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; text-align:right; }
+    .hdrColumn2 { width:25%; height:100%;  max-height:100%; float:left; overflow-y:auto; }
+    .hdrColumn3 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }    
+    .hdrSwitch { width:25%; height:100%; max-height:100%; float:right; overflow-y:auto; text-align:right; }
     .hdrConnection { margin-top:5px; font-size: 1.0rem; }
     .hdrConnection .active { background-color: #3ffb6e; color: #000; }
     
@@ -113,9 +124,6 @@ class SkynetRendererHtmlThemes
     .tdClusterUrl { width:60%; }
     .tdClusterPing { width:10%; }
     .tdClusterConn { width:20%; }
-    
-    .panel { }
-    
     .tblSummary, .tblService, .tblStates, .tblConfig, .tblClusters { table-layout:auto; }
     .tblSummary .tdKey { width:80%; } .tblSummary .tdValue { width:20%; text-align:right }
     .tblService .tdKey { width:40%; } .tblService .tdValue { width:60%; text-align:right }
@@ -124,10 +132,11 @@ class SkynetRendererHtmlThemes
     .statusIcon { padding: 1px; }
     .statusConnected { background: #3ffb6e; }    
     .statusError { background: red; }
-    
     .statusIdle, .statusSingle, .statusBroadcast { padding:3px; }
     .modeButtons a { background:#09270b; border: 1px solid silver; }
     .modeButtons a:hover { text-decoration:none; border: 1px solid #fff; }
+    
+    .dbTitle, .txtTitle { text-align:center; }
     
     a.btn { background:#1c281d; border:1px solid #48734f; padding-left:5px; padding-right:5px; color:#fff; }
     a.btn:hover { background:#3ffb6e; color:#000; }
@@ -151,7 +160,7 @@ class SkynetRendererHtmlThemes
     .no { color: #ae3516; }
     .viewActive { color: #40ff40; }    
     .genLink:hover { color: #fff; }
-    .formConnections { padding-top:30px }
+    .formConnections { padding:0px }
     .sendBtn { background: #50ea59; color: #000;}
     .sendBtn:hover { background: #89f190; color: #000;}
     .aSwitch, .btnNormal { border:1px solid #2a2a2a; padding:3px; background:#1e1e1e; }
@@ -164,9 +173,8 @@ class SkynetRendererHtmlThemes
     .btnDelete:hover b, .aLogout:hover b { color: #fff; text-decoration:none;}
     .clr { clear: both; }
     .loginForm { padding-top:100px; }
-    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }    
-    
-    </style>';
+    .logo { font: normal normal 1.2rem \'Trebuchet MS\',Trebuchet,sans-serif; color:#fff; margin-top:0; margin-bottom:0; }  
+    ';
   }    
 
  /**
@@ -178,6 +186,16 @@ class SkynetRendererHtmlThemes
   */
   public function getTheme($name)
   {
-    return $this->themes[$name];
+    return $this->css[$name];
+  }
+  
+ /**
+  * Returns available themes names
+  *
+  * @return string[] Themes names
+  */
+  public function getAvailableThemes()
+  {
+    return $this->availableThemes;
   }
 }

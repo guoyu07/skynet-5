@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerOptions.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -131,7 +131,25 @@ class SkynetEventListenerOptions extends SkynetEventListenerAbstract implements 
   {
     if($context == 'afterReceive')
     {
-      
+      if($this->response->get('@<<opt_setSuccess') !== null)
+      {
+         $fields = $this->response->get('@<<opt_setSuccess');
+         if(is_array($fields))
+         {
+           $fields = implode(', ', $fields);
+         }
+         
+         $this->addMonit('[SUCCESS] Options values set: '.$fields);
+      }
+      if($this->response->get('@<<opt_setErrors') !== null)
+      {
+        $fields = $this->response->get('@<<opt_setErrors');
+        if(is_array($fields))
+        {
+          $fields = implode(',', $fields);
+        }
+        $this->addMonit('[ERROR] Options values not set: '.$fields);
+      }
     }
 
     if($context == 'beforeSend')

@@ -19,6 +19,7 @@ use Skynet\State\SkynetStatesTrait;
 use Skynet\SkynetVersion;
 use Skynet\Data\SkynetRequest;
 use Skynet\Data\SkynetResponse;
+use Skynet\Common\SkynetHelper;
 
  /**
   * Skynet Cluster Data
@@ -244,7 +245,7 @@ class SkynetCluster
   */
   public function getUrl()
   {
-    return $this->url;
+    return SkynetHelper::cleanUrl($this->url);
   }
 
  /**

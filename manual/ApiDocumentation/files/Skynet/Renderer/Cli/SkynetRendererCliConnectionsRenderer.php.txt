@@ -4,7 +4,7 @@
  * Skynet/Renderer/Cli/SkynetRendererCliConnectionsRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -14,14 +14,15 @@
 
 namespace Skynet\Renderer\Cli;
 
+use Skynet\Data\SkynetParams;
+use Skynet\Secure\SkynetVerifier;
  /**
   * Skynet Renderer HTML Connections Renderer
   */
 class SkynetRendererCliConnectionsRenderer
 {   
   /** @var SkynetRendererHtmlElements HTML Tags generator */
-  private $elements;
-  
+  private $elements;  
 
  /**
   * Constructor
@@ -29,6 +30,8 @@ class SkynetRendererCliConnectionsRenderer
   public function __construct()
   {
     $this->elements = new SkynetRendererCliElements();
+    $this->params = new SkynetParams;
+    $this->verifier = new SkynetVerifier();
   }   
   
  /**
@@ -41,7 +44,30 @@ class SkynetRendererCliConnectionsRenderer
     $this->elements = $elements;   
   } 
 
+ /**
+  * Parses fields with time
+  * 
+  * @param string $key
+  * @param string $value
+  *
+  * @return string Parsed time
+  */  
+  private function parseParamTime($key, $value)
+  {
+    if(!\SkynetUser\SkynetConfig::get('translator_params'))
+    {
+      return $value;
+    }
     
+    $timeParams = ['_skynet_sender_time', '_skynet_cluster_time', '_skynet_chain_updated_at', '@_skynet_sender_time', '@_skynet_cluster_time', '@_skynet_chain_updated_at'];
+    if(in_array($key, $timeParams) && !empty($value) && is_numeric($value))
+    {
+      return date(\SkynetUser\SkynetConfig::get('core_date_format'), $value);      
+    } else {
+      return $value;
+    }
+  }
+      
  /**
   * Parses array 
   * 
@@ -52,24 +78,81 @@ class SkynetRendererCliConnectionsRenderer
   */    
   public function parseParamsArray($fields, $onlyFields = null)
   {
-    $rows = [];    
-    foreach($fields as $key => $value)
+    $rows = []; 
+    $debugInternal = \SkynetUser\SkynetConfig::get('debug_internal');
+    $debugEcho = \SkynetUser\SkynetConfig::get('debug_echo');
+    
+    foreach($fields as $key => $field)
     {
       if($onlyFields === null)
       {
-        $rows[] = $value->getName().': '.$value->getValue();  
+        $render = true;      
+        if(\SkynetUser\SkynetConfig::get('translator_params'))
+        {
+          $paramName = $this->params->translateInternalParam(htmlspecialchars($field->getName(), ENT_QUOTES, "UTF-8"));
+        } else {
+          $paramName = $field->getName();
+        }
         
+        if($this->verifier->isInternalParameter($field->getName()))
+        {
+          $render = false;
+          if($debugInternal)
+          {
+            $render = true;
+          }
+        }
+        
+        if($this->verifier->isInternalEchoParameter($field->getName()))
+        {
+          if($debugInternal)
+          {
+            $render = false;
+            if($debugEcho)
+            {
+              $render = true;
+            }
+          }
+        }
+        
+        if($render)
+        {
+          $value = $this->parseParamTime($field->getName(), $field->getValue());        
+        
+          if($this->params->isPacked($value))
+          {
+            $unpacked = $this->params->unpackParams($value);
+            if(is_array($unpacked))
+            {
+              $extracted = [];
+              foreach($unpacked as $k => $v)
+              {
+                $extracted[] = '-'.$k.': '.$v;            
+              }
+              $parsedValue = implode($this->elements->getNl(), $extracted);
+            } else {
+              $parsedValue = $unpacked;
+            }
+            
+          } else {
+            
+            $parsedValue = $value;
+          }    
+          
+          $rows[] = $paramName.': '.$parsedValue;    
+        }
+      
       } else {
         
         if(is_array($onlyFields))
         {
           if(in_array($key, $onlyFields))
           {
-            $rows[] = strip_tags($value);   
+            $rows[] = strip_tags($field->getValue());   
           }
         } else {
           
-          $rows[] = strip_tags($value);  
+          $rows[] = strip_tags($field->getValue());  
         }
       }      
     }
@@ -136,8 +219,8 @@ class SkynetRendererCliConnectionsRenderer
       $this->elements->addH3('@ClusterAddress: '.$this->elements->addUrl($connData['CLUSTER URL']));
     }
       
-    $paramsFields = ['SENDED PARAMS', 'SENDED HEADER PARAMS'];  
-    $rawDataFields = ['RECEIVED RAW DATA', 'RECEIVED RAW HEADER'];
+    $paramsFields = ['SENDED RAW DATA'];  
+    $rawDataFields = ['RECEIVED RAW DATA'];
       
     foreach($connData as $key => $value)
     {

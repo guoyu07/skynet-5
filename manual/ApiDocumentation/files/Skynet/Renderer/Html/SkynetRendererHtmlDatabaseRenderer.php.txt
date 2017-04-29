@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlDatabaseRenderer.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -16,6 +16,9 @@ namespace Skynet\Renderer\Html;
 
 use Skynet\Database\SkynetDatabase;
 use Skynet\Database\SkynetDatabaseSchema;
+use Skynet\Common\SkynetHelper;
+use Skynet\Cluster\SkynetClustersRegistry;
+use Skynet\Cluster\SkynetCluster;
 
  /**
   * Skynet Renderer HTML Database Renderer
@@ -58,6 +61,9 @@ class SkynetRendererHtmlDatabaseRenderer
   
   /** @var int Limit records per page */
   protected $tablePerPageLimit;
+  
+  /** @var SkynetClustersRegistry Clusters */
+  protected $clustersRegistry;
 
  /**
   * Constructor
@@ -70,6 +76,7 @@ class SkynetRendererHtmlDatabaseRenderer
     $this->dbTables = $this->databaseSchema->getDbTables();   
     $this->tablesFields = $this->databaseSchema->getTablesFields();
     $this->tablePerPageLimit = 20;
+    $this->clustersRegistry = new SkynetClustersRegistry();
     
     $this->db = $this->database->connect();
     
@@ -146,6 +153,15 @@ class SkynetRendererHtmlDatabaseRenderer
     {
       if(isset($_REQUEST['_skynetDeleteRecordId']) && !empty($_REQUEST['_skynetDeleteRecordId']) && is_numeric($_REQUEST['_skynetDeleteRecordId']))
       {
+        /* If cluster delete then add cluster to blocked list */
+        if($this->selectedTable == 'skynet_clusters')
+        {
+          $row = $this->database->ops->getTableRow($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId']));
+          $cluster = new SkynetCluster;
+          $cluster->setUrl($row['url']);
+          $this->clustersRegistry->addBlocked($cluster);          
+        }
+    
         if($this->database->ops->deleteRecordId($this->selectedTable, intval($_REQUEST['_skynetDeleteRecordId'])))
         {
           $output[] = $this->elements->addMonitOk('Record deleted.');
@@ -163,7 +179,10 @@ class SkynetRendererHtmlDatabaseRenderer
           $output[] = $this->elements->addMonitError('All records delete error.');
         }
       }   
-    }    
+    } 
+    
+    
+    
     
     return implode('', $output);
   }
@@ -251,7 +270,7 @@ class SkynetRendererHtmlDatabaseRenderer
       $start = $min * $this->tablePerPageLimit;
     }
     
-    $output[] = $this->deleteRecord();    
+    $output[] = $this->deleteRecord();
     $rows = $this->database->ops->getTableRows($this->selectedTable, $start, $this->tablePerPageLimit, $this->tableSortBy, $this->tableSortOrder);
     
     if(isset($_REQUEST['_skynetSaveRecord']))
@@ -287,8 +306,9 @@ class SkynetRendererHtmlDatabaseRenderer
       
       $allRecords = $this->database->ops->countTableRows($this->selectedTable);
       
-      $output[] = $this->elements->beginTable('dbTable');   
-      $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle($this->selectedTable.' ('.$i.'/'.$allRecords.')').$this->getNewButton(), count($fields) + 1);      
+      $output[] = $this->elements->beginTable('dbTable');  
+      $dbTitle =  $this->elements->addSectionClass('dbTitle').$this->elements->addSubtitle($this->dbTables[$this->selectedTable]).$this->elements->getNl().$this->selectedTable.' ('.$i.'/'.$allRecords.')'.$this->elements->addSectionEnd();
+      $output[] = $this->elements->addHeaderRow($dbTitle.$this->getNewButton(), count($fields) + 1);      
       $output[] = implode('', $recordRows);
       $output[] = $this->elements->endTable();
       
@@ -345,7 +365,7 @@ class SkynetRendererHtmlDatabaseRenderer
   private function getNewButton()
   {
     $newHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetNewRecord=1&_skynetPage='.$this->tablePage.'&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;    
-    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('New record'), false, 'btnNormal').$this->elements->getNl().$this->elements->getNl();
+    return $this->elements->getNl().$this->elements->addUrl($newHref, $this->elements->addBold('[+] New record'), false, 'btnNormal').$this->elements->getNl().$this->elements->getNl();
   }  
   
  /**
@@ -467,20 +487,26 @@ class SkynetRendererHtmlDatabaseRenderer
     $deleteHref = '?_skynetDatabase='.$this->selectedTable.'&_skynetView=database&_skynetDeleteAllRecords=1&_skynetPage=1&_skynetSortBy='.$this->tableSortBy.'&_skynetSortOrder='.$this->tableSortOrder;
     $allDeleteLink = '';
     
-    if($this->selectedTable != 'skynet_chain')
+    if($this->database->ops->countTableRows($this->selectedTable) > 0 && $this->selectedTable != 'skynet_chain')
     {
       $deleteLink = 'javascript:if(confirm(\'Delete ALL RECORDS from this table?\')) window.location.assign(\''.$deleteHref.'\');';
       $allDeleteLink = $this->elements->addUrl($deleteLink, $this->elements->addBold('Delete ALL RECORDS'), false, 'btnDelete');
-    }
+    }   
     
-    return '<form method="GET" action="">
-    Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> 
-    Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select> 
-    <select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select>
-    <input type="submit" value="Execute"/> '.$allDeleteLink.'
-    <input type="hidden" name="_skynetView" value="database"/>
-    <input type="hidden" name="_skynetDatabase" value="'.$this->selectedTable.'"/>
-    </form>';      
+    $output = [];
+    $output[] = '<form method="GET" action="">';
+    if($this->database->ops->countTableRows($this->selectedTable) > 0)
+    {
+      $output[] = 'Page:<select name="_skynetPage">'.implode('', $optionsPages).'</select> ';
+    }
+    $output[] = 'Sort By: <select name="_skynetSortBy">'.implode('', $optionsSortBy).'</select>  ';
+    $output[] = '<select name="_skynetSortOrder">'.implode('', $optionsOrderBy).'</select> ';
+    $output[] = '<input type="submit" value="Execute"/> '.$allDeleteLink;
+    $output[] = '<input type="hidden" name="_skynetView" value="database"/>';
+    $output[] = '<input type="hidden" name="_skynetDatabase" value="'.$this->selectedTable.'"/>';
+    $output[] = '</form>';
+
+    return implode('', $output);
   }
 
  /**
@@ -522,8 +548,13 @@ class SkynetRendererHtmlDatabaseRenderer
     }
     
     if(in_array($rowName, $typesUrl) && !empty($rowValue))
-    {
-      $rowValue = $this->elements->addUrl(\SkynetUser\SkynetConfig::get('core_connection_protocol').$rowValue, $rowValue);
+    {     
+      $urlName = $rowValue;
+      if(SkynetHelper::getMyUrl() == $rowValue)
+      {
+        $urlName = '<span class="marked"><b>[ME]</b> '.$rowValue.'</span>';
+      }
+      $rowValue = $this->elements->addUrl(\SkynetUser\SkynetConfig::get('core_connection_protocol').$rowValue, $urlName);
     }
     
     if(in_array($rowName, $typesSkynetId) && !empty($rowValue))
@@ -536,7 +567,7 @@ class SkynetRendererHtmlDatabaseRenderer
       $rowValue = '-';
     }
     
-    return $rowValue;
+    return str_replace(array("; ", "\n"), array(";<br>", "<br>"), $rowValue);
   }
   
  /**

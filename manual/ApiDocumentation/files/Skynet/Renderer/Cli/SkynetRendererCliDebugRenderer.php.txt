@@ -4,7 +4,7 @@
  * Skynet/Renderer/Cli/SkynetRendererCliDebugRenderer.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -13,6 +13,8 @@
  */
 
 namespace Skynet\Renderer\Cli;
+
+use Skynet\Common\SkynetHelper;
 
  /**
   * Skynet Renderer Debug Renderer
@@ -54,7 +56,17 @@ class SkynetRendererCliDebugRenderer
     $rows = [];
     foreach($fields as $field)
     {
-      $rows[] = $this->elements->addBold($field->getName().':').' '.$field->getValue();      
+      $val = $field->getValue();       
+      if($field->getName() == 'Sleeped')
+      {
+        if($val == 1)
+        {
+          $val = 'YES';
+        } else {
+          $val = 'NO';
+        }
+      }      
+      $rows[] = $this->elements->addBold($field->getName().':').' '.$val;      
     }    
     return implode($this->elements->getNl(), $rows);
   }
@@ -71,7 +83,8 @@ class SkynetRendererCliDebugRenderer
     $rows = [];
     foreach($fields as $field)
     {
-      $rows[] = $this->elements->addBold($field->getName().':').' '.$field->getValue();      
+      $val = $field->getValue();       
+      $rows[] = $this->elements->addBold($field->getName().':').' '.$val;      
     }    
     return implode($this->elements->getNl(), $rows);
   } 
@@ -144,7 +157,14 @@ class SkynetRendererCliDebugRenderer
     $rows = [];
     foreach($fields as $field)
     {
-      $rows[] = $this->elements->addBold('['.$field->getName().'] ').$this->parseConfigValue($field->getValue());
+      $key = $field->getName();
+      if(\SkynetUser\SkynetConfig::get('translator_config'))
+      {
+        $keyTitle = SkynetHelper::translateCfgKey($key);
+      } else {
+        $keyTitle = $key;
+      }      
+      $rows[] = $this->elements->addBold('['.$keyTitle.'] ').$this->parseConfigValue($field->getValue());
     }
     
     return implode($this->elements->getNl(), $rows);

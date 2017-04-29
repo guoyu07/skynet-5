@@ -4,7 +4,7 @@
  * Skynet/Database/SkynetDatabaseSchema.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -85,6 +85,16 @@ class SkynetDatabaseSchema
       $this->dbTables = array_merge($this->dbTables, $listenerData['tables']);
       $this->tablesFields = array_merge($this->tablesFields, $listenerData['fields']);      
     }    
+  }
+
+ /**
+  * Returns tables num
+  *
+  * @return int Num of tables
+  */  
+  public function countTables()
+  {   
+    return count($this->dbTables);
   }
   
  /**

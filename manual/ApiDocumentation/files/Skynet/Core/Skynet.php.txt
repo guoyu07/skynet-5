@@ -4,7 +4,7 @@
  * Skynet/Core/Skynet.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -153,7 +153,7 @@ class Skynet
   private $clusters = [];
 
   /** @var int connection mode */
-  private $connMode = 2;
+  private $connMode;
 
   /** @var SkynetDetector Clusters detector */
   private $clustersDetector;
@@ -163,9 +163,6 @@ class Skynet
 
   /** @var SkynetConnect Connect object */
   private $skynetConnect;
-  
-  /** @var bool If true checks header before connect */
-  private $checkHeader = false;
   
   /** @var SkynetDebug Debugger */
   private $debugger;
@@ -201,6 +198,8 @@ class Skynet
     $this->eventListenersLauncher->assignResponse($this->response);
     $this->eventListenersLauncher->assignCli($this->cli);
     $this->eventListenersLauncher->assignConsole($this->console);
+    
+    $this->connMode = \SkynetUser\SkynetConfig::get('core_mode');
 
     $this->verifier->assignRequest($this->request);
     $this->modeController();
@@ -231,30 +230,33 @@ class Skynet
   {
     $startBroadcast = false;
 
-    /* Check for console and CLI args */
-    if($this->cli->isCli())
+    if($this->auth->isAuthorized() || $this->verifier->isOpenSender())
     {
-      $startBroadcast = $this->cliController();
-    } else {
-      $startBroadcast = $this->consoleController();
-    }
-
-    /* Start broadcasting clusters */
-    if($startBroadcast === true)
-    {
-      if($this->connMode == 2)
+      /* Check for console and CLI args */
+      if($this->cli->isCli())
       {
-        $this->broadcast();
+        $startBroadcast = $this->cliController();
+      } else {
+        $startBroadcast = $this->consoleController();
       }
-    }
 
-    /* clusters detector */
-    if(!$this->verifier->isPing())
-    {
-      $detectClusters = $this->detector->check();
-      if($detectClusters !== null)
+      /* Start broadcasting clusters */
+      if($startBroadcast === true)
       {
-        $this->monits[] = $detectClusters;
+        if($this->connMode == 2)
+        {
+          $this->broadcast();
+        }
+      }    
+
+      /* clusters detector */
+      if(!$this->verifier->isPing())
+      {
+        $detectClusters = $this->detector->check();
+        if($detectClusters !== null)
+        {
+          $this->monits[] = $detectClusters;
+        }
       }
     }
   }
@@ -269,7 +271,7 @@ class Skynet
   */
   public function broadcast()
   {    
-    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || !$this->auth->isAuthorized())
+    if($this->isSleeped() || $this->verifier->isPing() || $this->verifier->isDatabaseView() || isset($_REQUEST['@peer']) || (!$this->verifier->isOpenSender() && (!$this->auth->isAuthorized() || !$this->verifier->hasAdminIpAddress())))
     {
       return false;
     }
@@ -285,23 +287,16 @@ class Skynet
       {
         $clustersNum++;
         $this->cluster = $cluster;
-        $this->assignConnId();
-        if($this->checkHeader)
-        {
-          $this->getRemoteHeader();
-        }
+        $this->assignConnId();        
 
         /* Prepare address */
         $address = \SkynetUser\SkynetConfig::get('core_connection_protocol').$this->cluster->getUrl();
         $this->clusterUrl = $address;
 
         /* If Key ID is verified and remote shows chain and we are not under other connection */
-        if(!$this->verifier->isPing() && ($this->cluster->getHeader()->getChain() !== null || !$this->checkHeader) && $this->verifier->isAddressCorrect($address))
-        {
-          if(!$this->checkHeader || $this->isDifferentChain())
-          {
-            $this->connect($address, $this->skynetChain->getChain());
-          }
+        if(!$this->verifier->isPing() && $this->verifier->isAddressCorrect($address))
+        {         
+          $this->connect($address, $this->skynetChain->getChain());         
           $this->storeCluster();
 
         } else {
@@ -348,32 +343,56 @@ class Skynet
 
     try
     {
-      $connResult = $connect->connect($remote_cluster, $chain);
+      $connResult = $connect->connect($remote_cluster, $chain);     
+      
       if($connResult)
       {
         $this->successConnections++;
-        $this->clusters[$this->connectId - 1] = $connect->getCluster();
+        if($connect->getAddition())
+        {
+          $this->clusters[] = $connect->getCluster();
+        } else {
+          $this->clusters[$this->connectId - 1] = $connect->getCluster();
+        }
         $this->isConnected = true;
       } elseif($connResult === null) 
       {
-        $this->clusters[$this->connectId - 1]->getHeader()->setResult(0);
+        if($connect->getAddition())
+        {
+          $this->clusters[] = $connect->getCluster();
+        } else {
+          $this->clusters[$this->connectId - 1]->getHeader()->setResult(0);
+        }
       } elseif(!$connResult) 
       {
-        $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
-      }      
+        if($connect->getAddition())
+        {
+          $this->clusters[] = $connect->getCluster();
+        } else {
+          $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
+        }
+      }  
 
     } catch(SkynetException $e)
     {
-      $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
+      if($connect->getAddition())
+      {
+        $this->clusters[] = $connect->getCluster();
+      } else {
+        $this->clusters[$this->connectId - 1]->getHeader()->setResult(-1);
+      }
+      
       $this->addState(SkynetTypes::CONN_ERR, SkynetTypes::CONN_ERR.' : '. $connect->getConnection()->getUrl().$connect->getConnection()->getParams());
       $this->addError('Connection error: '.$e->getMessage(), $e);
     }
-
+    $monits = $connect->getMonits();
+    if(count($monits) > 0)
+    {
+      $this->monits = array_merge($this->monits, $monits);
+    }
     $this->breakConnections = $connect->getBreakConnections();
 
     $data = $connect->getConnectionData();
-    $data['SENDED HEADER PARAMS (broadcast)'] = $this->sendedHeaderDataParams;
-    $data['RECEIVED RAW HEADER (broadcast)'] = $this->responseHeaderData;
     $this->connectionsData[] = $data;
 
     return $this;
@@ -386,6 +405,11 @@ class Skynet
   */
   public function renderOutput()
   {
+    if($this->verifier->isPing() || !$this->verifier->hasAdminIpAddress())
+    {
+      return '';
+    }
+    
     $output = new SkynetOutput();
     if(isset($_REQUEST['_skynetAjax']))
     {
@@ -411,18 +435,41 @@ class Skynet
   */
   private function modeController()
   {
-    if(isset($_REQUEST['_skynetSetConnMode']))
+    if(!isset($_SESSION))
     {
-      if(!isset($_SESSION))
-      {
-        session_start();
-      }
-      $_SESSION['_skynetConnMode'] = $_REQUEST['_skynetSetConnMode'];
+      session_start();
+    }
+    if(!isset($_SESSION['_skynetOptions']))
+    {
+      $_SESSION['_skynetOptions'] = [];
+      $_SESSION['_skynetOptions']['viewInternal'] = \SkynetUser\SkynetConfig::get('debug_internal');
+      $_SESSION['_skynetOptions']['viewEcho'] = \SkynetUser\SkynetConfig::get('debug_echo');
+      $_SESSION['_skynetOptions']['theme'] = \SkynetUser\SkynetConfig::get('core_renderer_theme');
+    }
+    
+    if(isset($_REQUEST['_skynetSetConnMode']))
+    {      
+      $_SESSION['_skynetConnMode'] = (int)$_REQUEST['_skynetSetConnMode'];
     }
 
     if(isset($_SESSION['_skynetConnMode']))
     {
       $this->connMode = $_SESSION['_skynetConnMode'];
+    }
+    
+    if(isset($_REQUEST['_skynetOptionViewInternalParams']))
+    {      
+      $_SESSION['_skynetOptions']['viewInternal'] = ($_REQUEST['_skynetOptionViewInternalParams'] == 1) ? true : false;
+    }
+    
+    if(isset($_REQUEST['_skynetOptionViewEchoParams']))
+    {      
+      $_SESSION['_skynetOptions']['viewEcho'] = ($_REQUEST['_skynetOptionViewEchoParams'] == 1) ? true : false;
+    }
+    
+    if(isset($_REQUEST['_skynetTheme']))
+    {      
+      $_SESSION['_skynetOptions']['theme'] = $_REQUEST['_skynetTheme'];
     }
   }
 
@@ -659,6 +706,10 @@ class Skynet
   */
   public function __toString()
   {
+    if($this->verifier->isPing() || !$this->verifier->hasAdminIpAddress())
+    {
+      return '';
+    }
     return $this->renderOutput();
   }
 }

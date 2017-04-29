@@ -50,7 +50,13 @@ class SkynetRendererHtmlElements
   {
     $this->themes = new SkynetRendererHtmlThemes();
     $this->js = new SkynetRendererHtmlJavascript();
-    $this->css = $this->themes->getTheme(\SkynetUser\SkynetConfig::get('core_renderer_theme'));
+    
+    $theme = \SkynetUser\SkynetConfig::get('core_renderer_theme');
+    if(isset($_SESSION['_skynetOptions']['theme']) && !empty($_SESSION['_skynetOptions']['theme']))
+    {
+      $theme = $_SESSION['_skynetOptions']['theme'];
+    }   
+    $this->css = $this->themes->getTheme($theme);
     $this->nl = '<br/>';
     $this->gt = '&gt;';
     $this->lt = '&lt;';
@@ -65,8 +71,7 @@ class SkynetRendererHtmlElements
   public function setCss($styles)
   {
     $this->css = $styles;    
-  }
-  
+  }  
     
  /**
   * Checks for new version on GitHub
@@ -524,7 +529,7 @@ class SkynetRendererHtmlElements
   {
     $html = '<html><head>';
     $html.= '<title>'.pathinfo($_SERVER['PHP_SELF'], PATHINFO_FILENAME).' ('.SkynetVersion::VERSION.')</title>';
-    $html.= $this->css;
+    $html.= '<style>'.$this->css.'</style>';
     $html.= '<meta charset="utf-8">';
     $html.= '<link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,">';
     $html.= '</head><body>';

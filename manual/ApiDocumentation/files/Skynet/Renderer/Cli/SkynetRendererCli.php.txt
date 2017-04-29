@@ -4,7 +4,7 @@
  * Skynet/Renderer/Cli/SkynetRendererCli.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.1.5
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -86,8 +86,8 @@ class SkynetRendererCli extends SkynetRendererAbstract implements SkynetRenderer
 
     /* Center Main : Left Column: errors */
     $output[] = $this->elements->addSeparator();    
-
-    if(count($this->errorsFields > 0))
+   
+    if(count($this->errorsFields) > 0)
     {
       $output[] = $this->elements->addSubtitle('Errors');
       $output[] = $this->debugRenderer->parseErrorsFields($this->errorsFields);

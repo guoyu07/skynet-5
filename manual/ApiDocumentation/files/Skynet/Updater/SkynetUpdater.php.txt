@@ -4,7 +4,7 @@
  * Skynet/Updater/SkynetUpdater.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.1.6
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -20,6 +20,7 @@ use Skynet\Secure\SkynetVerifier;
 use Skynet\Common\SkynetTypes;
 use Skynet\Common\SkynetHelper;
 use Skynet\SkynetVersion;
+use Skynet\Encryptor\SkynetEncryptorsFactory;
 
  /**
   * Skynet Updater
@@ -29,9 +30,6 @@ use Skynet\SkynetVersion;
 class SkynetUpdater
 {
   use SkynetErrorsTrait, SkynetStatesTrait;
-  
-   /** @var string File with updating php code */
-   private $skynetBaseFile;
    
    /** @var SkynetVerifier SkynetVerifier instance */
    protected $verifier;
@@ -52,19 +50,29 @@ class SkynetUpdater
    {
      if(isset($_REQUEST['@code']))
      {
+        $encryptor = SkynetEncryptorsFactory::getInstance()->getEncryptor();
+        
         if(!$this->verifier->isRequestKeyVerified())
         {
-          $this->addError(SkynetTypes::VERIFY, 'SELF-UPDATER: UNAUTHORIZED REQUEST FOR SOURCE CODE FROM: '.$_SERVER['REMOTE_HOST'].$_SERVER['REQUEST_URI'].' IP: '.$_SERVER['REMOTE_ADDR']);
+          $request = "\r\n";
+          foreach($_REQUEST as $k => $v)
+          {
+            $request.= $k.'='.$encryptor->decrypt($v)."\r\n";
+          }
+          
+          $this->addError(SkynetTypes::VERIFY, 'SELF-UPDATER: UNAUTHORIZED REQUEST FOR SOURCE CODE FROM: '.$_SERVER['REMOTE_HOST'].$_SERVER['REQUEST_URI'].' IP: '.$_SERVER['REMOTE_ADDR'].$request);
+          exit;
           return false;
         }
       
         $ary = [];
-        $file = file_get_contents(SkynetHelper::getMyBasename());
+        $file = @file_get_contents(SkynetHelper::getMyBasename());
         
         $ary['version'] = SkynetVersion::VERSION;
         $ary['code'] = $file;
         $ary['checksum'] = md5($file);
         
+        header('Content-type:application/json;charset=utf-8');
         echo json_encode($ary);
         exit;
      }

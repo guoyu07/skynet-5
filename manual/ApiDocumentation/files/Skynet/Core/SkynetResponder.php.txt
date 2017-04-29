@@ -4,7 +4,7 @@
  * Skynet/Core/SkynetResponder.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -185,7 +185,7 @@ class SkynetResponder
   }
 
  /**
-  * Launch Skynet Cluster Listener
+  * Launchs Skynet Cluster Listener
   *
   * This is the main controller of cluster. It it listening for incoming connections and works on them.
   * Cluster generates responses for incoming requests by returning JSON encoded response.
@@ -193,15 +193,17 @@ class SkynetResponder
   * @return string JSON encoded response
   */
   public function launch()
-  {
-    if(!$this->verifier->isRequestKeyVerified() || !$this->verifier->verifyChecksum())
+  {    
+    if($this->verifier->isUpdateRequest() || !$this->verifier->hasIpAccess() || !$this->verifier->isRequestKeyVerified() || !$this->verifier->verifyChecksum())
     {
       return false;
     }
-    
+   
     $this->request->loadRequest();
     $this->request->prepareRequests();
 
+    $this->eventListenersLauncher->assignSenderClusterUrl($this->request->get('_skynet_sender_url'));
+    $this->eventListenersLauncher->assignReceiverClusterUrl(SkynetHelper::getMyUrl());
     $this->prepareListeners();
     $this->eventListenersLauncher->launch('onRequest');
     $this->eventListenersLauncher->launch('onRequestLoggers');
@@ -213,9 +215,16 @@ class SkynetResponder
 
     $cluster = new SkynetCluster();
     $cluster->fromRequest($this->request);
-    $this->clustersRegistry->add($cluster);
+    if(!$this->verifier->isClient() || \SkynetUser\SkynetConfig::get('client_registry_responder'))
+    {
+      $this->clustersRegistry->setRegistrator($cluster->getUrl());
+      $this->clustersRegistry->add($cluster);
+    }
 
     $this->response->assignRequest($this->request);
+    
+    $this->eventListenersLauncher->assignSenderClusterUrl(SkynetHelper::getMyUrl());
+    $this->eventListenersLauncher->assignReceiverClusterUrl($this->request->get('_skynet_sender_url'));
     $this->prepareListeners();
     $this->eventListenersLauncher->launch('onResponse');    
    

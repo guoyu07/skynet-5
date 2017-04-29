@@ -57,6 +57,26 @@ class SkynetRendererHtmlSummaryRenderer
     return implode($this->output);   
   }
 
+  
+ /**
+  * Parses fields
+  *
+  * @param SkynetField[] $fields
+  *
+  * @return string HTML code
+  */    
+  public function renderServer($fields)
+  {
+    $arySummary = ['Cluster IP', 'Your IP', 'Encryption', 'Connections'];
+    $arySummaryClasses = ['sumClusterIP', 'sumYourIP', 'sumEncryption', 'sumConnections'];
+    
+    $this->output = [];
+    $this->output[] = $this->elements->beginTable('tblService');
+    $this->output[] = $this->parseFields($fields, $arySummary, $arySummaryClasses);
+    $this->output[] = $this->elements->endTable();
+    return implode($this->output);   
+  }
+  
  /**
   * Parses fields
   *

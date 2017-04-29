@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html/SkynetRendererHtml.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -37,6 +37,9 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   /** @var SkynetRendererHtmlDatabaseRenderer Database Renderer */
   private $databaseRenderer;
   
+  /** @var SkynetRendererHtmlLogsRenderer Logs Renderer */
+  private $logsRenderer;
+  
   /** @var SkynetRendererHtmlConnectionsRenderer Connections Renderer */
   private $connectionsRenderer;   
   
@@ -59,6 +62,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
      
     $this->elements = new SkynetRendererHtmlElements();       
     $this->databaseRenderer = new  SkynetRendererHtmlDatabaseRenderer();
+    $this->logsRenderer = new  SkynetRendererHtmlLogsRenderer();
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();   
     $this->headerRenderer = new  SkynetRendererHtmlHeaderRenderer();    
     $this->statusRenderer = new  SkynetRendererHtmlStatusRenderer(); 
@@ -83,6 +87,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['tabErrors'] = $this->statusRenderer->renderErrors(true);
     $output['tabConfig'] = $this->statusRenderer->renderConfig(true);
     $output['tabDebug'] = $this->statusRenderer->renderDebug(true);
+    $output['tabListeners'] = $this->statusRenderer->renderListeners(true);
     $output['tabConsole'] = $this->statusRenderer->renderConsoleDebug(true);
     
     $output['numStates'] = count($this->statesFields);
@@ -90,6 +95,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['numConfig'] = count($this->configFields);
     $output['numDebug'] = $this->debugger->countDebug();
     $output['numConsole'] = count($this->consoleOutput);
+    $output['numListeners'] = $this->statusRenderer->countListeners();
     
     $output['numConnections'] = $this->connectionsCounter;
     
@@ -97,6 +103,11 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
     $output['sumClusters'] = $this->fields['Clusters in DB']->getValue();
     $output['sumAttempts'] = $this->fields['Connection attempts']->getValue();
     $output['sumSuccess'] = $this->fields['Succesful connections']->getValue();
+    
+    $output['sumClusterIP'] = $this->fields['Cluster IP']->getValue();
+    $output['sumYourIP'] = $this->fields['Your IP']->getValue();
+    $output['sumEncryption'] = $this->fields['Encryption']->getValue();
+    $output['sumConnections'] = $this->fields['Connections']->getValue();
     
     $output['sumChain'] = $this->fields['Chain']->getValue();
     $output['sumSleeped'] = $this->fields['Sleeped']->getValue();
@@ -159,13 +170,25 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
         break; 
 
         case 'database':
+            
+           $records = $this->databaseRenderer->renderDatabaseView();
+           $sorter = $this->databaseRenderer->renderDatabaseSwitch();
+           
            /* --- Center Main --- */
            $this->output[] = $this->elements->addSectionId('dbSwitch'); 
-           $this->output[] = $this->databaseRenderer->renderDatabaseSwitch();
+           $this->output[] = $sorter;
            $this->output[] = $this->elements->addSectionEnd();
            
            $this->output[] = $this->elements->addSectionId('dbRecords'); 
-           $this->output[] = $this->databaseRenderer->renderDatabaseView();
+           $this->output[] = $records;
+           $this->output[] = $this->elements->addSectionEnd();
+        break;
+        
+        case 'logs':
+        
+           $records = $this->logsRenderer->render();
+           $this->output[] = $this->elements->addSectionId('txtRecords'); 
+           $this->output[] = $records;
            $this->output[] = $this->elements->addSectionEnd();
         break;
       }   
