@@ -91,7 +91,11 @@ abstract class SkynetRendererAbstract
           
           case 'database':       
             $this->mode = 'database';
-          break;          
+          break;  
+
+          case 'logs':       
+            $this->mode = 'logs';
+          break;             
         } 
       }
     } else {

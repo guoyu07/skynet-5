@@ -26,7 +26,7 @@ class SkynetConfig
   const KEY_ID = '1234567890';
   
   /** @var string SKYNET PASSWORD, default: empty */
-  const PASSWORD = '';
+  const PASSWORD = '$2y$10$iEuGSDkQ/1xhrDIaog5eaeVVpVaRt6PVtxGyXDf9YmfwQSqecv9fi';
   
   
   /** @var string[] Array of configuration options */

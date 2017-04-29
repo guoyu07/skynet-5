@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.28 19:50:03 (1493409003) */
+/* Skynet Standalone | version compiled: 2017.04.28 21:57:09 (1493416629) */
 
 namespace Skynet;
 
@@ -29,7 +29,7 @@ class SkynetConfig
   const KEY_ID = '1234567890';
   
   /** @var string SKYNET PASSWORD, default: empty */
-  const PASSWORD = '';
+  const PASSWORD = '$2y$10$iEuGSDkQ/1xhrDIaog5eaeVVpVaRt6PVtxGyXDf9YmfwQSqecv9fi';
   
   
   /** @var string[] Array of configuration options */
@@ -2124,7 +2124,7 @@ class SkynetCluster
   */
   public function getUrl()
   {
-    return $this->url;
+    return SkynetHelper::cleanUrl($this->url);
   }
 
  /**
@@ -2567,7 +2567,7 @@ class SkynetClusterHeader
   */
   public function getUrl()
   {
-    return $this->url;
+    return SkynetHelper::cleanUrl($this->url);
   }
 
  /**
@@ -2828,6 +2828,16 @@ class SkynetClustersRegistry
   }
 
  /**
+  * Sets registrator
+  *
+  * @param string Registrator
+  */
+  public function setRegistrator($registrator)
+  {
+    $this->registrator = SkynetHelper::cleanUrl($registrator);
+  }
+  
+ /**
   * Returns cluster header
   *
   * @return SkynetClusterHeader
@@ -2865,12 +2875,10 @@ class SkynetClustersRegistry
   * @return bool
   */  
   public function add(SkynetCluster $cluster = null)
-  {    
-    $this->registrator = SkynetHelper::getMyUrl();
-    
+  {     
     if($cluster === null)
     {
-        return false;
+      return false;
     }
     
     /* Update via remote list from urls chain */
@@ -3382,7 +3390,7 @@ class SkynetClustersRegistry
     }
     
     /* dont do anything when only file name in url */
-    if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
+    if($this->verifier->isMyUrl($url) || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
     {
       return false;
     }  
@@ -3405,7 +3413,6 @@ class SkynetClustersRegistry
         $id = $cluster->getHeader()->getId();
         $ip = $cluster->getHeader()->getIp();
         $version = $cluster->getHeader()->getVersion();
-        $this->registrator = $cluster->getHeader()->getUrl();
       } 
       
       if($this->verifier->isMyKey($id))
@@ -3471,7 +3478,7 @@ class SkynetClustersRegistry
     $url = SkynetHelper::cleanUrl($url);
     
     /* dont do anything when only file name in url */
-    if($url == SkynetHelper::getMyUrl() || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
+    if($this->verifier->isMyUrl($url) || $url == SkynetHelper::getMyself() || strpos($url, '/') === false)
     {
       return false;
     }  
@@ -3499,7 +3506,6 @@ class SkynetClustersRegistry
         $id = $cluster->getHeader()->getId();
         $ip = $cluster->getHeader()->getIp();
         $version = $cluster->getHeader()->getVersion();
-        $this->registrator = $cluster->getHeader()->getUrl();
       } 
       
       if($this->verifier->isMyKey($id))
@@ -3516,7 +3522,7 @@ class SkynetClustersRegistry
 
       if($stmt->execute())
       {
-        $this->monits[] = 'Clusters Registry: cluster added to blocked list: '.SkynetHelper::cleanUrl($cluster->getUrl());
+        $this->monits[] = 'Clusters Registry: cluster added to blocked list: '.$cluster->getUrl();
         $this->addState(SkynetTypes::CLUSTERS_DB, 'CLUSTER ['.$url.'] ADDED TO DB');
         return true;
       } else {
@@ -3548,7 +3554,7 @@ class SkynetClustersRegistry
     foreach($clustersUrls as $clusterUrlRaw)
     {
       $clusterUrlDecoded = base64_decode($clusterUrlRaw);
-      if(strcmp($clusterUrlDecoded, SkynetHelper::getMyUrl()) != 0)
+      if(!$this->verifier->isMyUrl($clusterUrlDecoded))
       {
         $url = SkynetHelper::cleanUrl($clusterUrlDecoded);
         $newCluster = new SkynetCluster();
@@ -3614,6 +3620,9 @@ class SkynetClustersUrlsChain
   /** @var SkynetRequest Assigned request */
   private $request;
 
+  /** @var string My cluster IP */
+  private $myIP;
+  
   /** @var string My cluster URL */
   private $myUrl;
 
@@ -3632,6 +3641,7 @@ class SkynetClustersUrlsChain
   public function __construct()
   {
     $this->myUrl = SkynetHelper::getMyUrl();
+    $this->myIP = SkynetHelper::getMyUrlByIp();
     $this->verifier = new SkynetVerifier();
     $this->clustersRegistry = new SkynetClustersRegistry();
   }
@@ -3716,7 +3726,7 @@ class SkynetClustersUrlsChain
   */
   public function isMyClusterInChain()
   {
-    if(in_array($this->myUrl, $this->clusters))
+    if(in_array($this->myUrl, $this->clusters) || in_array($this->myIP, $this->clusters))
     {
       return true;
     }
@@ -3954,6 +3964,16 @@ class SkynetHelper
     return self::getServerAddress().self::getMyself();
   }
 
+ /**
+  * Returns cluster full address by IP
+  *
+  * @return string
+  */
+  public static function getMyUrlByIp()
+  {
+    return self::getServerIp().self::getMyself();
+  }
+  
  /**
   * Validates URL
   *
@@ -7568,6 +7588,8 @@ class SkynetConnect
   */
   private function storeCluster()
   {
+    $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
+    
     /* Add cluster to database if not exists */
     if($this->isConnected)
     {
@@ -7635,6 +7657,7 @@ class SkynetConnect
     {
       $this->isConnected = true;
     } else {
+      $this->clustersRegistry->setRegistrator(SkynetHelper::getMyUrl());
       $this->clustersRegistry->addBlocked($this->cluster);
       $this->cluster->getHeader()->setResult(-1);
     }
@@ -8496,6 +8519,7 @@ class SkynetResponder
 
     $cluster = new SkynetCluster();
     $cluster->fromRequest($this->request);
+    $this->clustersRegistry->setRegistrator($cluster->getUrl());
     $this->clustersRegistry->add($cluster);
 
     $this->response->assignRequest($this->request);
@@ -19119,7 +19143,7 @@ class SkynetRendererHtmlClustersRenderer extends SkynetRendererAbstract
  * Skynet/Renderer/Html//SkynetRendererHtmlConnectionsRenderer.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -19279,6 +19303,41 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
   }
  
  /**
+  * Parses fields with clusters chain
+  * 
+  * @param string $key
+  * @param string $value
+  *
+  * @return string Parsed clusters chain
+  */  
+  private function parseParamClusters($key, $value)
+  {
+    if(!SkynetConfig::get('translator_params'))
+    {
+      return $value;
+    }
+    
+    $clustersParams = ['_skynet_clusters_chain', '@_skynet_clusters_chain'];
+    if(in_array($key, $clustersParams) && !empty($value))
+    {
+      $e = explode(';', $value);
+      $clustersDecoded = [];
+      if(count($e) > 0)
+      {
+        foreach($e as $clusterEncoded)
+        {
+          $decoded = base64_decode($clusterEncoded);
+          $clustersDecoded[] =  $decoded;          
+        }       
+      }     
+      
+      return implode('; ', $clustersDecoded);      
+    } else {
+      return $value;
+    }
+  }
+  
+ /**
   * Parses array 
   * 
   * @param mixed $fields Array with fields
@@ -19339,7 +19398,8 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
       
       if($render)
       {
-        $value = $this->parseParamTime($field->getName(), $field->getValue());        
+        $value = $this->parseParamTime($field->getName(), $field->getValue());         
+        $value = $this->parseParamClusters($field->getName(), $value);
         
         if($this->params->isPacked($value))
         {
@@ -19553,7 +19613,7 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $output = [];   
     /* Center Main : Right Column: */
     $output[] = $this->elements->addSectionClass('columnConnections'); 
-    
+    $output[] = $this->renderGoToConnection($this->connectionsData);
     $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
     $output[] = $this->elements->addSectionClass('reconnectArea'); 
     $output[] = $this->renderOptions();
@@ -19766,7 +19826,7 @@ class SkynetRendererHtmlConsoleRenderer
       $submit = '<input type="button" onclick="skynetControlPanel.load(1, true, \''.basename($_SERVER['PHP_SELF']).'\');" title="Send request commands from console" value="Send request" class="sendBtn" />';
     }
     
-    return '<form method="post" action="#console'.md5(time()).'" name="_skynetCmdConsole">
+    return '<form method="post" action="#console'.md5(time()).'" name="_skynetCmdConsole" class="_skynetCmdConsole">
     '.$submit.$this->renderConsoleHelpers().' See '.$this->elements->addUrl(SkynetVersion::WEBSITE, 'documentation').' for information about console usage 
     <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
     <input type="hidden" name="_skynetCmdCommandSend" value="1" />
@@ -20348,7 +20408,7 @@ class SkynetRendererHtmlDatabaseRenderer
       $rowValue = '-';
     }
     
-    return str_replace("; ", ";<br>", $rowValue);
+    return str_replace(array("; ", "\n"), array(";<br>", "<br>"), $rowValue);
   }
   
  /**
@@ -21225,30 +21285,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $this->summaryRenderer = new  SkynetRendererHtmlSummaryRenderer();
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();
     $this->databaseSchema = new SkynetDatabaseSchema;    
-    $this->auth = new SkynetAuth();
-    $this->themes = new SkynetRendererHtmlThemes();  
-  }  
- 
- /**
-  * Renders theme switcher
-  *
-  * @return string HTML code
-  */   
-  private function renderThemeSwitcher()
-  {    
-    $themes = $this->themes->getAvailableThemes();
-    $options = [];
-    
-    foreach($themes as $k => $v)
-    {
-      if(isset($_SESSION['_skynetOptions']['theme']) && $_SESSION['_skynetOptions']['theme'] == $k)
-      {
-        $options[] = '<option value="'.$k.'" selected>'.$v.'</option>';
-      } else {
-        $options[] = '<option value="'.$k.'">'.$v.'</option>';
-      }
-    }    
-    return '<select onchange="skynetControlPanel.changeTheme(this)" name="_skynetTheme">'.implode('', $options).'</select> ';
+    $this->auth = new SkynetAuth();   
   }  
  
  /**
@@ -21290,7 +21327,10 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     
     
     $output[] = $this->elements->addSectionClass('hdrLogo');
-    $output[] = $header;       
+    $output[] = $header;      
+    $output[] = $this->elements->getNl();  
+    $output[] = 'View: '.$this->renderViewSwitcher();
+    
     $output[] = $this->elements->addSectionEnd();
     
     
@@ -21305,22 +21345,6 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addSectionClass('hdrColumn3');
     $output[] = $this->summaryRenderer->renderSummary($this->fields);
     $output[] = $this->elements->addSectionEnd();
-    
-    
-    $output[] = $this->elements->addSectionClass('hdrSwitch');
-    
-    $output[] = '<form method="get" action="" class="formViews" id="_skynetThemeForm">';
-    $output[] = '<input type="hidden" name="_skynetView" value="'.$this->mode.'">';
-    $output[] = 'View: '.$this->renderViewSwitcher();
-    $output[] = ' Theme: '.$this->renderThemeSwitcher();
-    $output[] = $this->renderLogoutLink();
-    $output[] = '</form>';
-    
-    if($this->mode == 'connections')
-    {
-      $output[] = '<div class="innerGotoConnection">'.$this->connectionsRenderer->renderGoToConnection($this->connectionsData[0]).'</div>';
-    }
-    $output[] = $this->elements->addSectionEnd();
 
     /* Clear floats */  
     $output[] = $this->elements->addClr();
@@ -21329,19 +21353,6 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
 
     return implode('', $output);
   }
-  
- /**
-  * Renders and returns logout link
-  *
-  * @return string HTML code
-  */    
-  public function renderLogoutLink()
-  {
-    if($this->auth->isPasswordGenerated())
-    {
-      return $this->elements->addUrl('?_skynetLogout=1', $this->elements->addBold('LOGOUT'), false, 'aLogout'); 
-    }      
-  } 
 }
 
 /**
@@ -22172,6 +22183,9 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   
   /** @var SkynetVerifier Verificationn */
   private $verifier;
+  
+  /** @var SkynetThemes Themes */
+  private $themes;
 
  /**
   * Constructor
@@ -22189,6 +22203,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $this->debugger = new SkynetDebug();
     $this->auth = new SkynetAuth();
     $this->verifier = new SkynetVerifier();
+    $this->themes = new SkynetRendererHtmlThemes();  
   }  
    
  /**
@@ -22450,6 +22465,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->modeRenderer->render();
     $output[] = $this->elements->addSectionEnd();
     $output[] = $this->elements->addSectionEnd(); 
+    $output[] = $this->renderOptions(); 
     
     return implode($output);   
   }
@@ -22493,7 +22509,53 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addSectionEnd();  
     
     return implode($output);   
-  }   
+  }     
+  
+ /**
+  * Renders theme switcher
+  *
+  * @return string HTML code
+  */   
+  private function renderThemeSwitcher()
+  {    
+    $themes = $this->themes->getAvailableThemes();
+    $options = [];
+    
+    foreach($themes as $k => $v)
+    {
+      if(isset($_SESSION['_skynetOptions']['theme']) && $_SESSION['_skynetOptions']['theme'] == $k)
+      {
+        $options[] = '<option value="'.$k.'" selected>'.$v.'</option>';
+      } else {
+        $options[] = '<option value="'.$k.'">'.$v.'</option>';
+      }
+    }    
+    return '<select onchange="skynetControlPanel.changeTheme(this)" name="_skynetTheme">'.implode('', $options).'</select> ';
+  }  
+    
+ /**
+  * Renders and returns logout link
+  *
+  * @return string HTML code
+  */    
+  public function renderLogoutLink()
+  {
+    if($this->auth->isPasswordGenerated())
+    {
+      return $this->elements->addUrl('?_skynetLogout=1', $this->elements->addBold('LOGOUT'), false, 'aLogout'); 
+    }      
+  } 
+  
+  public function renderOptions() 
+  {
+    $output = [];
+    $output[] = '<form method="get" action="" class="formViews" id="_skynetThemeForm">';
+    $output[] = '<input type="hidden" name="_skynetView" value="'.$this->mode.'">';    
+    $output[] = $this->renderLogoutLink();
+    $output[] = ' Theme: '.$this->renderThemeSwitcher();    
+    $output[] = '</form>';    
+    return implode('', $output);    
+  }
   
  /**
   * Renders and returns debug section
@@ -22540,6 +22602,12 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
       $output[] = $this->elements->addSectionEnd();     
       
       $output[] = $this->renderConsole();   
+      
+      
+      $output[] = $this->elements->addSectionClass('sectionOptions');
+      $output[] = 'aaaa';
+      $output[] = $this->elements->addSectionEnd();       
+      
 
     /* Center Main : Left Column: END */  
     $output[] = $this->elements->addSectionEnd(); 
@@ -22730,7 +22798,7 @@ class SkynetRendererHtmlThemes
     tr:hover th { background:#000; }
     
     #wrapper { width: 100%; height: 100%; word-wrap: break-word; }
-    #header { height: 10%; min-height:70px; }
+    #header { height: 10%; min-height:95px; }
     #headerLogo { float:left; width:40%; max-height:100%; }
     #headerSwitcher { float:right; width:58%; max-height:100%; text-align:right; padding:5px; padding-right:20px; }   
     #authMain { text-align: center; }    
@@ -22740,6 +22808,8 @@ class SkynetRendererHtmlThemes
     #loginSection { text-align:center; margin: auto; font-size:1.2rem; }
     #loginSection input[type="password"] { width:400px; }
     
+    #_skynetCmdConsoleInput {  }
+    ._skynetCmdConsole { margin:0;}
     .formConnectionDataOptions { padding:0; margin:0; line-height:1.2; }
     .formViews { padding:0; margin:0; }
     
@@ -22762,12 +22832,13 @@ class SkynetRendererHtmlThemes
     
     .sectionAddresses { width:50%; float:left; height:100%; max-height:100%; }
     .sectionStates { width:50%; float:right; height:100%; max-height:100%; }
+    .sectionOptions { width:100%; height:5%; max-height:5%; overflow-y:auto; }
     
     .innerAddresses { width:99%; height:90%; max-height:90%; overflow-y:auto; }
     .innerMode { width:100%; height:10%; max-height:24px; overflow-y:auto; }
     .innerStates { width:98%; height:100%; max-height:100%; overflow-y:auto; } 
-    .innerConnectionsOptions { width:100%; height:5%; max-height:5%; min-height:38px; overflow-y:auto; }
-    .innerConnectionsData { width:100%; height:95%; max-height:95%; overflow-y:auto; }
+    .innerConnectionsOptions { text-align:right; width:100%; height:5%; max-height:5%; min-height:38px; overflow-y:auto; }
+    .innerConnectionsData { width:100%; height:94%; max-height:94%; overflow-y:auto; }
     
     .hdrLogo { width:15%; height:100%; max-height:100%; max-width:284px; min-width:284px; float:left; overflow-y:auto; }
     .hdrColumn1 { width:25%; height:100%; max-height:100%; float:left; overflow-y:auto; }
@@ -22829,7 +22900,7 @@ class SkynetRendererHtmlThemes
     .no { color: #ae3516; }
     .viewActive { color: #40ff40; }    
     .genLink:hover { color: #fff; }
-    .formConnections { padding-top:30px }
+    .formConnections { padding:0px }
     .sendBtn { background: #50ea59; color: #000;}
     .sendBtn:hover { background: #89f190; color: #000;}
     .aSwitch, .btnNormal { border:1px solid #2a2a2a; padding:3px; background:#1e1e1e; }
@@ -23172,7 +23243,7 @@ class SkynetAuth
  * Checking and veryfing access to skynet
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -23230,6 +23301,23 @@ class SkynetVerifier
   {
     $this->request = $request;
   }  
+ 
+ /**
+  * Checks if my Url
+  *
+  * @return bool True if my Url
+  */  
+  public function isMyUrl($url)
+  {
+    $myUrl = SkynetHelper::getMyUrl();
+    $url = SkynetHelper::cleanUrl($url);    
+    $myIp = SkynetHelper::getMyUrlByIp();
+    
+    if(strcmp($myUrl, $url) === 0 || strcmp($myIp, $url) === 0)
+    {
+      return true;
+    }    
+  }
   
  /**
   * Returns hashed key
@@ -23462,7 +23550,7 @@ class SkynetVerifier
           $strToVerify = $this->requestSenderUrl.$this->packageKey;
           if(password_verify($strToVerify, $this->requestHash))
           {
-            if(strcmp(SkynetHelper::getMyUrl(), $this->requestSenderUrl) !== 0)
+            if(!$this->isMyUrl($this->requestSenderUrl))
             {
               $success = true;
             }
@@ -23479,7 +23567,7 @@ class SkynetVerifier
               $strToVerify = $responseData['_skynet_cluster_url'].$this->packageKey;
               if(password_verify($strToVerify, $responseData['_skynet_hash']))
               {
-                if(strcmp(SkynetHelper::getMyUrl(), $responseData['_skynet_cluster_url']) !== 0)
+                if(!$this->isMyUrl($responseData['_skynet_cluster_url']))
                 {                  
                   $success = true;
                 }
@@ -23523,7 +23611,7 @@ class SkynetVerifier
   */
   public function isAddressCorrect($address)
   {
-    if(!empty($address) && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address) && $address != 'http://'.SkynetHelper::getMyUrl() && $address != 'https://'.SkynetHelper::getMyUrl())
+    if(!empty($address) && preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $address) && !$this->isMyUrl($address))
     {
       return true;
     }

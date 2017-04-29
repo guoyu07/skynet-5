@@ -202,7 +202,7 @@ class SkynetRendererHtmlConsoleRenderer
       $submit = '<input type="button" onclick="skynetControlPanel.load(1, true, \''.basename($_SERVER['PHP_SELF']).'\');" title="Send request commands from console" value="Send request" class="sendBtn" />';
     }
     
-    return '<form method="post" action="#console'.md5(time()).'" name="_skynetCmdConsole">
+    return '<form method="post" action="#console'.md5(time()).'" name="_skynetCmdConsole" class="_skynetCmdConsole">
     '.$submit.$this->renderConsoleHelpers().' See '.$this->elements->addUrl(SkynetVersion::WEBSITE, 'documentation').' for information about console usage 
     <textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus name="_skynetCmdConsoleInput" placeholder="&gt;&gt; Console" id="_skynetCmdConsoleInput"></textarea>
     <input type="hidden" name="_skynetCmdCommandSend" value="1" />

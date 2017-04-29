@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html/SkynetRendererHtml.php
  *
  * @package Skynet
- * @version 1.1.2
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -37,6 +37,9 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
   /** @var SkynetRendererHtmlDatabaseRenderer Database Renderer */
   private $databaseRenderer;
   
+  /** @var SkynetRendererHtmlLogsRenderer Logs Renderer */
+  private $logsRenderer;
+  
   /** @var SkynetRendererHtmlConnectionsRenderer Connections Renderer */
   private $connectionsRenderer;   
   
@@ -59,6 +62,7 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
      
     $this->elements = new SkynetRendererHtmlElements();       
     $this->databaseRenderer = new  SkynetRendererHtmlDatabaseRenderer();
+    $this->logsRenderer = new  SkynetRendererHtmlLogsRenderer();
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();   
     $this->headerRenderer = new  SkynetRendererHtmlHeaderRenderer();    
     $this->statusRenderer = new  SkynetRendererHtmlStatusRenderer(); 
@@ -176,6 +180,14 @@ class SkynetRendererHtml extends SkynetRendererAbstract implements SkynetRendere
            $this->output[] = $this->elements->addSectionEnd();
            
            $this->output[] = $this->elements->addSectionId('dbRecords'); 
+           $this->output[] = $records;
+           $this->output[] = $this->elements->addSectionEnd();
+        break;
+        
+        case 'logs':
+        
+           $records = $this->logsRenderer->render();
+           $this->output[] = $this->elements->addSectionId('txtRecords'); 
            $this->output[] = $records;
            $this->output[] = $this->elements->addSectionEnd();
         break;

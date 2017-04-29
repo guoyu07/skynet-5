@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlHeaderRenderer.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -54,30 +54,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $this->summaryRenderer = new  SkynetRendererHtmlSummaryRenderer();
     $this->connectionsRenderer = new  SkynetRendererHtmlConnectionsRenderer();
     $this->databaseSchema = new SkynetDatabaseSchema;    
-    $this->auth = new SkynetAuth();
-    $this->themes = new SkynetRendererHtmlThemes();  
-  }  
- 
- /**
-  * Renders theme switcher
-  *
-  * @return string HTML code
-  */   
-  private function renderThemeSwitcher()
-  {    
-    $themes = $this->themes->getAvailableThemes();
-    $options = [];
-    
-    foreach($themes as $k => $v)
-    {
-      if(isset($_SESSION['_skynetOptions']['theme']) && $_SESSION['_skynetOptions']['theme'] == $k)
-      {
-        $options[] = '<option value="'.$k.'" selected>'.$v.'</option>';
-      } else {
-        $options[] = '<option value="'.$k.'">'.$v.'</option>';
-      }
-    }    
-    return '<select onchange="skynetControlPanel.changeTheme(this)" name="_skynetTheme">'.implode('', $options).'</select> ';
+    $this->auth = new SkynetAuth();   
   }  
  
  /**
@@ -90,6 +67,7 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $modes = [];
     $modes['connections'] = 'CONNECTIONS (<span class="numConnections">'.$this->connectionsCounter.'</span>)';
     $modes['database'] = 'DATABASE ('.$this->databaseSchema->countTables().')';   
+    $modes['logs'] = 'TXT LOGS';   
     
     $links = [];
     foreach($modes as $k => $v)
@@ -119,7 +97,10 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     
     
     $output[] = $this->elements->addSectionClass('hdrLogo');
-    $output[] = $header;       
+    $output[] = $header;      
+    $output[] = $this->elements->getNl();  
+    $output[] = 'View: '.$this->renderViewSwitcher();
+    
     $output[] = $this->elements->addSectionEnd();
     
     
@@ -134,23 +115,6 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addSectionClass('hdrColumn3');
     $output[] = $this->summaryRenderer->renderSummary($this->fields);
     $output[] = $this->elements->addSectionEnd();
-    
-    
-    $output[] = $this->elements->addSectionClass('hdrSwitch');
-    
-    $output[] = '<form method="get" action="" class="formViews" id="_skynetThemeForm">';
-    $output[] = '<input type="hidden" name="_skynetView" value="'.$this->mode.'">';
-    $output[] = 'View: '.$this->renderViewSwitcher();
-    $output[] = ' Theme: '.$this->renderThemeSwitcher();
-    $output[] = $this->renderLogoutLink();
-    $output[] = '</form>';
-    
-    if($this->mode == 'connections')
-    {
-      $output[] = '<div class="innerGotoConnection">'.$this->connectionsRenderer->renderGoToConnection($this->connectionsData[0]).'</div>';
-    }
-    $output[] = $this->elements->addSectionEnd();
-
 
     /* Clear floats */  
     $output[] = $this->elements->addClr();
@@ -159,17 +123,4 @@ class SkynetRendererHtmlHeaderRenderer extends SkynetRendererAbstract
 
     return implode('', $output);
   }
-  
- /**
-  * Renders and returns logout link
-  *
-  * @return string HTML code
-  */    
-  public function renderLogoutLink()
-  {
-    if($this->auth->isPasswordGenerated())
-    {
-      return $this->elements->addUrl('?_skynetLogout=1', $this->elements->addBold('LOGOUT'), false, 'aLogout'); 
-    }      
-  } 
 }

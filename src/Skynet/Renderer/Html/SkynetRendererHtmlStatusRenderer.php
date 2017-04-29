@@ -4,7 +4,7 @@
  * Skynet/Renderer/Html//SkynetRendererHtmlStatusRenderer.php
  *
  * @package Skynet
- * @version 1.1.5
+ * @version 1.2.0
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -60,6 +60,9 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
   
   /** @var SkynetVerifier Verificationn */
   private $verifier;
+  
+  /** @var SkynetThemes Themes */
+  private $themes;
 
  /**
   * Constructor
@@ -77,6 +80,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $this->debugger = new SkynetDebug();
     $this->auth = new SkynetAuth();
     $this->verifier = new SkynetVerifier();
+    $this->themes = new SkynetRendererHtmlThemes();  
   }  
    
  /**
@@ -321,7 +325,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
       $output[] = $this->elements->addBold('SECURITY WARNING: ', 'error').$this->elements->addSpan('Skynet ID KEY is empty or set to default value. Use [keygen.php] to generate new random ID KEY and place generated key into [/src/SkynetUser/SkynetConfig.php]', 'error');
     }
     
-    return implode($output);   
+    return implode('', $output);   
   }
   
  /**
@@ -338,8 +342,9 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->modeRenderer->render();
     $output[] = $this->elements->addSectionEnd();
     $output[] = $this->elements->addSectionEnd(); 
+    $output[] = $this->renderOptions(); 
     
-    return implode($output);   
+    return implode('', $output);   
   }
   
  /**
@@ -381,7 +386,53 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     $output[] = $this->elements->addSectionEnd();  
     
     return implode($output);   
-  }   
+  }     
+  
+ /**
+  * Renders theme switcher
+  *
+  * @return string HTML code
+  */   
+  private function renderThemeSwitcher()
+  {    
+    $themes = $this->themes->getAvailableThemes();
+    $options = [];
+    
+    foreach($themes as $k => $v)
+    {
+      if(isset($_SESSION['_skynetOptions']['theme']) && $_SESSION['_skynetOptions']['theme'] == $k)
+      {
+        $options[] = '<option value="'.$k.'" selected>'.$v.'</option>';
+      } else {
+        $options[] = '<option value="'.$k.'">'.$v.'</option>';
+      }
+    }    
+    return '<select onchange="skynetControlPanel.changeTheme(this)" name="_skynetTheme">'.implode('', $options).'</select> ';
+  }  
+    
+ /**
+  * Renders and returns logout link
+  *
+  * @return string HTML code
+  */    
+  public function renderLogoutLink()
+  {
+    if($this->auth->isPasswordGenerated())
+    {
+      return $this->elements->addUrl('?_skynetLogout=1', $this->elements->addBold('LOGOUT'), false, 'aLogout'); 
+    }      
+  } 
+  
+  public function renderOptions() 
+  {
+    $output = [];
+    $output[] = '<form method="get" action="" class="formViews" id="_skynetThemeForm">';
+    $output[] = '<input type="hidden" name="_skynetView" value="'.$this->mode.'">';    
+    $output[] = $this->renderLogoutLink();
+    $output[] = ' Theme: '.$this->renderThemeSwitcher();    
+    $output[] = '</form>';    
+    return implode('', $output);    
+  }
   
  /**
   * Renders and returns debug section
@@ -427,7 +478,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
       /* end sectionStatus */
       $output[] = $this->elements->addSectionEnd();     
       
-      $output[] = $this->renderConsole();   
+      $output[] = $this->renderConsole();  
 
     /* Center Main : Left Column: END */  
     $output[] = $this->elements->addSectionEnd(); 

@@ -324,7 +324,7 @@ class SkynetVerifier
           $strToVerify = $this->requestSenderUrl.$this->packageKey;
           if(password_verify($strToVerify, $this->requestHash))
           {
-            if(!$this->isMyUrl($responseData['_skynet_cluster_url']))
+            if(!$this->isMyUrl($this->requestSenderUrl))
             {
               $success = true;
             }

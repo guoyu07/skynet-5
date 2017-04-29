@@ -85,7 +85,10 @@ class SkynetLogFile
         if(!mkdir($logsDir))
         {
           throw new SkynetException('ERROR CREATING DIRECTORY: '.$logsDir);
-        }          
+        }
+        
+        @file_put_contents($logsDir.'index.php', '');
+        @file_put_contents($logsDir.'.htaccess', 'Options -Indexes'); 
       } catch(SkynetException $e)
       {
         $this->addError(SkynetTypes::LOGFILE, 'LOGS DIR: '.$e->getMessage(), $e);

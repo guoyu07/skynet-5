@@ -480,7 +480,9 @@ class SkynetRendererHtmlConnectionsRenderer extends SkynetRendererAbstract
     $output = [];   
     /* Center Main : Right Column: */
     $output[] = $this->elements->addSectionClass('columnConnections'); 
-    
+    $output[] = $this->elements->addSectionClass('innerGotoConnection'); 
+    $output[] = $this->renderGoToConnection($this->connectionsData);
+    $output[] = $this->elements->addSectionEnd();
     $output[] = $this->elements->addSectionClass('innerConnectionsOptions'); 
     $output[] = $this->elements->addSectionClass('reconnectArea'); 
     $output[] = $this->renderOptions();
