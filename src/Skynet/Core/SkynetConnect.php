@@ -385,8 +385,9 @@ class SkynetConnect
         $this->cluster = $remote_cluster;
         $this->clusterUrl = $this->cluster->getUrl();
 
-      } elseif(is_string($remote_cluster))
+      } elseif(is_string($remote_cluster) && !empty($remote_cluster))
       {
+        $remote_cluster = SkynetHelper::cleanUrl($remote_cluster);
         $this->cluster = new SkynetCluster();
         $this->cluster->setUrl($remote_cluster);
         $this->clusterUrl = $remote_cluster;

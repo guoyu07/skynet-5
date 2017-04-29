@@ -543,8 +543,8 @@ class SkynetRendererHtmlElements
   */
   public function addFooter($successed = 0)
   {
-    $html = '<script src="skynet.js"></script>';
-    //$html = '<script>'.$this->js->getJavascript().'</script>';
+    //$html = '<script src="skynet.js"></script>';
+    $html = '<script>'.$this->js->getJavascript().'</script>';
     $html.= '<script>skynetControlPanel.setFavIcon('.$successed.');</script>';
     $html.= '</body></html>';
     return $html;
