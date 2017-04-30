@@ -2315,7 +2315,7 @@ use Skynet\Debug\SkynetDebug;
 Then, if you want to debug any data (like variable, array or object), just use:
 
 ```php
-$debugged = new SkynetDebug();
+$debugger = new SkynetDebug();
 
 $myVariable = 'some data';
 $debugger->dump($myVariable);
@@ -3896,15 +3896,15 @@ and adding new encryptor to:
 
 ```php
 
-/**
-* Registers encryptor classes in registry
-*/
-private function registerEncryptors()
-{
-  $this->register('openSSL', new SkynetEncryptorOpenSSL());
-  $this->register('mcrypt', new SkynetEncryptorMcrypt());
-  $this->register('base64', new SkynetEncryptorBase64());
-}
+ /**
+  * Registers encryptor classes in registry
+  */
+  private function registerEncryptors()
+  {
+    $this->register('openSSL', new SkynetEncryptorOpenSSL());
+    $this->register('mcrypt', new SkynetEncryptorMcrypt());
+    $this->register('base64', new SkynetEncryptorBase64());
+  }
 
 ```
 
