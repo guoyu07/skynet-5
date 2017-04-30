@@ -148,7 +148,7 @@ In console at the bottom of window of Skynet Control Panel type:
 ```
 
 
-where *CLUSTER_ADDRESS* will be second cluster (*http://localhost/skynet/skynet.php* if you're in */dev.php* and *http://localhost/skynet/skynet_dev.php* if you're in */skynet.php*)
+where *CLUSTER_ADDRESS* will be second cluster (*http://localhost/skynet/skynet.php* if you're in */skynet_dev.php* and *http://localhost/skynet/skynet_dev.php* if you're in */skynet.php*)
 At next, click on "Send request" button.
 
 You should see information about connection with second cluster and the second cluster address should be stored into database.
@@ -4441,10 +4441,10 @@ Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
+
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
 
  or viaPayPal:
- 
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
 Enjoy!
