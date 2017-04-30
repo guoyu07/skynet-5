@@ -4342,7 +4342,7 @@ Commands and parameters in "-send" command must be splitted by semicolon and spa
 php skynet.php -broadcast -send "foo:'bar'; foo2:'bar2'"
 ```
 
-It will send tqo parameters: foo and foo2 by request.
+It will send two parameters: foo and foo2 by request.
 Remember about *space* after semicolon, example below:
 ```php
 php skynet.php -broadcast -send "foo:'bar';foo2:'bar2'"
@@ -4443,7 +4443,9 @@ Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
+
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
+
  or viaPayPal:
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
