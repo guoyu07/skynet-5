@@ -287,10 +287,10 @@ When you connects to cluster or another cluster is connects with your cluster th
 
 Every cluster entry has 4 fields:
 
-- A) **Status** (colored square on left whitch shows actual state: GREY icon - idle, GREEN icon - connected, RED icon - connection error.
-- B) **Address** - this is the cluster remote address (you can click on address to launch its Control Panel)
-- C) **Ping** - ping in miliseconds (if there is no connection then 0 wil be shown)
-- D) **Connect button** - if you click on "CONNECT" then command for connect to selected cluster will be placed in webconsole and next if you send this command via "Send request" then single connection with cluster will be executed.
+- **Status** (A) (colored square on left whitch shows actual state: GREY icon - idle, GREEN icon - connected, RED icon - connection error
+- **Address** (B)- this is the cluster remote address (you can click on address to launch its Control Panel)
+- **Ping** (C) - ping in miliseconds (if there is no connection then 0 wil be shown)
+- **Connect button** (D) - if you click on "CONNECT" then command for connect to selected cluster will be placed in webconsole and next if you send this command via "Send request" then single connection with cluster will be executed.
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/cluster.png)
 
