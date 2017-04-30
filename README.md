@@ -3483,7 +3483,7 @@ public function onResponse($context)
       if($foo == 'bar')
       {
         /* set response field 'bar' with value 'Foo is Bar' */
-        $this->respone->set('bar', 'Foo is Bar');
+        $this->response->set('bar', 'Foo is Bar');
         
         /* set monit to show about receive 'bar' */
         $this->addMonit('Received Bar');
@@ -3498,7 +3498,7 @@ public function onResponse($context)
       } else {
         
         /* set response and debug field 'foo' */
-        $this->respone->set('bar', 'Foo is not Bar');
+        $this->response->set('bar', 'Foo is not Bar');
         $this->debug->txt('Foo is not Bar');
         $this->debug->dump($foo);
       }
@@ -4444,7 +4444,7 @@ Email to author: szczyglis83@gmail.com
 
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
 
- or viaPayPal:
+ or viaPayPal: 
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
 Enjoy!
