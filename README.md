@@ -335,7 +335,6 @@ There is 3 tabs:
 
 Connection fields are splitted into sections:
 - **Cluster Info** - information about connected cluster
-- **Ping** - ping time in miliseconds
 - **Request Fields** {sended} (plain) - raw requested to cluster fields 
 - **Response Fields** {received} (decrypted) - encrypted fields from cluster response
 - **Request Fields** {sended} (encrypted) - encrypted requested to cluster fields 
