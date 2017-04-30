@@ -217,7 +217,7 @@ http://localhost/skynet/skynet.php
 
 
 You should now see request for password. Log in with it.
-At now, you have simple preconfigured Skynet at now.
+At now, you have simple preconfigured Skynet.
 
 **REMEMBER:** All of your clusters MUST SHARE the same Skynet Key ID.
 
