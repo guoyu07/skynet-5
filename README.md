@@ -672,14 +672,16 @@ Every parametr can be set from 3 different ways:
 Code above is equals to setting parameters from webconsole, e.g.:
 
 ```php
-key1:"value1", key2:"value2";
+
+key1:"value1";
+key2:"value2";
 ```
 
 
 and equals to the same in CLI mode:
 
 ```php
-php skynet.php -b -send "key1:'value1', key2:'value2';"
+php skynet.php -b -send "key1:'value1'; key2:'value2';"
 ```
 
 
@@ -4441,9 +4443,7 @@ Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
-
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
-
  or viaPayPal:
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
