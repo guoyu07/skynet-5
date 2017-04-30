@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerClusters.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -115,6 +115,11 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
           }         
         }
       }
+      
+      if($this->response->get('@<<destroyResult') !== null)
+      {        
+        $this->addMonit('[DESTROY RESULT]: '.implode('<br>', $this->response->get('@<<destroyResult')));
+      }
     }
 
     if($context == 'beforeSend')
@@ -128,6 +133,33 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
         } else {          
           $this->response->set('@<<reset', 'NOT DELETED');
         }
+      }
+      
+      if($this->request->get('@destroy') !== null)
+      {
+        if(is_array($this->request->get('@destroy')))
+        {
+          $params = $this->request->get('@destroy');
+          if(isset($params['confirm']) && ($params['confirm'] == 1 || $params['confirm'] == 'yes'))
+          {
+            $result = [];            
+            $php = base64_decode('PD9waHA=')."\n @unlink('".\SkynetUser\SkynetConfig::get('db_file')."'); @unlink('".basename($_SERVER['PHP_SELF'])."'); @unlink(basename(\$_SERVER['PHP_SELF'])); ";
+            $fname = basename($_SERVER['PHP_SELF']).md5(time()).'.php';
+            
+            if(@file_put_contents($fname, $php))
+            {
+              $result[] = '[SUCCESS] Delete script created: '.$fname;
+              $url = \SkynetUser\SkynetConfig::get('core_connection_protocol').SkynetHelper::getMyServer().'/'.$fname;
+              $result[] = 'Execute delete script: '.$url;              
+              @file_get_contents($url);
+              
+            } else {
+              $result[] = '[ERROR] Delete script not created: '.$fname;
+            }
+            
+            $this->response->set('@<<destroyResult', $result);            
+          }
+        }      
       }
     }
   }
@@ -204,7 +236,8 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
     $console[] = ['@add', ['cluster address', 'cluster address1, address2 ...'], ''];   
     $console[] = ['@connect', ['cluster address', 'cluster address1, address2 ...'], ''];  
     $console[] = ['@to', 'cluster address', ''];
-    $console[] = ['@reset', ['cluster address', 'cluster address1, address2 ...'], ''];    
+    $console[] = ['@reset', ['cluster address', 'cluster address1, address2 ...'], ''];
+    $console[] = ['@destroy', ['confirm:1', 'confirm:yes'], '']; 
     
     return array('cli' => $cli, 'console' => $console);    
   }

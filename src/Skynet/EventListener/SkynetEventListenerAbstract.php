@@ -70,6 +70,9 @@ abstract class SkynetEventListenerAbstract
   /** @var string Url of sender */
   protected $senderClusterUrl;
 
+  /** @var SkynetDatabase */
+  protected $database;
+  
   /** @var PDO PDO connection instance */
   protected $db;
 
@@ -130,10 +133,10 @@ abstract class SkynetEventListenerAbstract
     $this->loadErrorsRegistry();
     $this->loadStatesRegistry();
     $this->auth = new SkynetAuth();
-    $dbInstance = SkynetDatabase::getInstance();
-    $this->db_connected = $dbInstance->isDbConnected();
-    $this->db_created = $dbInstance->isDbCreated();
-    $this->db = $dbInstance->getDB();
+    $this->database = SkynetDatabase::getInstance();
+    $this->db_connected = $this->database->isDbConnected();
+    $this->db_created = $this->database->isDbCreated();
+    $this->db = $this->database->getDB();
     $this->myAddress = SkynetHelper::getMyUrl();
     $this->verifier = new SkynetVerifier();
     $this->paramsParser = new SkynetParams();

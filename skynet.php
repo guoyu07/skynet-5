@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.30 20:44:15 (1493585055) */
+/* Skynet Standalone | version compiled: 2017.04.30 22:49:46 (1493592586) */
 
 namespace Skynet;
 
@@ -533,6 +533,9 @@ abstract class SkynetEventListenerAbstract
   /** @var string Url of sender */
   protected $senderClusterUrl;
 
+  /** @var SkynetDatabase */
+  protected $database;
+  
   /** @var PDO PDO connection instance */
   protected $db;
 
@@ -592,10 +595,10 @@ abstract class SkynetEventListenerAbstract
     $this->loadErrorsRegistry();
     $this->loadStatesRegistry();
     $this->auth = new SkynetAuth();
-    $dbInstance = SkynetDatabase::getInstance();
-    $this->db_connected = $dbInstance->isDbConnected();
-    $this->db_created = $dbInstance->isDbCreated();
-    $this->db = $dbInstance->getDB();
+    $this->database = SkynetDatabase::getInstance();
+    $this->db_connected = $this->database->isDbConnected();
+    $this->db_created = $this->database->isDbCreated();
+    $this->db = $this->database->getDB();
     $this->myAddress = SkynetHelper::getMyUrl();
     $this->verifier = new SkynetVerifier();
     $this->paramsParser = new SkynetParams();
@@ -7734,6 +7737,8 @@ class SkynetConnect
    /* Prepare request */
     $this->connection->setCluster($this->cluster);
     $this->request->addMetaData($chain);
+    
+    $this->doConnect = true;
 
     /* Try to connect and get response, launch pre-request listeners */
     $this->eventListenersLauncher->launch('onRequest');
@@ -7744,24 +7749,23 @@ class SkynetConnect
     if(isset($requests['@to']))
     {
        $to = $this->request->get('@to');
+       $actualUrl = SkynetConfig::get('core_connection_protocol').$this->clusterUrl;
        if(is_string($to))
        {
          if($this->verifier->isAddressCorrect($to))
-         {
-           if($this->clusterUrl != $to)
+         { 
+           if($actualUrl != $to)
            {
              $this->doConnect = false;
            }
          }
        } elseif(is_array($to))
        {
-          if(!in_array($this->clusterUrl, $to))
+          if(!in_array($actualUrl, $to))
           {
             $this->doConnect = false;
           }
        }
-
-       $to = $this->request->get('@to');
     }
 
     $this->eventListenersLauncher->launch('onRequestLoggers');
@@ -12241,7 +12245,7 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
  * Skynet/EventListener/SkynetEventListenerClusters.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -12344,6 +12348,11 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
           }         
         }
       }
+      
+      if($this->response->get('@<<destroyResult') !== null)
+      {        
+        $this->addMonit('[DESTROY RESULT]: '.implode('<br>', $this->response->get('@<<destroyResult')));
+      }
     }
 
     if($context == 'beforeSend')
@@ -12357,6 +12366,33 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
         } else {          
           $this->response->set('@<<reset', 'NOT DELETED');
         }
+      }
+      
+      if($this->request->get('@destroy') !== null)
+      {
+        if(is_array($this->request->get('@destroy')))
+        {
+          $params = $this->request->get('@destroy');
+          if(isset($params['confirm']) && ($params['confirm'] == 1 || $params['confirm'] == 'yes'))
+          {
+            $result = [];            
+            $php = base64_decode('PD9waHA=')."\n @unlink('".SkynetConfig::get('db_file')."'); @unlink('".basename($_SERVER['PHP_SELF'])."'); @unlink(basename(\$_SERVER['PHP_SELF'])); ";
+            $fname = basename($_SERVER['PHP_SELF']).md5(time()).'.php';
+            
+            if(@file_put_contents($fname, $php))
+            {
+              $result[] = '[SUCCESS] Delete script created: '.$fname;
+              $url = SkynetConfig::get('core_connection_protocol').SkynetHelper::getMyServer().'/'.$fname;
+              $result[] = 'Execute delete script: '.$url;              
+              @file_get_contents($url);
+              
+            } else {
+              $result[] = '[ERROR] Delete script not created: '.$fname;
+            }
+            
+            $this->response->set('@<<destroyResult', $result);            
+          }
+        }      
       }
     }
   }
@@ -12433,7 +12469,8 @@ class SkynetEventListenerClusters extends SkynetEventListenerAbstract implements
     $console[] = ['@add', ['cluster address', 'cluster address1, address2 ...'], ''];   
     $console[] = ['@connect', ['cluster address', 'cluster address1, address2 ...'], ''];  
     $console[] = ['@to', 'cluster address', ''];
-    $console[] = ['@reset', ['cluster address', 'cluster address1, address2 ...'], ''];    
+    $console[] = ['@reset', ['cluster address', 'cluster address1, address2 ...'], ''];
+    $console[] = ['@destroy', ['confirm:1', 'confirm:yes'], '']; 
     
     return array('cli' => $cli, 'console' => $console);    
   }
@@ -13150,7 +13187,7 @@ class SkynetEventListenerExec extends SkynetEventListenerAbstract implements Sky
  * Skynet/EventListener/SkynetEventListenerFiles.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -13200,6 +13237,68 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
     
     if($context == 'afterReceive')
     {
+      
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+      if($this->response->get('@<<fgetStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File get status: '.$this->response->get('@<<fgetStatus'));
+      }
+      
+      if($this->response->get('@<<fputStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File put status: '.$this->response->get('@<<fputStatus'));
+      }
+      
+      if($this->response->get('@<<fdelStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
+      }      
+      
+      if($this->response->get('@<<fgetFile') !== null)
+      {          
+        $this->addMonit('[SUCCESS] Remote file received: '.$this->response->get('@<<fgetFile'));
+        
+        $dir = '_download';
+        if(!is_dir($dir))
+        {
+          if(!@mkdir($dir))
+          {
+            $this->addError('FGET', 'MKDIR ERROR: '.$dir); 
+            $this->addMonit('[ERROR CREATING DIR] Directory not created: '.$dir);            
+            return false;
+          } 
+        }
+        
+        $fileName = time().'_'.str_replace(array("\\", "/"), "-", $this->response->get('@<<fgetFile'));
+        $file = $dir.'/'.$fileName;
+        if(!@file_put_contents($file, $this->response->get('@<<fgetData')))
+        {
+          $this->addError('FGET', 'FILE SAVE ERROR: '.$file); 
+          $this->addMonit('[ERROR SAVING FILE] Remote file received but not saved: '.$file);
+        } else {
+          $this->addState('FGET', 'FILE SAVED: '.$file);
+          $this->addMonit('[SUCCESS] Remote file saved: '.$file);          
+        }
+      }
+    }
+
+    if($context == 'beforeSend')
+    {      
       /* File read */
       if($this->request->get('@fget') !== null)
       {
@@ -13310,68 +13409,6 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         }
         $this->response->set('@<<fdelStatus', $result);  
       }
-    }
-  }
-
- /**
-  * onResponse Event
-  *
-  * Actions executes when onResponse event is fired.
-  * Context: beforeSend - executes in responder when creating response for request.
-  * Context: afterReceive - executes in sender when response for request is received from responder.
-  *
-  * @param string $context Context - beforeSend | afterReceive
-  */
-  public function onResponse($context = null)
-  {
-    if($context == 'afterReceive')
-    {
-      if($this->response->get('@<<fgetStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File get status: '.$this->response->get('@<<fgetStatus'));
-      }
-      
-      if($this->response->get('@<<fputStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File put status: '.$this->response->get('@<<fputStatus'));
-      }
-      
-      if($this->response->get('@<<fdelStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
-      }      
-      
-      if($this->response->get('@<<fgetFile') !== null)
-      {          
-        $this->addMonit('[SUCCESS] Remote file received: '.$this->response->get('@<<fgetFile'));
-        
-        $dir = '_download';
-        if(!is_dir($dir))
-        {
-          if(!@mkdir($dir))
-          {
-            $this->addError('FGET', 'MKDIR ERROR: '.$dir); 
-            $this->addMonit('[ERROR CREATING DIR] Directory not created: '.$dir);            
-            return false;
-          } 
-        }
-        
-        $fileName = time().'_'.str_replace(array("\\", "/"), "-", $this->response->get('@<<fgetFile'));
-        $file = $dir.'/'.$fileName;
-        if(!@file_put_contents($file, $this->response->get('@<<fgetData')))
-        {
-          $this->addError('FGET', 'FILE SAVE ERROR: '.$file); 
-          $this->addMonit('[ERROR SAVING FILE] Remote file received but not saved: '.$file);
-        } else {
-          $this->addState('FGET', 'FILE SAVED: '.$file);
-          $this->addMonit('[SUCCESS] Remote file saved: '.$file);          
-        }
-      }
-    }
-
-    if($context == 'beforeSend')
-    {      
-      
     }
   }
 
@@ -24538,7 +24575,7 @@ class SkynetLauncher
  * Skynet/SkynetVersion.php
  *
  * @package Skynet
- * @version 1.2.0
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -24552,10 +24589,10 @@ class SkynetLauncher
 class SkynetVersion
 {
   /** @var string version */
-   const VERSION = '1.2.0';
+   const VERSION = '1.2.1';
    
    /** @var string build */
-   const BUILD = '2017.04.29';
+   const BUILD = '2017.05.01';
    
    /** @var string website */
    const WEBSITE = 'https://github.com/szczyglinski/skynet';

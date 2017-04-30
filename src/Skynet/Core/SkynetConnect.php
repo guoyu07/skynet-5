@@ -339,6 +339,8 @@ class SkynetConnect
    /* Prepare request */
     $this->connection->setCluster($this->cluster);
     $this->request->addMetaData($chain);
+    
+    $this->doConnect = true;
 
     /* Try to connect and get response, launch pre-request listeners */
     $this->eventListenersLauncher->launch('onRequest');
@@ -349,24 +351,23 @@ class SkynetConnect
     if(isset($requests['@to']))
     {
        $to = $this->request->get('@to');
+       $actualUrl = \SkynetUser\SkynetConfig::get('core_connection_protocol').$this->clusterUrl;
        if(is_string($to))
        {
          if($this->verifier->isAddressCorrect($to))
-         {
-           if($this->clusterUrl != $to)
+         { 
+           if($actualUrl != $to)
            {
              $this->doConnect = false;
            }
          }
        } elseif(is_array($to))
        {
-          if(!in_array($this->clusterUrl, $to))
+          if(!in_array($actualUrl, $to))
           {
             $this->doConnect = false;
           }
        }
-
-       $to = $this->request->get('@to');
     }
 
     $this->eventListenersLauncher->launch('onRequestLoggers');

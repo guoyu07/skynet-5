@@ -1,4 +1,4 @@
-### Donate project in BTC: 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr or PayPal: [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
+### Donate project in BTC: **14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr** or by PayPal: [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
 ------------
 Current version: 1.2.0 (2017.04.29)
@@ -1099,14 +1099,15 @@ If you want to specify argument by webconsole, you must add it after space, e.g.
 You can pass multiple arguments to some commands by separating them with coma -"**,**"  e.g.:
 
 ```php
-@connect "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3";
+@connect CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3;
 ```
 
+(clusters addresses without quotes)
 
 Usage in CLI is similar to defining parameters:
 
 ```php
--send "@connect 'CLUSTER_ADDRESS1', 'CLUSTER_ADDRESS2', 'CLUSTER_ADDRESS3';"
+-send "@connect CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3;"
 ```
 
 
@@ -1308,9 +1309,10 @@ To remotely send **@clone** command to other clusters, type in webconsole:
 or
 
 ```php
-@clone "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
+@clone CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
+(clusters addresses without quotes)
 
 or with argument *"all"* (or without any arguments) to send command to all clusters.
 In Skynet every command typed without parameters is sending to all clusters by default.
@@ -1700,7 +1702,7 @@ To wakeup cluster just use:
 or
 
 ```php
-@wakeup "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
+@wakeup CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
 to wakeup remote cluster.
@@ -2480,6 +2482,83 @@ client_registry
 to *TRUE*.
 
 And that's it. With *SkynetClient* you can connects with Skynet clusters from any place in your applications.
+
+
+# 5.18. Remote Destroy
+Skynet can destroy (delete) remote clusters and resets theirs databases via remote command.
+If you want do destroy remote cluster use command:
+
+```php
+@destroy;
+```
+
+
+For confirmation this command requires parameter "confirm", so if you want to destroy remote cluster then type in console:
+
+```php
+@destroy confirm:"1";
+```
+
+
+or
+
+```php
+@destroy confirm:"yes";
+```
+
+
+
+Commands above will destroy all remote clusters.
+If you want to destroy only specified cluster(s) mix the command with command "@to" as below:
+
+```php
+
+@destroy confirm:"yes";
+@to "CLUSTER_ADDRESS";
+
+```
+
+
+or:
+
+```php
+
+@destroy confirm:"yes";
+@to CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+
+```
+
+(clusters addresses without quotes)
+
+
+If you want to reset clusters list on remote cluster use command:
+
+```php
+@reset;
+```
+
+
+This will resets all clusters registries in remote clusters.
+If you want to reset only specified cluster(s) mix this command with command "to" as below:
+
+```php
+
+@reset;
+@to "CLUSTER_ADDRESS";
+
+```
+
+
+or:
+
+```php
+
+@reset;
+@to CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+
+```
+
+(clusters addresses without quotes)
 
 
 # 6. Event Listeners
@@ -3623,9 +3702,10 @@ Adds specified cluster(s) address(es) to database
 
 or
 ```php
-@add "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
+@add CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
+(clusters addresses without quotes)
 
 **@connect**
 Connects with specified cluster(s) address(es)
@@ -3635,9 +3715,10 @@ Connects with specified cluster(s) address(es)
 
 or
 ```php
-@connect "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
+@connect CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
+(clusters addresses without quotes)
 
 **@to**
 Specifies single receiver for request.
@@ -3667,9 +3748,10 @@ or
 
 or
 ```php
-@sleep "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
+@sleep CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
+(clusters addresses without quotes)
 or
 Sleep my cluster:
 ```php
@@ -3692,9 +3774,10 @@ or
 
 or
 ```php
-@wakeup "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
+@wakeup CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
+(clusters addresses without quotes)
 or
 Wake up my cluster:
 ```php
@@ -3750,9 +3833,10 @@ or
 
 or
 ```php
-@clone "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
+@clone CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
+(clusters addresses without quotes)
 or
 Clone my cluster:
 ```php
@@ -3769,14 +3853,15 @@ Self-updates remote cluster
 
 or
 ```php
-@self_update source:"ADDRESS_TO_SOURCE_CLUSTER", "CLUSTER_ADDRESS";
+@self_update source:"ADDRESS_TO_SOURCE_CLUSTER", CLUSTER_ADDRESS;
 ```
 
 or
 ```php
-@self_update source:"ADDRESS_TO_SOURCE_CLUSTER", "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
+@self_update source:"ADDRESS_TO_SOURCE_CLUSTER", CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
+(clusters addresses without quotes)
 or
 Self-update my cluster:
 ```php
@@ -4442,8 +4527,10 @@ Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
-14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
- or viaPayPal:
+
+**14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr**
+
+or by PayPal:
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
 Enjoy!

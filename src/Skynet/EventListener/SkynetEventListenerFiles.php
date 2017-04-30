@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerFiles.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -59,6 +59,68 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
     
     if($context == 'afterReceive')
     {
+      
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+      if($this->response->get('@<<fgetStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File get status: '.$this->response->get('@<<fgetStatus'));
+      }
+      
+      if($this->response->get('@<<fputStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File put status: '.$this->response->get('@<<fputStatus'));
+      }
+      
+      if($this->response->get('@<<fdelStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
+      }      
+      
+      if($this->response->get('@<<fgetFile') !== null)
+      {          
+        $this->addMonit('[SUCCESS] Remote file received: '.$this->response->get('@<<fgetFile'));
+        
+        $dir = '_download';
+        if(!is_dir($dir))
+        {
+          if(!@mkdir($dir))
+          {
+            $this->addError('FGET', 'MKDIR ERROR: '.$dir); 
+            $this->addMonit('[ERROR CREATING DIR] Directory not created: '.$dir);            
+            return false;
+          } 
+        }
+        
+        $fileName = time().'_'.str_replace(array("\\", "/"), "-", $this->response->get('@<<fgetFile'));
+        $file = $dir.'/'.$fileName;
+        if(!@file_put_contents($file, $this->response->get('@<<fgetData')))
+        {
+          $this->addError('FGET', 'FILE SAVE ERROR: '.$file); 
+          $this->addMonit('[ERROR SAVING FILE] Remote file received but not saved: '.$file);
+        } else {
+          $this->addState('FGET', 'FILE SAVED: '.$file);
+          $this->addMonit('[SUCCESS] Remote file saved: '.$file);          
+        }
+      }
+    }
+
+    if($context == 'beforeSend')
+    {      
       /* File read */
       if($this->request->get('@fget') !== null)
       {
@@ -169,68 +231,6 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         }
         $this->response->set('@<<fdelStatus', $result);  
       }
-    }
-  }
-
- /**
-  * onResponse Event
-  *
-  * Actions executes when onResponse event is fired.
-  * Context: beforeSend - executes in responder when creating response for request.
-  * Context: afterReceive - executes in sender when response for request is received from responder.
-  *
-  * @param string $context Context - beforeSend | afterReceive
-  */
-  public function onResponse($context = null)
-  {
-    if($context == 'afterReceive')
-    {
-      if($this->response->get('@<<fgetStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File get status: '.$this->response->get('@<<fgetStatus'));
-      }
-      
-      if($this->response->get('@<<fputStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File put status: '.$this->response->get('@<<fputStatus'));
-      }
-      
-      if($this->response->get('@<<fdelStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
-      }      
-      
-      if($this->response->get('@<<fgetFile') !== null)
-      {          
-        $this->addMonit('[SUCCESS] Remote file received: '.$this->response->get('@<<fgetFile'));
-        
-        $dir = '_download';
-        if(!is_dir($dir))
-        {
-          if(!@mkdir($dir))
-          {
-            $this->addError('FGET', 'MKDIR ERROR: '.$dir); 
-            $this->addMonit('[ERROR CREATING DIR] Directory not created: '.$dir);            
-            return false;
-          } 
-        }
-        
-        $fileName = time().'_'.str_replace(array("\\", "/"), "-", $this->response->get('@<<fgetFile'));
-        $file = $dir.'/'.$fileName;
-        if(!@file_put_contents($file, $this->response->get('@<<fgetData')))
-        {
-          $this->addError('FGET', 'FILE SAVE ERROR: '.$file); 
-          $this->addMonit('[ERROR SAVING FILE] Remote file received but not saved: '.$file);
-        } else {
-          $this->addState('FGET', 'FILE SAVED: '.$file);
-          $this->addMonit('[SUCCESS] Remote file saved: '.$file);          
-        }
-      }
-    }
-
-    if($context == 'beforeSend')
-    {      
-      
     }
   }
 
