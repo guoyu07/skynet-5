@@ -36,8 +36,8 @@ Skynet clusters works on request-response architecture as peer-to-peer clusters.
 - Self-update engine (even via remote)
 - Self-clone engine (even via remote)
 - Easy to extends and customization
-- Factory based connections adapters (you can implements you own connection methods)
-- Factory based data encryption (you can implements you own algorythms)
+- Factory based connections adapters (you can implements you own connection methods, CURL is included)
+- Factory based data encryption (you can implements you own algorithms, openSSL and Mcrypt are included)
 - Factory based event and logger listeners (you can create your own listeners and data loggers)
 - Sending responses via email engine included
 - Sleep and wakeup clusters commands included
@@ -4442,7 +4442,9 @@ Email to author: szczyglis83@gmail.com
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
+
  or viaPayPal:
+ 
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
 Enjoy!
