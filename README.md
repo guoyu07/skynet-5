@@ -1,7 +1,7 @@
 ### Donate project in BTC: **14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr** or by PayPal: [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
 ------------
-Current version: 1.2.0 (2017.04.29)
+Current version: 1.2.1 (2017.05.01)
 [https://skynetframework.blogspot.com](https://skynetframework.blogspot.com)
 
 
@@ -3662,9 +3662,10 @@ key1:"value1", key2:"value2", key3:"value3";
 or 
 
 ```php
-@command "argument1", "argument2", "argument3";
+@command argument1, argument2, argument3;
 ```
 
+(multiple arguments without quotes)
 
 
 - Passing *key:"value"* assignments in commands must follow syntax:
