@@ -672,14 +672,14 @@ Every parametr can be set from 3 different ways:
 Code above is equals to setting parameters from webconsole, e.g.:
 
 ```php
-key1:value1, key2:value2
+key1:"value1", key2:"value2";
 ```
 
 
 and equals to the same in CLI mode:
 
 ```php
-php skynet.php -send "key1:value1, key2:value2"
+php skynet.php -b -send "key1:'value1', key2:'value2';"
 ```
 
 
