@@ -222,7 +222,7 @@ At now, you have simple preconfigured Skynet but no connections yet (becose you 
 # 3. Controlling Skynet
 When you launch Skynet via webbrowser you will see Skynet Control Panel. This is the front-end of Skynet. By default, no admin password is set - you must define password hash and place generated hash into config file if you want secure access to Control Panel. At first launch you will see a monit about empty password and information about password hash generation. With Skynet Panel you can control your Skynet - sending requests, receiving resonses, sending commands and checks cluster status. Every cluster has its own Control Panel, so you can control every Skynet Cluster by opening it in webbrowser. Skynet Panel is also a debugger for your Event Listeners - with section "Debug" you can debug your code - informations about debugger are in "Features: Debugger" documentation section. You can also control Skynet by CLI Mode - usage of CLI mode is described in "CLI Mode" section.
 
-*skynet.php or dev.php*
+*skynet.php or skynet_dev.php*
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/skynet.png)
 
 
