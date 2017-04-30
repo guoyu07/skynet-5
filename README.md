@@ -217,7 +217,7 @@ http://localhost/skynet/skynet.php
 
 
 You should now see request for password. Log in with it.
-At now, you have simple preconfigured Skynet but no connections yet (becose you have only 2 clusters (dev.php and skynet.php) at now.
+At now, you have simple preconfigured Skynet at now.
 
 **REMEMBER:** All of your clusters MUST SHARE the same Skynet Key ID.
 
@@ -4441,9 +4441,7 @@ Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
-
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
-
  or viaPayPal:
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
