@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.30 02:55:16 (1493520916) */
+/* Skynet Standalone | version compiled: 2017.04.30 20:44:15 (1493585055) */
 
 namespace Skynet;
 
@@ -11972,7 +11972,7 @@ class SkynetEventListenerCli extends SkynetEventListenerAbstract implements Skyn
  * Skynet/EventListener/SkynetEventListenerCloner.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -12038,6 +12038,14 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
   {
     if($context == 'afterReceive')
     {
+      $monit = '';
+      
+      if($this->response->get('@<<clonesStatus') !== null)
+      {
+        $monit.= '<br>Cloner status: '.$this->response->get('@<<clonesStatus');
+        $this->addMonit($monit);
+      } 
+      
       /* Add returned new clones addresses into database */
       if($this->response->get('@<<clonesAddr') !== null)
       {
@@ -12050,7 +12058,7 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
           $this->cloner->registerNewClones(array($cloned));
         }
        
-        $monit = '[SUCCESS] New clones addresses: <br>';
+        $monit.= '[SUCCESS] New clones addresses: <br>';
         if(is_array($cloned))
         {
           $monit.= implode('<br>', $cloned);
@@ -12062,6 +12070,7 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
         {
           $monit.= '<br>Clones connections: '.$this->response->get('@<<clones');
         }        
+        
         $this->addMonit($monit);
       }      
     }
@@ -12070,6 +12079,13 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
     { 
       if($this->request->get('@clone') !== null)
       {        
+        if(!SkynetConfig::get('core_cloner'))
+        {
+          $this->response->set('@<<clones', 0);
+          $this->response->set('@<<clonesStatus', 'Cloner engine is disabled on this cluster');
+          return false;
+        }
+        
         $i = 0;
         
         /* Generate clones */
@@ -12103,6 +12119,13 @@ class SkynetEventListenerCloner extends SkynetEventListenerAbstract implements S
           }
           
           $this->response->set('@<<clonesAddr', $clones);        
+        }
+        
+        if($i > 0)
+        {
+          $this->response->set('@<<clonesStatus', 'Clones created');
+        } else {
+          $this->response->set('@<<clonesStatus', 'No clones created');
         }
         $this->response->set('@<<clones', $i);    
       }        
@@ -17005,7 +17028,7 @@ class SkynetEventLoggersFactory
  * Skynet/Filesystem/SkynetCloner.php
  *
  * @package Skynet
- * @version 1.2.0
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -17038,9 +17061,9 @@ class SkynetCloner
   *
   * @return string[] Array of clones addresses or false
   */
-  public function startCloning()
+  public function startCloning($from = null)
   {   
-    $dirsList = $this->inspectDirs();
+    $dirsList = $this->inspectDirs($from);
     $success = [];
     
     if($dirsList !== false)
@@ -17123,7 +17146,7 @@ class SkynetCloner
     
     foreach($toExcludeDirs as $excludeDir)
     {
-      if(!empty($exludeDir) && substr($excludeDir, -1) == '/')
+      if(!empty($excludeDir) && substr($excludeDir, -1) == '/')
       {
         $excludeDir = rtrim($excludeDir, '/');
         $excludeDirs[] = $excludeDir;

@@ -4,7 +4,7 @@
  * Skynet/Filesystem/SkynetCloner.php
  *
  * @package Skynet
- * @version 1.2.0
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -47,9 +47,9 @@ class SkynetCloner
   *
   * @return string[] Array of clones addresses or false
   */
-  public function startCloning()
+  public function startCloning($from = null)
   {   
-    $dirsList = $this->inspectDirs();
+    $dirsList = $this->inspectDirs($from);
     $success = [];
     
     if($dirsList !== false)
@@ -132,7 +132,7 @@ class SkynetCloner
     
     foreach($toExcludeDirs as $excludeDir)
     {
-      if(!empty($exludeDir) && substr($excludeDir, -1) == '/')
+      if(!empty($excludeDir) && substr($excludeDir, -1) == '/')
       {
         $excludeDir = rtrim($excludeDir, '/');
         $excludeDirs[] = $excludeDir;
