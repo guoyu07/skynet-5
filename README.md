@@ -95,9 +95,12 @@ As you see you have three versions of Skynet cluster by default:
 
 - **skynet_dev.php** - version with autoloader works on classes from *src/* directory. You can use this version for development and tests
 - **skynet.php** - compiled version with all classes from *src/* directory included itself. This is the "production version" - one single file to put on server after compile from *src/*
-- **skynet_client.php** - Client for Skynet connections. This is a simple example shows how to integrate Skynet with other applications
 
 You can work on this two versions (when you launch both you will see that these two works exacly the same at now), but the idea od Skynet clusters is to operate on standalone compiled versions called here "clusters".
+
+You will see also:
+
+- **skynet_client.php** - Client for Skynet connections. This is a simple example shows how to integrate Skynet with other applications.
 
 
 # 2.4. How Skynet works?
@@ -116,7 +119,7 @@ When Skynet knows about another clusters then starts broadcasting to all of them
 If you have unpacked repository from GitHub put all of files from it on your localhost (or other) server, e.g. *localhost/skynet/* and then launch in your browser:
 
 ```php
-http://localhost/skynet/dev.php
+http://localhost/skynet/skynet_dev.php
 ```
 
 (non-compiled developer version)
@@ -202,7 +205,7 @@ const PASSWORD
 Ok, let's back to your Skynet Control Panel:
 
 ```php
-http://localhost/skynet/dev.php
+http://localhost/skynet/skynet_dev.php
 ```
 
 
@@ -4438,9 +4441,7 @@ Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
-
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
-
  or viaPayPal:
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
