@@ -31,8 +31,7 @@ use Skynet\Debug\SkynetDebug;
 
 
  /**
-  * Skynet Event Listeners Launcher
-  *
+  * Skynet Connect
   */
 class SkynetConnect
 {

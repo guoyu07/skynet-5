@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.30 01:04:57 (1493514297) */
+/* Skynet Standalone | version compiled: 2017.04.30 02:55:16 (1493520916) */
 
 namespace Skynet;
 
@@ -7427,8 +7427,7 @@ class SkynetChain
  */
 
  /**
-  * Skynet Event Listeners Launcher
-  *
+  * Skynet Connect
   */
 class SkynetConnect
 {
