@@ -55,7 +55,7 @@ It is preferred to start testing (if you using it at first time) on localhost se
 
 
 # 2.1. Getting Skynet from GitHUB
-Get Skynet from GitHub here: [http://github.com/szczyglinski/skynet](http://github.com/szczyglinski/skynet)
+Get Skynet from GitHub here: [https://github.com/szczyglinski/skynet](https://github.com/szczyglinski/skynet)
 You can download or clone repository. Remember that Skynet is still in development, so check sometimes for newest versions.
 
 
