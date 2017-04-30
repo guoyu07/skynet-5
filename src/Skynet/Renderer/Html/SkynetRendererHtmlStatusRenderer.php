@@ -235,8 +235,7 @@ class SkynetRendererHtmlStatusRenderer extends SkynetRendererAbstract
     }
     
     $output[] = $this->elements->beginTable('tblStates');
-    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Debugger ('.$this->debugger->countDebug().')'));    
-    $output[] = $this->elements->addHeaderRow2('File/line', 'Debug');    
+    $output[] = $this->elements->addHeaderRow($this->elements->addSubtitle('Debugger ('.$this->debugger->countDebug().')'));         
     $output[] = $this->debugParser->parseDebugFields($this->debugger->getData());
     $output[] = $this->elements->endTable();
     if(!$ajax)

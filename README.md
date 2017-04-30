@@ -45,8 +45,6 @@ Skynet clusters works on request-response architecture as peer-to-peer clusters.
 - Full API documentation in PHPDOC
 - It's all in one
 
-![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/diagram1.png)
-
 **Skynet Framework is under GNU/GPL license, so it's absolutely free to use but if you like it and think that Skynet is helpful to you - you can donate to the project with BTC.
 Ok, so let's start with Skynet.**
 
@@ -97,7 +95,7 @@ As you see you have three versions of Skynet cluster by default:
 
 - **skynet_dev.php** - version with autoloader works on classes from *src/* directory. You can use this version for development and tests
 - **skynet.php** - compiled version with all classes from *src/* directory included itself. This is the "production version" - one single file to put on server after compile from *src/*
-- **skynet_client.php** - Client for Skynet connections. This is an simple example how to integrate Skynet connections with other applications
+- **skynet_client.php** - Client for Skynet connections. This is a simple example shows how to integrate Skynet with other applications
 
 You can work on this two versions (when you launch both you will see that these two works exacly the same at now), but the idea od Skynet clusters is to operate on standalone compiled versions called here "clusters".
 
@@ -135,9 +133,25 @@ At now you will see the same on both of them - Skynet Control Panel:
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/skynet.png)
 
-This panel shows you informations about Skynet status and connections to another clusters. This panel also allows you to easy browse stored in database connections logs.
-As you see, Skynet is not connected to any cluster and shows you 2 warnings - about empty password and empty *SkynetKeyID*. By default, after you download Skynet these two fields are set to start values - you will need to configure them itself.
-At first, let's try to generate *SkynetKey ID* - this is the unique identifier of your clusters network. All of your clusters must have SAME KEY ID to allow connections between them. For security reasons Skynet cluster is checking this key in every connection. If requested key not match to cluster key then response is not generated.
+This panel displays informations about Skynet status and connections to another clusters. This panel also allows you to easy browse stored in database connections logs.
+As you see, Skynet is not connected to any cluster and shows you 2 warnings - about empty password and empty *SkynetKeyID*. By default, after you download Skynet these two fields are set to start values - you will need to configure them itself. We will do this at the end.
+
+At first, let's try to connect clusters included in Skynet package.
+
+In console at the bottom of window of Skynet Control Panel type:
+
+```php
+@connect "CLUSTER_ADDRESS";
+```
+
+
+where *CLUSTER_ADDRESS* will be second cluster (*http://localhost/skynet/skynet.php* if you're in */dev.php* and *http://localhost/skynet/skynet_dev.php* if you're in */skynet.php*)
+At next, click on "Send request" button.
+
+You should see information about connection with second cluster and the second cluster address should be stored into database.
+Good. Now you have two working clusters. Let's try to create different clusters, e.g. by copying *skynet.php* into *skynet2.php*, etc. and try to connect with them.
+
+At the end, let's try to generate *SkynetKey ID* - this is the unique identifier of your clusters network. All of your clusters must have SAME KEY ID to allow connections between them. For security reasons Skynet cluster is checking this key in every connection. If requested key not match to cluster key then response is not generated.
 
 To generate your Key, launch key generator included in package:
 
@@ -153,7 +167,7 @@ This keygen generates randomly key in every launch. When you generate your key, 
 ```
 
 
-or/and in:
+and in:
 
 ```php
 /skynet.php
@@ -178,12 +192,11 @@ http://localhost/skynet/pwdgen.php
 ```
 
 
-Put your password into input, click on "Generate hash" and place generated hash into config file or/and into compiled version.
+Put your password into input, click on "Generate hash" and place generated hash into config file (*/src/SkynetUser/SkynetConfig.php*) and into compiled version.
 
 ```php
 const PASSWORD
 ```
-
 
 
 Ok, let's back to your Skynet Control Panel:
@@ -202,22 +215,8 @@ http://localhost/skynet/skynet.php
 
 You should now see request for password. Log in with it.
 At now, you have simple preconfigured Skynet but no connections yet (becose you have only 2 clusters (dev.php and skynet.php) at now.
-Let's try to connect them.
 
-In console at the bottom of window of Skynet Control Panel type:
-
-```php
-@connect CLUSTER_ADDRESS
-```
-
-
-where *CLUSTER_ADDRESS* will be second cluster (*http://localhost/skynet/skynet.php* if you're in */dev.php* and *http://localhost/skynet/dev.php* if you're in */skynet.php*)
-At next, click on "Send request" button.
-
-You should see information about connection with second cluster and the second cluster address should be stored into database.
-Good. Now you have two working clusters. Let's try to create different clusters, e.g. by copying *skynet.php* into *skynet2.php*, etc. and try to connect with them.
-
-**REMEMBER:** All of your clusters MUST HAVE the same Skynet Key ID.
+**REMEMBER:** All of your clusters MUST SHARE the same Skynet Key ID.
 
 
 # 3. Controlling Skynet
@@ -228,7 +227,8 @@ When you launch Skynet via webbrowser you will see Skynet Control Panel. This is
 
 
 # 3.1. Control Panel overview
-Skynet Control Panel can work in two modes: connections view and database view. You can switch between this two views by switching buttons at the top right corner of Skynet Panel (CONNECTIONS | DATABASE).
+Skynet Control Panel can work in 3 modes: connections view, database view and text logs view. 
+You can switch between this two views by switching buttons at the top right corner of Skynet Panel (CONNECTIONS | DATABASE | TXT LOGS).
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/viewmodes.png)
 
@@ -239,35 +239,40 @@ In connections view you can sending requests, receiving responses and controls a
 
 Connection View has 6 sections:
 
-- Cluster summary informations (1)
-- Connection mode controller (2)
-- Clusters list (3)
-- Status and debugger (4)
-- Webconsole (5)
-- Connection Data (6)
+- **Cluster summary informations** (1)
+- **Connection mode controller** (2)
+- **Clusters list** (3)
+- **Status and debugger** (4)
+- **Webconsole** (5)
+- **Connection Data** (6)
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/sections.png)
 
 **1) Cluster summary informations**
 This section shows clusters summary and most important informations about actual clusters.
-- My address - cluster address
-- Chain - actual chain value (in every connection chain value is incrementing) and time of last update
-- Skynet Key ID - your Skynet Key ID
-- Sleeped - information about Cluster state - sleeped cluster not sends requests and not generates responses
+- **My address** - cluster address
+- **Chain** - actual chain value (in every connection chain value is incrementing) and time of last update
+- **Skynet Key ID** - your Skynet Key ID
+- **Sleeped** - information about Cluster state - sleeped cluster not sends requests and not generates responses
 
-- Broadcasting clusters - number of actual broadcasting clusters
-- Clusters is DB - number of stored in database connections
-- Connections attemts - number of actual connections
-- Successful connections - number of finished actual connections 
+- **Cluster IP** - cluster (server) IP address
+- **Your IP** - your IP address
+- **Encryption** - data encryption method (default: OpenSSL)
+- **Connections** - connections provider (default: CURL)
+
+- **Broadcasting clusters** - number of actual broadcasting clusters
+- **Clusters is DB** - number of stored in database connections
+- **Connections attemts** - number of actual connections
+- **Successful connections** - number of finished actual connections 
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/summary.png)
 
 
 **2) Connection mode controller**
 This is the switch between connections modes. Every Skynet cluster can be in 3 different states:
-- Idle - when no connections are sending
-- Single - when you connects to single clusters
-- Broadcast - when you connects to all clusters stored in database at once
+- **Idle** - when no connections are sending
+- **Single** - when you connects to single clusters
+- **Broadcast** - when you connects to all clusters stored in database at once
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/modes.png)
 
@@ -282,20 +287,23 @@ When you connects to cluster or another cluster is connects with your cluster th
 
 Every cluster entry has 4 fields:
 
-A) status icon (colored square on left whitch shows actual state: GREY icon - idle, GREEN icon - connected, RED icon - connection error.
-B) address - this is the cluster remote address (you can click on address to launch its Control Panel)
-C) ping - ping in miliseconds (if there is no connection then 0 wil be shown)
-D) connect icon - if you click on "CONNECT" then command for connect to selected cluster will be placed in webconsole and next if you send this command via "Send request" then single connection with cluster will be executed.
+A) **Status** (colored square on left whitch shows actual state: GREY icon - idle, GREEN icon - connected, RED icon - connection error.
+B) **Address** - this is the cluster remote address (you can click on address to launch its Control Panel)
+C) **Ping** - ping in miliseconds (if there is no connection then 0 wil be shown)
+D) **Connect button** - if you click on "CONNECT" then command for connect to selected cluster will be placed in webconsole and next if you send this command via "Send request" then single connection with cluster will be executed.
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/cluster.png)
 
 **4) Status and debugger**
-You have 5 tabs here:
-- States - this is the cluster states list generated by Skynet (every part of Skynet can generate its own state). This is a simple info about status of different parts of Skynet
-- Errors - when errors occurs then it will be shown in this tab. If there is no errors then list will be empty
-- Config - list of all config values placed in your config file
-- Console - if you sending commands from webconsole then commands output from console will be shown here 
-- Debug - output of debugger (debugger usage is described in section "Feature: Debugger")
+You have 6 tabs here:
+- **States** - this is the cluster states list generated by Skynet (every part of Skynet can generate its own state). This is a simple info about status of different parts of Skynet
+- **Errors** - when errors occurs then it will be shown in this tab. If there is no errors then list will be empty
+- **Config** - list of all config values placed in your config file
+- **Console** - if you sending commands from webconsole then commands output from console will be shown here 
+- **Debug** - output of debugger (debugger usage is described in section "Feature: Debugger")
+- **Listeners** - informations about Event Listeners (Listners / Loggers). Your custom listeners are marked here by green colour.
+
+In green window you will see Skynet Monitor output.
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/tabs.png)
 
@@ -314,24 +322,26 @@ You can define command placed here in your own listeners (more about this is in 
 This is the output from connections. All of data placed here are generated via ajax-requests "on fly".
 There is 3 tabs:
 
-- Plain data - displays all of data (params, commands, etc.) in plain text
-- Encrypted data - displays the same data but encrypted (Skynet sends encryted data, so you will see here how your encrypted fields looks like in connection)
-- Raw data - displays raw data whitch is sending and receiving from cluster.
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/connTabs.png)
+
+- **Plain data** - displays all of data (params, commands, etc.) in plain text
+- **Encrypted data** - displays the same data but encrypted (Skynet sends encryted data, so you will see here how your encrypted fields looks like in connection)
+- **Raw data** - displays raw data whitch is sending and receiving from cluster.
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/connData.png)
 
 Connection fields are splitted into sections:
-- Cluster Info - information about connected cluster
-- Request Fields {sended} (plain) - raw requested to cluster fields 
-- Response Fields {received} (decrypted) - encrypted fields from cluster response
-- Request Fields {sended} (encrypted) - encrypted requested to cluster fields 
-- Response Fields {received} (raw) - raw fields from cluster response
-- SENDED PARAMS - raw sended data packet
-- SENDED HEADER PARAMS (BROADCAST) - raw sended header packet (headers are ony sent in broadcast mode)
-- RECEIVED RAW DATA - raw received response packet
-- RECEIVED RAW HEADER (BROADCAST) - raw received response packet (headers are ony sent in broadcast mode)
+- **Cluster Info** - information about connected cluster
+- **Ping** - ping time in miliseconds
+- **Request Fields** {sended} (plain) - raw requested to cluster fields 
+- **Response Fields** {received} (decrypted) - encrypted fields from cluster response
+- **Request Fields** {sended} (encrypted) - encrypted requested to cluster fields 
+- **Response Fields** {received} (raw) - raw fields from cluster response
+- **SENDED RAW DATA** - raw sended data packet
+- **RECEIVED RAW DATA** - raw received response packet
 
-All "_" and "@_" prefixed parameters are internal Skynet parameters.
+
+All "_" and "@_" prefixed parameters are internal Skynet parameters (if not translated fields are displayed).
 
 Connection data is built from 2 parts: request and response.
 Request fields are fields whitch are sended to other cluster when connection is executed.
@@ -346,6 +356,15 @@ At the top of connections you can see form to setting connection interval.
 If value greather than "0" is set then interval will work and Skynet will auto-relaunchs connections "on fly".
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/interval.png)
+
+From here you can also set below options:
+
+- **Display internal params** - if YES then internal Skynet parameters (like Skynet ID, time, hash, etc.) will be displayed
+- **Display @echo** - if YES then interal @echo returned parameters will be displayed (Skynet attachs requests fields to response and prefix them by @ - you can disable this option in config file)
+
+In left top corner you can also Logout from Panel and change colour theme (default is "dark"):
+
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/theme.png)
 
 
 ##  Database View 
@@ -365,9 +384,9 @@ To delete all records in actual table click on the "DELETE ALL RECORDS" button.
 
 Every record has 3 buttons:
 
-- Generate TXT - generates .txt file from choosen record
-- Edit - opens record for edition
-- Delete - deletes choosen record from database
+- **Generate TXT** - generates .txt file from choosen record
+- **Edit** - opens record for edition
+- **Delete** - deletes choosen record from database
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/dbactions.png)
 
@@ -377,18 +396,19 @@ By clicking on "New record" button you can put new record into table manualy.
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/dbnew.png)
 
-- Clusters - stores clusters list
-- Clusters (corrupted/blocked) - stores clusters with connection problems (when Skynet cluster not responds then Skynet marks it as corrupted)
-- Registry - stores registry options`
-- Options - stores configuration
-- Chain - stores actual chain value
-- Logs: Responses - stored responses
-- Logs: Requests - stored requests
-- Logs: Echo - stored echo commands
-- Logs: Broadcasts - stored broadcast commands
-- Logs: Errors - stored errors
-- Logs: Access Errors - stored security errors (unathorized access to Panel and incorrect KEY ID in connections)
-- Logs: Self-updates - stored update procedures
+- **Clusters** - stores clusters list
+- **Clusters** (corrupted/blocked) - stores clusters with connection problems (when Skynet cluster not responds then Skynet marks it as corrupted)
+- **Registry** - stores registry options`
+- **Options** - stores configuration
+- **Chain** - stores actual chain value
+- **Logs: user logs** - stored user logs
+- **Logs: Responses** - stored responses
+- **Logs: Requests** - stored requests
+- **Logs: Echo** - stored echo commands
+- **Logs: Broadcasts** - stored broadcast commands
+- **Logs: Errors** - stored errors
+- **Logs: Access Errors** - stored security errors (unathorized access to Panel and incorrect KEY ID in connections)
+- **Logs: Self-updates** - stored update procedures
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/tbllist.png)
 
@@ -398,6 +418,36 @@ By clicking on "New record" button you can put new record into table manualy.
 At the top left corner after link to GitHub Skynet displays information about newest version available on GitHub. You can disable new versions check in config file.
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/newversion.png)
+
+##  TXT Logs View 
+
+
+This view allow you to browse generated by Skynet txt log files. In this panel you can browse, reads, and deletes logs saved in your logs directory.
+By default, Skynet displays all stored logs:
+
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/txtView.png)
+
+When you will click on filename then log will be open in new window.
+You can also delete specified logs by clicking on "Delete" button.
+
+If you want to display logs only from specified event you can choose Event from list:
+
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/txtTypes.png)
+
+If you choose option from list then Skynet will display only logs matches to pattern.
+As you see table is splitted by columns - Skynet parses this data from filenames whitch are generated by special pattern.
+Thanks to that you can easy reads your logs finding files by fields:
+
+- **Filename** - log filename
+- **Time** - generation time
+- **Event** - event type
+- **Context** - information if log was saved when request/response was sended or when was received
+- **Cluster** - cluster address whitch generated log file
+
+Logs created when sending data are marked by green colour.
+You can also delete all log files by clicking on "Delete ALL TXT FILES" - when button will be clicked on "All" files then all files will be deleted.
+If it will be clicked when only specified event logs are displayed then only these files will be erased.
+
 
 
 # 3.2. Connection Modes
@@ -419,7 +469,7 @@ Status of every connection is shown by colour icon on clusters list. When connec
 If any connection error will occur then icon will change colour to red. If there is no connection with specified clusters then icon will be in grey colour and "Ping" value will be set to "0".
 Most od Skynet commands can works in different modes:
 
-- me - command is executes only on your cluster, e.g.:
+- **me** - command is executes only on your cluster, e.g.:
 
 ```php
 @sleep me
@@ -429,18 +479,18 @@ Most od Skynet commands can works in different modes:
 will sleep only your cluster and data will not send to others clusters.
 
 ```php
-@sleep all
+@sleep "all"
 ```
 
 
-will send "@sleep" command to all clusters stored in database.
+will send **@sleep** command to all clusters stored in database.
 
 ```php
-@sleep address
+@sleep "address"
 ```
 
 
-will send "@sleep" command only to cluster with "address" address.
+will send **@sleep** command only to cluster with "address" address.
 
 When you sending parameters without addresses specified, then paremeters will be send to all clusters in broadcast mode, e.g.:
 
@@ -449,7 +499,7 @@ foo:"bar"
 ```
 
 
-will send parameter "foo" with value "bar" to all cluster stored in database when you are in broadcast mode.
+will send parameter *foo* with value *bar* to all cluster stored in database when you are in broadcast mode.
 
 When Skynet connects with another cluster then stored in database clusters list is attached to request - if connected cluster has no any cluster sended in request then its clusters list will be updated with new one.
 In second way - when respone has clusters in its list whitch you not have in databae then your clusters list will be updated with new one.
@@ -465,6 +515,19 @@ foo:"bar";
 
 
 When Skynet is connected to other cluster then "favicon" of Control Panel is set to green.
+
+Default mode you can set in config file by changing option:
+
+```php
+$config['core_mode']
+```
+
+
+Possible values:
+
+- **0** - Idle
+- **1** - Single
+- **2** - Broadcast
 
 
 # 4. Request and Response
@@ -805,8 +868,8 @@ This event is launches two times on both sides - when request is creating (on se
 
 This two contexts are named in Skynet as:
 
-- beforeSend
-- afterReceive
+- *beforeSend*
+- *afterReceive*
 
 Information about actual context is getting as argument in every event.
 Depends on this information you can prepare code for 'sender side' and for 'receiver side'.
@@ -888,7 +951,7 @@ public function onResponse($context)
 If you want to specify only one cluster receiver when preparing request you should use command:
 
 ```php
-@to CLUSTER_ADDRESS;
+@to "CLUSTER_ADDRESS";
 ```
 
 
@@ -925,7 +988,7 @@ and click on "Send request".
 In our case this could be, e.g.:
 
 ```php
-foo:"bar"
+foo:"bar";
 ```
 
 
@@ -946,7 +1009,7 @@ All parameters values should be quoted by ["] char.
 In PHP CLI mode, when you launch Skynet this way you will need to use:
 
 ```php
-php skynet.php -send "foo:bar; foo2:bar2"
+php skynet.php -send "foo:'bar'; foo2:'bar2';"
 ```
 
 
@@ -1024,7 +1087,7 @@ $this->request->set('@to', 'CLUSTER_ADDRESS');
 If you want to specify argument by webconsole, you must add it after space, e.g.:
 
 ```php
-@to CLUSTER_ADDRESS;
+@to "CLUSTER_ADDRESS";
 ```
 
 (press "Send request")
@@ -1032,18 +1095,14 @@ If you want to specify argument by webconsole, you must add it after space, e.g.
 You can pass multiple arguments to some commands by separating them with coma -"**,**"  e.g.:
 
 ```php
-
-@connect CLUSTER1, CLUSTER2, CLUSTER3;
-
+@connect "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3";
 ```
 
 
 Usage in CLI is similar to defining parameters:
 
 ```php
-
--send "@connect CLUSTER1, CLUSTER2, CLUSTER3"
-
+-send "@connect 'CLUSTER_ADDRESS1', 'CLUSTER_ADDRESS2', 'CLUSTER_ADDRESS3';"
 ```
 
 
@@ -1172,7 +1231,7 @@ To specify one cluster as a receiver you add **@to** command:
 ```php
 
 @self_update source:"ADDRESS_TO_SOURCE_CLUSTER";
-@to ADDRESS_TO_OLD_CLUSTER;
+@to "ADDRESS_TO_OLD_CLUSTER";
 
 ```
 
@@ -1181,14 +1240,14 @@ To specify one cluster as a receiver you add **@to** command:
 **Usage (CLI mode):**
 
 ```php
-php skynet_new.php -send "@self_update source:ADDRESS_TO_SOURCE_CLUSTER"
+php skynet_new.php -b -send "@self_update source:'ADDRESS_TO_SOURCE_CLUSTER'"
 ```
 
 
 or
 
 ```php
-php skynet_new.php -send "@self_update source:ADDRESS_TO_SOURCE_CLUSTER; @to ADDRESS_TO_OLD_CLUSTER"
+php skynet_new.php -b -send "@self_update source:'ADDRESS_TO_SOURCE_CLUSTER'; @to 'ADDRESS_TO_OLD_CLUSTER'"
 ```
 
 
@@ -1200,6 +1259,8 @@ After update procedure all clusters will have THE SAME source code as source.
 Self-update procedure is executes on destination clusters in **onResponse (beforeSend)** event.
 
 **BE CAREFUL WHEN UPDATING:** If you accidentally send wrong source or source with errors it is possible to loose connection with clusters. Update only with fully stable and tested compilations.
+
+**NOTE:** When updating remote cluster then connection with updating cluster can be refused for a while and no response will received.
 
 
 # 5.4. Self-cloning
@@ -1215,7 +1276,10 @@ Configuation file is placed in:
 
 If you want to enable *clone* function just set to TRUE option below:
 
-*'core_cloner' => false,*
+```php
+$config['core_cloner']
+```
+
 
 When **@clone** command is sent to clusters then every cluster will try to scan all subdirectories where cluster is placed and try to copy to them. After that (if successed) - clusters will broadcast information about new clones on the network to register new ones by other clusters.
 
@@ -1233,18 +1297,14 @@ Your cluster should be cloned into all directories in its location, and at next 
 To remotely send **@clone** command to other clusters, type in webconsole:
 
 ```php
-
-@clone CLUSTER_ADDRESS;
-
+@clone "CLUSTER_ADDRESS";
 ```
 
 
 or
 
 ```php
-
-@clone CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
-
+@clone "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 
@@ -1279,10 +1339,10 @@ Skynet has built-it method for sending responses from clusters to specified emai
 ```
 
 
-by placing new email address against:
+by placing your email address in:
 
 ```php
-'emailer_email_address' => 'your@email.com',
+$config['emailer_email_address']
 ```
 
 
@@ -1303,7 +1363,7 @@ If you want to enable option only on specified cluster you must mixed this optio
 ```php
 
 @opt_set email:"1";
-@to CLUSTER_ADDRESS;
+@to "CLUSTER_ADDRESS";
 
 ```
 
@@ -1324,12 +1384,145 @@ In database, you will see all of your stored data by switching your **View Mode*
 
 Records with logs can be removed by clicking on *Delete* button or you can erasing all records by one click via *Delete all* button. 
 
-You can easy generate txt files from specified records by clicking on *Generate TXT* button on record.
+You can easy generate *.txt* files from specified records by clicking on *Generate TXT* button on record.
 
-Loggers are based on factory design so you can create your own logging system and register this into Skynet.
-Every event log can by configured in config file. You can create your own logging system also and append it to the factory.
+Text file logs can be viewed via *Control Panel* also by switching view to **TXT LOGS** mode.
 
-**NOTE: Remember that every event is logged so your logs directory may includes lot of files after longer time. You should delete old, unused logs every once in a while.**
+##  Creating custom logs 
+
+
+You can create custom logs simply in your Event Listeners.
+In your listener just use method:
+
+```php
+$this->addLog($message);
+```
+
+
+where:
+
+*$message* is string value with any text message.
+By method above a log will be saved into database and into text file in your logs folder.
+
+**Example:**
+
+*/src/SkynetUser/MyListener.php:*
+```php
+
+public function onResponse($context)
+{
+  if($context == "afterReceive")
+  {
+    $this->addLog('1..2...3...Response received');
+  }
+}
+
+```
+
+Code above will save log with message "1..2...3...Response received".
+You can use **$this->addLog()** in every place of your Event Listener.
+
+All custom logs created by method above are stores in database table:
+
+```php
+skynet_logs_user
+```
+
+
+and into logs directory with pattern:
+
+```php
+{LOGS_DIR}/{TIME}_log_{CLUSTER_ADDRESS}_{NUMBER}.txt
+```
+
+
+Event Loggers are based on factory design so you can create your own logging system and register it into Skynet.
+
+Loggers factory is placed in class:
+
+```php
+/src/Skynet/EventLogger/SkynetEventLoggersFactory.php
+```
+
+
+You can register custom loggers here:
+
+```php
+
+ /**
+  * Registers Event Loggers classes in registry
+  */
+  private function registerEventListeners()
+  {
+    $this->register('emailer', new SkynetEventListenerEmailer());
+    $this->register('databaseLogger', new SkynetEventListenerLoggerDatabase());
+    $this->register('fileLogger', new SkynetEventListenerLoggerFiles());
+  }
+
+```
+
+
+Every custom Event Looger must extends abstract class:
+
+```php
+SkynetEventListenerAbstract
+```
+
+
+and implements interface:
+
+```php
+SkynetEventListenerInterface
+```
+
+
+Loggers are executes at the end of code after the Listeners.
+
+###  Database logs 
+
+
+Every Skynet cluster uses it own database to store database logs.
+At default, Skynet creates tables above to store logs:
+
+- **Logs: user logs** *[skynet_logs_user]* - stores user log
+- **Logs: Responses** *[skynet_logs_responses]* - stores responses
+- **Logs: Requests** *[skynet_logs_requests]* - stores requests
+- **Logs: Echo** *[skynet_logs_echo]* - stores echo commands
+- **Logs: Broadcasts** *[skynet_logs_broadcast]* - stores broadcast commands
+- **Logs: Errors** *[skynet_errors]* - stores errors
+- **Logs: Access Errors** *[skynet_logs_access_errors]* - stores security errors (unathorized access to Panel and incorrect KEY ID in connections)
+- **Logs: Self-updates** *[skynet_logs_selfupdate]* - stores update procedures
+
+
+###  Text logs 
+
+Text logs are stored in specified in config file directory.
+You can set directory for logs by setting option:
+
+```php
+$config['logs_dir']
+```
+
+
+in your config file in */src/SkynetUser/SkynetConfig.php*
+
+Every log file is creating by pattern:
+
+```php
+{LOGS_DIR}/{TIME}_{EVENTNAME}_{CLUSTER_ADDRESS}_{NUMBER}.txt
+```
+
+
+Logging specified events can be configured in config file by setting options:
+
+```php
+$config['logs_txt_{EVENTNAME}']
+```
+
+
+to TRUE or FALSE.
+
+**NOTE: Remember that every event is logged, so your logs directory may includes lot of files after longer time. You should delete old, unused logs every once in a while.**
 
 
 # 5.7. Broadcasting
@@ -1435,14 +1628,14 @@ Every cluster can be remotely "sleeped". Sleeped clusters are not broadcasting a
 If you want to sleep specified cluster, type in webconsole:
 
 ```php
-@sleep CLUSTER_ADDRESS;
+@sleep "CLUSTER_ADDRESS";
 ```
 
 
 or
 
 ```php
-@sleep CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+@sleep "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 
@@ -1453,7 +1646,7 @@ If you want to sleep your own cluster, type:
 ```
 
 
-In Event Listener you will do it with:
+In *Event Listener* you will do it with:
 
 */src/SkynetUser/MyListener.php:*
 ```php
@@ -1469,14 +1662,14 @@ public function onRequest($context)
 ```
 
 
-Alternatively, you can sleep cluster via setting option "sleep" to value "1":
+Alternatively, you can sleep cluster via setting option *sleep* to value "1":
 
 ```php
 @opt_set sleep:"1";
 ```
 
 
-In Event Listener (it will work only for THIS cluster):
+In *Event Listener* (it will work only for THIS cluster):
 
 */src/SkynetUser/MyListener.php:*
 ```php
@@ -1496,14 +1689,14 @@ When sleep, you can restore cluster by wake up it.
 To wakeup cluster just use:
 
 ```php
-@wakeup CLUSTER_ADDRESS;
+@wakeup "CLUSTER_ADDRESS";
 ```
 
 
 or
 
 ```php
-@wakeup CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+@wakeup "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 to wakeup remote cluster.
@@ -1517,7 +1710,7 @@ OR:
 
 if you want to wake up your own cluster.
 
-Alternatively, you can wakeup cluster by setting option *sleep* to *0*:
+Alternatively, you can wakeup cluster by setting option *sleep* to "0":
 
 ```php
 @opt_set sleep:"0";
@@ -1981,7 +2174,7 @@ If you want to set/ or get values from specified clusters you must mix request w
 ```php
 
 @reg_set foo:"bar";
-@to CLUSTER_ADDRESS;
+@to "CLUSTER_ADDRESS";
 
 ```
 
@@ -2067,7 +2260,46 @@ $skynetPeer->assignRequest($this->request);
 Code above will assign actual **$request** (received from cluster 1) and resend this request to cluster 3.
 
 
-# 5.15. Debugger
+# 5.15. SkynetMonitor
+Skynet Monitor is a feature in Control Panel whitch allow you to displaying informations from your Event Listeners.
+Every Event Listener can send multiple messages called "monits". All of monit will be displayed in monits area after request will send or response will receive.
+If you want to create *monit message* in your Event Listener just use:
+
+```php
+$this->addMonit($message);
+```
+
+
+where *$message* should be message string or array with string messages.
+
+**Example:**
+
+*/src/SkynetUser/MyListener.php:*
+```php
+
+public function onRequest($context)
+{
+  if($context == "beforeSend")
+  {
+    $this->addMonit('1..2..preparing request...');
+    $this->addMonit('3..4..preparing request...');
+  }
+}
+
+```
+
+
+Code above will display two monits:
+
+- *1..2..preparing request...*
+- *3..4..preparing request...*
+
+in monitor area in Control Panel:
+
+![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/monit.png)
+
+
+# 5.16. Debugger
 Skynet has built-in debugger for debugging variables, arrays and objects in every place of code.
 Output data from debugger is generated at the end of Skynet code execution so you can debug code in sender and in responder - debug data from both of its will be generated.
 If you want use debugger outside of listener you must use:
@@ -2131,6 +2363,119 @@ Both of this methods: dump() and txt() adds debug data to debugger registry.
 All of this data will be displayed in Skynet Control Panel in "Debug" tab:
 
 ![Skynet](https://github.com/szczyglinski/skynet/blob/master/manual/Manual/img/dbg.png)
+
+
+# 5.17. SkynetClient
+Skynet offers a special class called *SkynetClient* witch can be helpul when you want to integrate Skynet with other applications.
+Simple example of client class usage is in Skynet's package. It's example file:
+
+```php
+skynet_client.php
+```
+
+
+*SkynetClient* class can be called from any other application. Only one required term is to place all Skynet classes (from */src* directory) in place where your *autoloader* can access to them.
+By default, Skynet offers simple autoloader, but you can use your own *autoload function* and e.g. place Skynet's classes into your */vendor* directory.
+
+When all of Skynet's classes are available for autoloader then you can create client object by:
+
+```php
+$client = new Skynet\SkynetClient();
+```
+
+
+It creates *SkynetClient* instance and allow you to sending requests and receiving responses from Skynet clusters.
+With client object you have access to two *public* objects:
+
+```php
+$client->request
+```
+
+
+```php
+$client->response
+```
+
+
+Usage of both of them is similar to usage in *Event Listeners*, so if you want create parameter *foo* in your request then you can use:
+
+```php
+$client->request->set('foo', 'bar');
+```
+
+
+For response receive you can use *response* object, so if you want to get value of field *foo* received in response you can use:
+
+```php
+$foo = $client->response->get('foo');
+```
+
+
+Connections in client are offered by method:
+
+```php
+$client->connect($clusterAddress, $newChainValue = null);
+```
+
+
+where:
+
+*- $clusterAddress* is adress to cluster, e.g. *"http://localhost/skynet/skynet.php"*
+*- $newChainValue* is new *Chain Value* to set on cluster [not required]
+
+When Skynet client connects to another cluster then *public* property:
+
+```php
+$client->isConnected
+```
+
+
+is set to TRUE.
+
+So, simple usage of client can looks like code below:
+
+```php
+
+<?php
+/* Skynet Client example */
+
+spl_autoload_register(function($class)
+{ 
+  require_once 'src/'.str_replace("\\", "/", $class).'.php'; 
+});
+
+/* Create client */
+$client = new Skynet\SkynetClient();
+
+/* Set request field */
+$client->request->set('foo', 'bar');
+
+/* Send request and get response */
+$client->connect('http://localhost/skynet/skynet.php');
+
+
+/* If connected then get response */
+if($client->isConnected)
+{
+  echo $client->response->get('@foo');
+}
+
+```
+
+
+Code above creates client object, sets request field *foo* to value *bar* and after that sends request to cluster *http://localhost/skynet/skynet.php*.
+Finally if connection if sucessful then client gets response field *@foo* whitch is returned field from request parameter *foo*.
+
+By default, client creates its own database but not stores remote clusters addresses. If you want to enable clusters storage in client then you must set config option:
+
+```php
+client_registry
+```
+
+
+to *TRUE*.
+
+And that's it. With *SkynetClient* you can connects with Skynet clusters from any place in your applications.
 
 
 # 6. Event Listeners
@@ -2755,9 +3100,9 @@ public function registerDatabase()
 
 Method must returns array with 3 keys:
 
-- queries - whitch stores array with queries to execute if table [key] not exists
-- tables - whitch stores array with tables names where TableName => FullName
-- fields - whitch stores array with fields descriptions
+- *queries* - whitch stores array with queries to execute if table *[key]* not exists
+- *tables* - whitch stores array with tables names where *TableName* => *FullName*
+- *fields* - whitch stores array with fields descriptions
 
 Queries are executes when Skynet starts and checks tables. If table specified here not exists then queries specified here are executed.
 If you want to specify more than one query per table you can specify queries in array:
@@ -2771,9 +3116,10 @@ Tables created from here will be available in Database View in Skynet Control Pa
 
 
 # 7. How to create own Event Listener?
-Custom Event Listeners should be a heart of your Skynet clusters. That's the idea what Skynet was created for - to offers easy in use architecture and API for creating event based business cluster logic. 
-Let's take a look how to make own Event Listener.
+Custom Event Listeners should be a heart of your Skynet clusters. That's the idea what Skynet was created for - to offers easy in use architecture and API for creating event based business cluster logic. Let's take a look how to make own Event Listener.
 
+
+# 7.1. Step by step
 By default - an empty template for your listeners is placed here:
 
 ```php
@@ -2921,35 +3267,6 @@ Every Event Listener must:
 - extends *\Skynet\EventListener\SkynetEventListenerAbstract* class
 - implements *\Skynet\EventListener\SkynetEventListenerInterface* interface
 
-*SkynetEventListenerAbstract* base class offers to your listener some of useful API method to use.
-Most important of them are request and response objects, but there is more:
-
-```php
-
-public function onResponse($context)
-{
-  if($context == "beforeSend")
-  {
-    $this->reg_set('foo', 'bar'); /* will set Registry field 'foo' to 'bar' */
-    $foo = $this->reg_get('foo'); /* will get field 'foo' from Registry */
-    
-    $this->opt_set('foo', 'bar'); /* will set option 'foo' to 'bar' */
-    $foo = $this->opt_get('foo'); /* will get option 'foo' from internal options */
-    
-    $this->auth /* Access to auth object */
-    $this->db /* Access to DB PDO instance */
-    $this->verifier /* Access to verifier */
-    
-    $this->myAddress /* address of my cluster */
-  } 
-}
-
-```
-
-
-Of course, you can use more of Skynet objects, like Logger, Emailer or Console.
-Full reference you will find in API Documentation.
-
 After creating your listener you should launch Skynet compiler to compile it into cluster file. 
 
 When you creating much more complicated files structure of your own classes (extending, implementing, etc.) remember that abstract classes files shout be named as:
@@ -2978,6 +3295,245 @@ You can create files structure as you want - it will all be compiled into standa
 
 **Notice:** when compiling - all *use* (excepts traits use in class definition) and *namespace* directives will be erased.
 
+**API Methods available under Event Listener are described in next section.** 
+
+
+# 7.2. API Methods
+*SkynetEventListenerAbstract* base class offers to your listener some of useful API method to use.
+
+Most important of them are request and response objects, but there is more:
+
+###  Request and Response 
+
+```php
+$this->request
+```
+
+This is the main Request object
+
+```php
+$this->response
+```
+
+This is the main Response object
+
+```php
+$this->requestsData[]
+```
+
+Read only array with requests fields indexed by fields keys
+
+```php
+$this->responseData[]
+```
+
+Read only array with response fields indexed by fields keys
+
+
+###  Registry 
+
+```php
+$this->reg_set('foo', 'bar');
+```
+
+Registry option set
+
+```php
+$foo = $this->reg_get('foo');
+```
+
+Registry option get
+
+
+###  Options 
+
+```php
+$this->opt_set('foo', 'bar');
+```
+
+System option set
+
+```php
+$foo = $this->opt_get('foo');
+```
+
+System option get
+
+
+###  Monits and Logs 
+
+```php
+$this->addMonit('monit message');
+```
+
+Creates monit message
+
+```php
+$this->addLog('log message');
+```
+
+Creates log message
+
+
+###  Debugging 
+
+```php
+$this->debug->dump($foo);
+```
+
+Debugs (dumps) variable/array/object
+
+```php
+$this->debug->txt('debug message');
+```
+
+Adds debug message
+
+
+###  Clusters informations 
+
+```php
+$this->senderClusterUrl
+```
+
+Address of request/response sender
+
+```php
+$this->receiverClusterUrl
+```
+
+Address of request/response receiver
+
+```php
+$this->myAddress
+```
+
+Address of actual cluster
+
+
+###  Events and connections informations 
+
+```php
+$this->eventName
+```
+
+Name of actual event
+
+```php
+$this->context
+```
+
+Name of actual context
+
+```php
+$this->connId
+```
+
+Number of actual connection
+
+```php
+$this->sender
+```
+
+True if listener was called from request sender, False if listener was called from responder
+
+
+###  Core objects 
+
+```php
+$this->auth
+```
+
+Authorization object
+
+```php
+$this->db
+```
+
+Database object
+
+```php
+$this->verifier
+```
+
+Verifier object
+
+Of course, you can use more of Skynet objects, like Logger, Emailer or Console by create its instances.
+Full API reference you will find in API Documentation.
+
+**Example of API methods usage:**
+
+*/src/SkynetUser/MyListener.php:*
+```php
+
+public function onResponse($context)
+{
+  if($context == "beforeSend")
+  {
+    /* If request field 'foo' is set */
+    if($this->request->get('foo') !== null)
+    {
+      /* get value of request field 'foo' */
+      $foo = $this->request->get('foo');
+      
+      /* if request field 'foo' has value 'bar' */ 
+      if($foo == 'bar')
+      {
+        /* set response field 'bar' with value 'Foo is Bar' */
+        $this->respone->set('bar', 'Foo is Bar');
+        
+        /* set monit to show about receive 'bar' */
+        $this->addMonit('Received Bar');
+        
+        /* set registry field 'foo' to 'bar' if actual value is not 'bar' */
+        if($this->reg_get('foo') != 'bar')
+        {
+          $this->reg_set('foo', 'bar');
+        }
+      
+      /* if request field 'foo' is not 'bar' */
+      } else {
+        
+        /* set response and debug field 'foo' */
+        $this->respone->set('bar', 'Foo is not Bar');
+        $this->debug->txt('Foo is not Bar');
+        $this->debug->dump($foo);
+      }
+      
+    }
+    
+    /* set monits about sender and receiver */
+    $this->addMonit('Request received from:'. $this->receiverClusterUrl);
+    $this->addMonit('Sending response from:'. $this->senderClusterUrl);
+    
+    /* save log */
+    $this->addLog('Log from cluster: '.$this->myAddress.' from event: '.$this->eventName.' with context: '.$this->context);
+    
+    /* check option 'sleep' from options table */
+    if($this->opt_get('sleep') == 0)
+    {
+      $this->addLog('My cluster is not sleeped');
+      
+      /* if code here was called from responder then save log */
+      if(!$this->sender)
+      {
+        $this->addLog('Log saved from responder');
+      }
+    }
+    
+    /* generate monit with actual response fields */
+    $responseString = '';
+    foreach($this->responseData as $key => $value)
+    {
+      $responseString.= $key.':'.$value.',';      
+    }
+    $this->addMonit('Actual response fields:'. $responseString);
+  } 
+}
+
+```
+
+
 
 # 8. Console
 Skynet offers by default some of useful webconsole commands.
@@ -2989,7 +3545,7 @@ With webconsole you can sending requests to another clusters from hand.
 
 ```php
 
-@wakeup CLUSTER_ADDRESS;
+@wakeup "CLUSTER_ADDRESS";
 @reg_set foo:"bar";
 foo2:"bar2";
 foo3:"bar3";
@@ -3016,14 +3572,14 @@ key1:"value1", key2:"value2", key3:"value3";
 - Passing arguments to commands must be done after space:
 
 ```php
-@command argument;
+@command "argument";
 ```
 
 
 or 
 
 ```php
-@command argument1, argument2, argument3;
+@command "argument1", "argument2", "argument3";
 ```
 
 
@@ -3048,7 +3604,7 @@ or
 
 @reg_set foo:"bar";
 foo:"bar";
-@to CLUSTER_ADDRESS;
+@to "CLUSTER_ADDRESS";
 
 ```
 
@@ -3058,24 +3614,24 @@ foo:"bar";
 **@add**
 Adds specified cluster(s) address(es) to database
 ```php
-@add CLUSTER_ADDRESS;
+@add "CLUSTER_ADDRESS";
 ```
 
 or
 ```php
-@add CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+@add "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 
 **@connect**
 Connects with specified cluster(s) address(es)
 ```php
-@connect CLUSTER_ADDRESS;
+@connect "CLUSTER_ADDRESS";
 ```
 
 or
 ```php
-@connect CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+@connect "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 
@@ -3083,7 +3639,7 @@ or
 Specifies single receiver for request.
 Use this to mix with other commands.
 ```php
-@to CLUSTER_ADDRESS;
+@to "CLUSTER_ADDRESS";
 ```
 
 
@@ -3102,12 +3658,12 @@ Sleeps cluster (s). Without any arguments will sleeps all clusters.
 
 or
 ```php
-@sleep CLUSTER_ADDRESS;
+@sleep "CLUSTER_ADDRESS";
 ```
 
 or
 ```php
-@sleep CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...
+@sleep "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 or
@@ -3127,12 +3683,12 @@ Wake-ups cluster (s). Without any arguments will wake-up all clusters.
 
 or
 ```php
-@wakeup CLUSTER_ADDRESS;
+@wakeup "CLUSTER_ADDRESS";
 ```
 
 or
 ```php
-@wakeup CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+@wakeup "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 or
@@ -3185,12 +3741,12 @@ Executes self-cloning command
 
 or
 ```php
-@clone CLUSTER_ADDRESS;
+@clone "CLUSTER_ADDRESS";
 ```
 
 or
 ```php
-@clone CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+@clone "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 or
@@ -3199,6 +3755,7 @@ Clone my cluster:
 @clone me;
 ```
 
+**Note:** Remember that *cloner* is disabled by default in config file. To use this command you must enable it.
 
 **@self_update**
 Self-updates remote cluster
@@ -3208,12 +3765,12 @@ Self-updates remote cluster
 
 or
 ```php
-@self_update source:"ADDRESS_TO_SOURCE_CLUSTER", CLUSTER_ADDRESS;
+@self_update source:"ADDRESS_TO_SOURCE_CLUSTER", "CLUSTER_ADDRESS";
 ```
 
 or
 ```php
-@self_update source:"ADDRESS_TO_SOURCE_CLUSTER", CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
+@self_update source:"ADDRESS_TO_SOURCE_CLUSTER", "CLUSTER_ADDRESS1", "CLUSTER_ADDRESS2", "CLUSTER_ADDRESS3"...;
 ```
 
 or
@@ -3314,9 +3871,11 @@ Skynet architecture is easy to extend and to customize. Even core features can b
 
 
 # 10.1. Custom Data Encryption
-By default, Skynet offers one class for simple encryption data:
+By default, Skynet offers all sending and receiving data encryption by:
 
-- via base64
+- *openSSL*
+- *Mcrypt*
+- *base64*
 
 You can create and add your own encryption method by implementing:
 
@@ -3332,14 +3891,35 @@ and adding new encryptor to:
 ```
 
 
-After that you can set encryption method in */src/SkynetUser/SkynetConfig.php* file by changing option:
-
 ```php
-'core_encryptor' => 'YOUR_ENCRYPTOR',
+
+/**
+* Registers encryptor classes in registry
+*/
+private function registerEncryptors()
+{
+  $this->register('openSSL', new SkynetEncryptorOpenSSL());
+  $this->register('mcrypt', new SkynetEncryptorMcrypt());
+  $this->register('base64', new SkynetEncryptorBase64());
+}
+
 ```
 
 
-Where *YOUR_ENCRYPTOR* is the name of encryptor defined in register method in factory.
+In registration method above you can set encryption method in */src/SkynetUser/SkynetConfig.php* file by changing option:
+
+```php
+$config['core_encryptor']
+```
+
+
+Where option value is the name of encryptor defined in register method in factory.
+
+Encryptors are placed in directory:
+```php
+/src/Skynet/Encryptor/
+```
+
 
 
 # 10.2. Custom Connection Classes
@@ -3362,14 +3942,36 @@ and registering new class in factory:
 ```
 
 
-After that you can set connection method in */src/SkynetUser/SkynetConfig.php* file by changing option:
+To register new connection provider class just add it to register method:
 
 ```php
-'core_connection_type' => 'YOUR_CONNECTOR',
+ 
+ /**
+  * Registers all connection adapters into registry
+  */
+  private function registerConnectors()
+  {
+    $this->register('file_get_contents', new SkynetConnectionFileGetContents());
+    $this->register('curl', new SkynetConnectionCurl());
+  }
+
 ```
 
 
-Where *YOUR_CONNECTOR* is the name of connector defined in register method in factory.
+After that you will need to set connection method in */src/SkynetUser/SkynetConfig.php* file by changing option:
+
+```php
+$config['core_connection_type']
+```
+
+
+Where option value is the name of connector defined in register method in factory.
+
+Connection providers are placed in directory:
+```php
+/src/Skynet/Connection/
+```
+
 
 
 # 10.3. Custom Commands Shortcuts
@@ -3408,164 +4010,229 @@ You can change CSS theme of *Skynet Control Panel* by adding different theme in 
 ```
 
 
-After that you will need to change theme name in main config file.
+After that you will need to change theme name in main config file:
+
+```php
+$config['core_renderer_theme']
+```
+
 
 
 # 11. Configuration
-Skynet configuration is placed in /src/SkynetUser/SkynetConfig.php file.
-When compiling this file is including at the beginning of compiled standalone version.
-
-Configuration options:
-
-
-**KEY_ID** - your Skynet Key ID
-
-**PASSWORD** - admin password for Skynet Control Panel
-
-##  Core configuration - base options: 
+Skynet configuration is placed in file:
+```php
+/src/SkynetUser/SkynetConfig.php
+```
 
 
+When compiling, this file will be included at the beginning of compiled standalone version.
+Remember that you must recompile all of your clusters (or update config manually) when you will change configuration data.
 
-**core_secure** -> bool:[true|false]
+###  Configuration options: 
+
+
+const **KEY_ID** -> string *default: '1234567890'*
+Your Skynet Key ID 
+
+const **PASSWORD** -> string *default: ''*
+Admin password for Skynet Control Panel  
+
+```php
+private static $config = [
+```
+
+
+##  A) Core configuration - base options: 
+
+
+**core_secure** -> bool:[true|false] *default: true*
 If TRUE, Skynet will verify KEY ID in every response, if FALSE - you will able to connect without key (USE THIS ONLY FOR TESTS!!!) 
 
-
-**core_raw** -> bool:[true|false]
+**core_raw** -> bool:[true|false] *default: false*
 If TRUE all sending and receiving data will be encrypted, if FALSE - all data will be send in plain text 
 
-
-**core_updater** -> bool:[true|false]
+**core_updater** -> bool:[true|false] *default: true*
 If TRUE Skynet will enable self-remote-update engine, if FALSE - self-remote-engine will be disabled 
 
+**core_cloner** -> bool:[true|false] *default: false*
+If TRUE - cloner will be enabled and listening for clone command */
 
-**core_cloner** -> bool:[true|false]
-Enables or disabled clone engine
+**core_check_new_versions** -> bool:[true|false] *default: true*
+Enables or disables new version check   
+    
+**core_urls_chain** -> bool:[true|false] *default: true*
+If TRUE - Skynet will include urls chain to requests/responses and will be updates new clusters from it  
+  
+**core_mode** -> integer:[0|1|2] *default: 2*
+Default Skynet Mode. 0 = Idle, 1 = Single, 2 = Broadcast
+This is uses by Control Panel by default when you opens Control Panel
 
-**core_check_new_versions** -> bool:[true|false]
-Enables or disabled new version check
-
-
-**core_updater_url** -> string:[url]
-Address to base file with PHP code sending to clusters on self-update operation 
-
-
-**core_encryptor** -> string:[base64|...]
+**core_encryptor** -> string:[openSSL|mcrypt|base64|...] *default: 'openSSL'*
 Name of registered class used for encrypting data 
 
+**core_encryptor_algorithm** -> string *default: 'aes-256-ctr'*
+Algorithm for OpenSSL encryption
 
-**core_renderer_theme** -> string:[dark|light|raw|...]
-Theme CSS configuration for HTML Renderer 
+**core_renderer_theme** -> string:[dark|light|raw|...] *default: 'dark'*
+Theme CSS for HTML Renderer 
+
+**core_date_format** -> string *default: 'H:i:s d.m.Y'*
+Date format for date() function    
+    
+**core_admin_ip_whitelist** -> string[] *default: []*
+IP Whitelist for accepting access to Control Panel. If array is empty then Control Panel allows access from all IP's
+If array have IP addresses then Control Panel will be accessible only from this addresses
+   
+**core_open_sender** -> bool:[true|false] *default: false*
+If TRUE then Skynet will always sends requests when open (without login to Control Panel)
+If FALSE then Skynet will sends requests only when logged in Control Panel
 
 
-**core_date_format** -> string
-Date format for date() function 
+##  B) Client configuration 
+       
+    
+**client_registry** -> bool:[true|false] *default: false*
+If TRUE, Skynet Client will store clusters in its registry
+If FALSE then Skynet Client will not store remote clusters addresses in its database
+   
+**client_registry_responder** -> bool:[true|false] *default: false*
+If TRUE, Skynet Responder will save cluster when receive connection from client 
+If FALSE then Skynet Responder will not store Client addresses.
+    
+    
+##  C) Translate configuration - Control Panel display mode: 
 
-##  Translate configuration - Control Panel display mode: 
 
-
-**translator_config** -> bool:[true|false]
+**translator_config** -> bool:[true|false] *default: true*
 If TRUE config view will be translated
 
-**translator_params** -> bool:[true|false]
+**translator_params** -> bool:[true|false] *default: true*
 If TRUE Skynet inetrnal params will be translated
 
 
-##  Core configuration - connections with clusters: 
+##  D) Core configuration - connections with clusters: 
 
 
+**core_connection_mode** -> string:[host|ip] *default: 'host'*
+Specified connection addresses by host or IP.
+Skynet can work by hostnames or by IP addresses - it can be set here.
 
-**core_connection_mode** -> string:[host|ip]
-Specified connection addresses by host or IP 
-
-**core_connection_type** -> string:[curl|file_get_contents|...]
+**core_connection_type** -> string:[curl|file_get_contents|...] *default: 'curl'*
 Name of registered class used for connection with clusters 
 
-**core_connection_protocol** -> string:[http|https]
-Connections protocol 
+**core_connection_protocol** -> string:[http|https] *default: 'http://'*
+Connections protocol (http:// or https://)
 
-**core_connection_ssl_verify** -> bool:[true|false]
+**core_connection_ssl_verify** -> bool:[true|false] *default: false*
 Only for cURL, set to FALSE to disable verification of SSL certificates 
 
-**core_connection_curl_output** -> bool:[true|false]
-If true CURL will display connection output in CLI mode (VERBOSE OPTION) 
+**core_connection_curl_output** -> bool:[true|false] *default: false*
+If true CURL will display connection output in CLI mode (VERBOSE OPTION)        
+   
+**core_connection_ip_whitelist** -> string[] *default: []*
+IP Whitelist for accepting requests from, if empty then all IP's has access to response
 
 
-##  Emailer configuration: 
+##  E) Emailer configuration: 
 
 
-**core_email_send** -> bool:[true|false]
+**core_email_send** -> bool:[true|false] *default: true*
 TRUE for enable auto-emailer engine for responses, FALSE to disable 
 
-**core_email_send** -> bool:[true|false]
+**core_email_send** -> bool:[true|false] *default: true*
 TRUE for enable auto-emailer engine for requests, FALSE to disable 
 
-**core_email_address** -> [email]
+**core_email_address** -> [email] *default: 'your@email.com'*
 Specify email address for receiving emails from Skynet 
 
 
-##  Response: 
+##  F) Response: 
 
 
-**response_include_request** -> bool:[true|false]
+**response_include_request** -> bool:[true|false] *default: true*
 If TRUE, response will be attaching requests data with @ prefix, if FALSE requests data will not be included into response 
 
 
-##  Logs: 
+##  G) Logs: 
 
 
-**logs_errors_with_full_trace** -> bool:[true|false]
+**logs_errors_with_full_trace** -> bool:[true|false] *default: true*
+If TRUE then Skynet will save full debug trace in errors logs
+   
+**logs_txt_include_secure_data** -> bool:[true|false] *default: true*
+Set TRUE to log Skynet Key ID and Hash (use this only for debug, not in production
+       
+**logs_txt_include_clusters_data** -> bool:[true|false] *default: true*
+Set TRUE to log clusters URLs and clusters chain (use this only for debug, not in production
 
-**logs_dir** -> string:[path/]
+**logs_dir** -> string:[path/] *default: 'logs/'*
 Specify path to dir where Skynet will save logs, or leave empty to save logs in Skynet directory 
 
-**logs_txt_*** -> bool:[true|false]
+**logs_txt_*** -> bool:[true|false] *default: true*
 Enable or disable txt logs for specified Event 
 
-**logs_txt_include_internal_data** -> bool:[true|false]
+**logs_txt_include_internal_data** -> bool:[true|false] *default: true*
 If TRUE, Skynet will include internal params in txt logs 
 
-**logs_db_*** -> bool:[true|false
+**logs_db_*** -> bool:[true|false] *default: true*
 Enable or disable database logs for specified Event 
 
-**logs_db_include_internal_data** -> bool:[true|false]
+**logs_db_include_internal_data** -> bool:[true|false] *default: false*
 If TRUE, Skynet will include internal params in database logs 
 
 
-##  Database configuration: 
+##  H) Database configuration: 
 
 
-**db** -> bool:[true|false]
+**db** -> bool:[true|false] *default: true*
 Enable or disable database support. If disabled some of functions of Skynet will not work  
 
-**db_type** -> string:[dsn]
+**db_type** -> string:[dsn] *default: 'sqlite'*
 Specify adapter for PDO (sqlite is recommended)  
 
-**DB connection config**
-db_host
-db_user
-db_password
-db_dbname
-db_encoding
-db_port
 
-**db_file** -> string:[filename]
+**db_host** -> string *default: '127.0.0.1'*
+Database host
+
+**db_user** -> string *default: 'root'*
+Database username
+
+**db_password** -> string *default: ''*
+Database password
+
+**db_dbname** -> string *default: 'skynet'*
+Database name
+
+**db_encoding** -> string *default: 'utf-8'*
+Database encoding
+
+**db_port** -> integer *default: 3306*
+Database port
+
+**db_file** -> string:[filename] *default: ''*
 SQLite database filename, leave empty to let Skynet specify names itself (recommended)  
 
-**db_file** -> string:[path/]
+**db_file** -> string:[path/] *default: ''*
 SQLite database path, if empty db will be created in Skynet directory  
 
-##  Debug options 
+
+##  I) Debug options 
 
 
-**console_debug** -> bool:[true|false]
-If TRUE, console command debugger will be displayed when parsing input 
+**console_debug** -> bool:[true|false] *default: true*
+If TRUE, console command debugger will be displayed in Control Panel when parsing input 
 
-**debug_exceptions** -> bool:[true|false]
-If TRUE, debugger will show more info like line, file and trace on errors 
+**debug_exceptions** -> bool:[true|false] *default: false*
+If TRUE, debugger will show more info like line, file and trace on errors in Control Panel
 
-
-**debug_internal** -> bool:[true|false]
-If TRUE, internal params will be displayed in connection data
+**debug_internal** -> bool:[true|false] *default: true*
+If TRUE, internal params will be displayed in connection data   
+     
+**debug_echo** -> bool:[true|false] *default: true*
+If TRUE, internal @echo params will be show in Control Panel
+     
+**debug_key** ->  bool:[true|false] *default: true*
+If TRUE, KEY ID will be displayed in Control Panel
 
 
 # 12. CLI mode
@@ -3577,67 +4244,176 @@ php skynet.php
 ```
 
 
+In CLI mode, Skynet starts with status "0" (Idle), no connections are launched at start, you must execute connection manually by specified command.
+
+All commands must be prefixed by "-" char. You can join commands in one line.
+Arguments for commands should be quoted by " chars, e.g.:
+
+```php
+php skynet.php -command "argument"
+```
+
+or
+```php
+php skynet.php -command "argument1" "argument2" "argument3"...
+```
+
+
 This version of Skynet serves you some commands to use:
 
 **-debug**
-Displays connections full debug
+Displays connection data
 
 **-dbg**
-Displays connections full debug (alias)
+Displays connection data (shorten alias for command "-debug")
 
 **-cfg**
 Displays configuration
 
 **-status**
-Displays status
+Displays cluster status (KEY, chain value, etc.)
 
 **-out [field] or [field1, field2...]**
-Displays only specified fields returned from response
+or
+**-out [field] [field2] [field3]**
+Displays only specified fields returned from response, example:
+```php
+php skynet.php -broadcast -out "foo"
+```
+
+Example above will display only value of field "foo" from response at output.
+You can use this to integration with another apps like CRON, and specify here defined output data.
+You can specify more than one field - just seperate them by coma, example:
+```php
+php skynet.php -b -out "foo1, foo2, foo3"
+```
+
+You can specify more than one field - just seperate them by coma, example:
+```php
+php skynet.php -b -out "foo1" "foo2" "foo3"
+```
+
+It will display values from fields foo1, foo2 and foo3 returned from response
+
 
 **-connect [address]**
-Connects to single specified address
+Connects to single specified address, example:
+```php
+php skynet.php -connect "http://localhost/skynet/skynet.php"
+```
+
+It will connect to cluster with address *http://localhost/skynet/skynet.php*
 
 **-c [address]**
-Connects to single specified address (alias)
+Connects to single specified address (shorten alias for command "-connect"), example:
+```php
+php skynet.php -c "http://localhost/skynet/skynet.php"
+```
+
+It is the same like "-connect" command.
 
 **-broadcast**
 Broadcasts all addresses (starts Skynet)
+It will connect to all clusters stored in database (status "2" - Broadcast).
+At default, no output data will be displayed. If you want display connection debug data - use command "-debug" or "-dbg", example:
+```php
+php skynet.php -broadcast -debug
+```
+
 
 **-b**
-Broadcasts all addresses (starts Skynet) (alias)
+Broadcasts all addresses (starts Skynet) (shorten alias for command "-broadcast")
 
 **-send ["request params"]**
-Sends request from command line, syntax of request params is the same like in webconsole
+Sends request from command line, syntax of request params is the same like in webconsole expects quotes.
+Syntax is similar to webconsole expects quoting and separating commands/params by new line - in CLI mode all " (quote) chars must be replaced by ' char (apostrofe), example:
+```php
+php skynet.php -broadcast -send "foo:'bar'"
+```
+
+It will connect to all clusters and send request with two parameter: *foo*.
+Commands and parameters in "-send" command must be splitted by semicolon and space after semicolon: "; ", example:
+```php
+php skynet.php -broadcast -send "foo:'bar'; foo2:'bar2'"
+```
+
+It will send tqo parameters: foo and foo2 by request.
+Remember about *space* after semicolon, example below:
+```php
+php skynet.php -broadcast -send "foo:'bar';foo2:'bar2'"
+```
+
+Will send only one parameter: *foo* with value "*bar;foo2:bar2*"
+
 
 **-db [table name] optional: [page] [sortByColumn] [ASC|DESC]**
-Displays logs records from specified table in database
+Displays logs records from specified table in database, example:
+```php
+php skynet.php -db "skynet_clusters"
+```
+
+It will display records from table *skynet_clusters*
+Example 2:
+```php
+php skynet.php -db "skynet_clusters" 2 id asc
+```
+
+It will display page 2 of records from table *skynet_clusters* sorted by *id* column in ascending order.
 
 **-db [table name] -del [record ID]**
-Erases record from database table  
+Erases record from database table, example:
+```php
+php skynet.php -db "skynet_clusters" -del 5
+```
+
+It will erase record with *id = 5* from table *skynet_clusters*
 
 **-db [table name] -truncate**
-Erases ALL RECORDS from database table   
+Erases ALL RECORDS from database table, example:
+```php
+php skynet.php -db "skynet_clusters" -truncate
+```
+
+It will erase all records from table *skynet_clusters*
  
 **-sleep**
-Sleeps this cluster
+Sleeps this cluster.
+It sets option *sleep* to "1"
 
 **-wakeup**
 Wakeups this cluster
+It sets option *sleep* to "0"
 
 **-help**
 Displays help
 
 **-h**
-Displays help (alias)
+Displays help (shorten alias for command "-help")
+
+**-check**
+Checks for newest version info on GitHub
  
 **-pwdgen [your password]**
-Generates new password hash from plain password
+Generates new password hash from plain password, example:
+```php
+php skynet.php -pwdgen "foo"
+```
+
+It will generate and display hash for password "foo". 
+Generated hash should be placed in *constant PASSWORD* in your config file.
 
 **-keygen**
-Generates new SKYNET ID KEY  
+Generates new SKYNET ID KEY 
+Generated key should be placed in *constant KEY_ID* in your config file.
 
 **-compile**
-Compiles sources from */src* into standalone
+Compiles sources from */src* into standalone (by default: source dir is "/src", example:
+```php
+php skynet.php -compile
+```
+
+It will compile all files from */src* directory into */compiled/123456_skynet.php* standalone cluster where *123456* is actual time in linux format.
+
 
 
 # 13. API Documentation
