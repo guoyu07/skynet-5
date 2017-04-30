@@ -91,7 +91,7 @@ After you download and unpack (or clone) repository from GitHub then you should 
 - **LICENSE.txt** - License
 - **VERSION** - version info
 
-As you see you have three versions of Skynet cluster by default: 
+As you see you have two versions of Skynet cluster by default: 
 
 - **skynet_dev.php** - version with autoloader works on classes from *src/* directory. You can use this version for development and tests
 - **skynet.php** - compiled version with all classes from *src/* directory included itself. This is the "production version" - one single file to put on server after compile from *src/*
@@ -4441,7 +4441,9 @@ Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
+
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
+
  or viaPayPal:
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
