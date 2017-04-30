@@ -4293,7 +4293,7 @@ You can specify more than one field - just seperate them by coma, example:
 php skynet.php -b -out "foo1, foo2, foo3"
 ```
 
-You can specify more than one field - just seperate them by coma, example:
+or:
 ```php
 php skynet.php -b -out "foo1" "foo2" "foo3"
 ```
@@ -4443,9 +4443,7 @@ Email to author: szczyglis83@gmail.com
 
 
 ### Skynet is Open Source but if you liked Skynet then you can donate project in BTC: 
-
 14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr
-
  or viaPayPal:
  [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
 
