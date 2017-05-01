@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone [core version: 1.2.1 ] | version compiled: 2017.05.01 02:35:23 (1493606123) */
+/* Skynet Standalone [core version: 1.2.1 ] | version compiled: 2017.05.01 02:59:33 (1493607573) */
 
 namespace Skynet;
 
@@ -14121,7 +14121,7 @@ class SkynetEventListenerPacker extends SkynetEventListenerAbstract implements S
         
         $saveAs = str_replace("/", "_", $this->myAddress).'_'.time().'.zip';
         
-        if(!isset($params['file']) || empty($params['file']))
+        if(isset($params['file']) || !empty($params['file']))
         {            
           $saveAs = $params['file'];            
         }          

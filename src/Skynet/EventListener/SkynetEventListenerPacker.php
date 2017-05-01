@@ -161,7 +161,7 @@ class SkynetEventListenerPacker extends SkynetEventListenerAbstract implements S
         
         $saveAs = str_replace("/", "_", $this->myAddress).'_'.time().'.zip';
         
-        if(!isset($params['file']) || empty($params['file']))
+        if(isset($params['file']) || !empty($params['file']))
         {            
           $saveAs = $params['file'];            
         }          
