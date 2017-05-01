@@ -4,7 +4,7 @@
  * Skynet/Console/SkynetConsole.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -398,7 +398,7 @@ class SkynetConsole
   */ 
   private function isParamKeyVal($input)
   {
-    if(!empty($input) && preg_match('/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}.+"{0,1}$/', $input))
+    if(!empty($input) && preg_match('/^(http){0}[^: ,]+: *"{0,1}.+"{0,1}$/', $input))
     {
       return true;
     }
@@ -466,14 +466,11 @@ class SkynetConsole
     $semi = false;
     
     $paramsStr = $this->removeLastSemicolon($paramsStr);
-    //var_dump($paramsStr);
-   
+      
     if(empty($paramsStr))
     {
       return false;
     }
-    
-    
    
     /* if param is quoted */
     if($this->isQuoted($paramsStr))
@@ -488,7 +485,7 @@ class SkynetConsole
     
     if(!$this->areAddresses($paramsStr))
     {
-      $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+      $pattern = '/[^: ,]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
       if(preg_match_all($pattern, $paramsStr, $matches, PREG_PATTERN_ORDER) != 0)
       {
         $e = $matches[0];
@@ -513,28 +510,29 @@ class SkynetConsole
   private function getParamType($paramStr)
   {
     $type = '';
+    $paramStr = trim($paramStr);    
     
     if(empty($paramStr))
     {
       return false;
     }
     
-    $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+    $pattern = '/[^:, ]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
     if(!preg_match($pattern, $paramStr))
     {
-      $type = 'value';
+      $type = 'value';      
       
     } else {
       
-      $pattern = '/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+      $pattern = '/^(http){0}[^:, ]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
       if(preg_match($pattern, $paramStr))
       {
         $type = 'keyvalue';
       } else {
         $type = 'value';
-      }
+      }      
     }   
-   
+    
     return $type;
   }
 
@@ -845,8 +843,7 @@ class SkynetConsole
         }        
         /* query counter */
         $i++;
-      }
-      //$this->debugger->dump($this->consoleCommands); 
+      }      
       return true;
       
     } else {

@@ -1729,6 +1729,9 @@ Alternatively, you can wakeup cluster by setting option *sleep* to "0":
 
 Skynet can gets and writes remote files via one command. You can open any file (if you have correct privilleges) on remote server where Skynet cluster is placed, read its data and get this data in response. You can also put remote file by sending request and defining data to save.
 
+###  Get remote file 
+
+
 To read remote file from server where Skynet cluster is placed use command:
 
 ```php
@@ -1786,6 +1789,10 @@ If any errors occurs (file not exists or no access) then information about it wi
 
 To put a file on remote server where Skynet cluster is placed use command:
 
+
+###  Write remote file 
+
+
 ```php
 @fput
 ```
@@ -1795,6 +1802,13 @@ This command takes two parameters:
 
 ```php
 path:"PATH_TO_FILE", data:"DATA_TO_SAVE";
+```
+
+
+or
+
+```php
+path:"PATH_TO_FILE", source:"PATH_TO_LOCAL_FILE";
 ```
 
 
@@ -1821,11 +1835,24 @@ public function onRequest($context)
 ```
 
 
-Result of file saving will be returned in response in field:
+Against data defining you can send local file by using param "source" as on example below:
+
+```php
+@fput path:"file.txt", source:"local.txt";
+```
+
+
+Will send *local.txt* to remote and save it as *file.txt*
+
+Result of file saving/upload will be returned in response in field:
 
 ```php
 @<<fputStatus
 ```
+
+
+
+###  Delete remote file 
 
 
 To delete remote file use command:
@@ -1833,6 +1860,95 @@ To delete remote file use command:
 ```php
 @fdel path:"PATH_TO_FILE";
 ```
+
+
+Result of file delete will be returned in response in field:
+
+```php
+@<<fdelStatus
+```
+
+
+
+###  Delete remote directory 
+
+
+To delete remote directory use command:
+
+```php
+@rmdir path:"PATH_TO_DIR";
+```
+
+
+Result of directory delete will be returned in response in field:
+
+```php
+@<<rmdirStatus
+```
+
+
+
+###  Create remote directory 
+
+
+To create remote directory use:
+
+```php
+@mkdir path:"PATH_TO_DIR";
+```
+
+
+Result of directory creation will be returned in response in field:
+
+```php
+@<<mkdirStatus
+```
+
+
+
+###  Get remote file/dirs list 
+
+
+To receive remote files list use command:
+
+```php
+@ls;
+```
+
+
+Without arguments this command will get remote files and dirs list in cluster's directory
+
+To receive list from specified directory use param "path":
+
+```php
+@ls path:"PATH_ON_REMOTE";
+```
+
+
+To receive only specified file types create pattern by parameter "pattern" (default pattern value is: *), e.g.:
+
+```php
+@ls path:"some_dir", pattern:"*.txt";
+```
+
+
+This will return .txt files list from directory "some_dir".
+
+Returned data from command @ls is receiving by field:
+
+```php
+@<<lsStatus
+```
+
+
+whitch is status of listing, and in:
+
+```php
+@<<lsOutput[]
+```
+
+
+whitch is an array with remote files/dirs list.
 
 
 
@@ -3722,10 +3838,15 @@ or
 (clusters addresses without quotes)
 
 **@to**
-Specifies single receiver for request.
+Specifies single receiver(s) for request.
 Use this to mix with other commands.
 ```php
 @to "CLUSTER_ADDRESS";
+```
+
+or
+```php
+@to CLUSTER_ADDRESS1, CLUSTER_ADDRESS2, CLUSTER_ADDRESS3...;
 ```
 
 
@@ -3898,6 +4019,23 @@ Executes PHP code on remote cluster - via eval()
 ```
 
 
+**@ls**
+Gets files list from remote
+```php
+@ls;
+```
+
+or
+```php
+@ls path:"/path/to";
+```
+
+or
+```php
+@ls path:"/path/to", pattern:"*.*";
+```
+
+
 **@fget**
 Reads remote file and returns its content - via file_get_contents()
 ```php
@@ -3906,9 +4044,14 @@ Reads remote file and returns its content - via file_get_contents()
 
 
 **@fput**
-Writes remote file with defined content - via file_put_contents()
+Writes remote file with defined content or uploads local file to remote - via file_put_contents()
 ```php
-@fput path:"/path/to/file",data:"data_to_save"
+@fput path:"/path/to/file", data:"data_to_save"
+```
+
+or
+```php
+@fput path:"/path/to/file", source:"/path/to/localfile"
 ```
 
 
@@ -3916,6 +4059,34 @@ Writes remote file with defined content - via file_put_contents()
 Deletes remote file - via unlink()
 ```php
 @fdel path:"/path/to/file"
+```
+
+
+**@mkdir**
+Creates directory on remote
+```php
+@mkdir path:"/path/to"
+```
+
+
+**@rmdir**
+Deletes (recursively) directory on remote
+```php
+@rmdir path:"/path/to"
+```
+
+
+**@destroy**
+Destroys (deletes) remote cluster(s)
+```php
+@destroy confirm:"1";
+```
+
+
+**@reset**
+Resets clusters registry on remote cluster(s)
+```php
+@reset;
 ```
 
 

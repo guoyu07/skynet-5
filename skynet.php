@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.04.30 22:49:46 (1493592586) */
+/* Skynet Standalone | version compiled: 2017.05.01 00:35:13 (1493598913) */
 
 namespace Skynet;
 
@@ -5257,7 +5257,7 @@ class SkynetCommand
  * Skynet/Console/SkynetConsole.php
  *
  * @package Skynet
- * @version 1.1.4
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -5643,7 +5643,7 @@ class SkynetConsole
   */ 
   private function isParamKeyVal($input)
   {
-    if(!empty($input) && preg_match('/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}.+"{0,1}$/', $input))
+    if(!empty($input) && preg_match('/^(http){0}[^: ,]+: *"{0,1}.+"{0,1}$/', $input))
     {
       return true;
     }
@@ -5711,14 +5711,11 @@ class SkynetConsole
     $semi = false;
     
     $paramsStr = $this->removeLastSemicolon($paramsStr);
-    //var_dump($paramsStr);
-   
+      
     if(empty($paramsStr))
     {
       return false;
     }
-    
-    
    
     /* if param is quoted */
     if($this->isQuoted($paramsStr))
@@ -5733,7 +5730,7 @@ class SkynetConsole
     
     if(!$this->areAddresses($paramsStr))
     {
-      $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+      $pattern = '/[^: ,]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
       if(preg_match_all($pattern, $paramsStr, $matches, PREG_PATTERN_ORDER) != 0)
       {
         $e = $matches[0];
@@ -5758,28 +5755,29 @@ class SkynetConsole
   private function getParamType($paramStr)
   {
     $type = '';
+    $paramStr = trim($paramStr);    
     
     if(empty($paramStr))
     {
       return false;
     }
     
-    $pattern = '/[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+    $pattern = '/[^:, ]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
     if(!preg_match($pattern, $paramStr))
     {
-      $type = 'value';
+      $type = 'value';      
       
     } else {
       
-      $pattern = '/^[^http]+[a-zA-Z0-9_-]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
+      $pattern = '/^(http){0}[^:, ]+: *"{0,1}([^"]+)"{0,1}[^,]?/';
       if(preg_match($pattern, $paramStr))
       {
         $type = 'keyvalue';
       } else {
         $type = 'value';
-      }
+      }      
     }   
-   
+    
     return $type;
   }
 
@@ -6090,8 +6088,7 @@ class SkynetConsole
         }        
         /* query counter */
         $i++;
-      }
-      //$this->debugger->dump($this->consoleCommands); 
+      }      
       return true;
       
     } else {
@@ -13232,7 +13229,35 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {
     if($context == 'beforeSend')
     {
-      $this->addLog('xxxx');
+      if($this->request->get('@fput') !== null)
+      {       
+        $params = $this->request->get('@fput');
+        if(isset($params['source']))
+        {
+          $source = $params['source'];
+          if(!empty($source))
+          {
+            if(file_exists($source))
+            {
+              $data = file_get_contents($source);
+              if($data !== null && $data !== false)
+              {
+                $params['data'] = $data;                
+                $this->request->set('@fput', $params);
+              } else {
+                $this->addMonit('[WARNING] @fput: File is NULL or file open error: '.$source);
+              }
+              
+            } else {
+              $this->addMonit('[WARNING] @fput: File not exists: '.$source);
+            }
+            
+          } else {
+            $this->addMonit('[WARNING] @fput: File source is empty');
+          }
+        }
+        //var_dump($params);
+      }
     }
     
     if($context == 'afterReceive')
@@ -13267,7 +13292,27 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
       if($this->response->get('@<<fdelStatus') !== null)
       {       
         $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
-      }      
+      }   
+
+      if($this->response->get('@<<mkdirStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] Directory create: '.$this->response->get('@<<mkdirStatus'));
+      }  
+
+      if($this->response->get('@<<rmdirStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] Directory delete: '.$this->response->get('@<<rmdirStatus'));
+      }   
+
+      if($this->response->get('@<<lsStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] Directory listing: '.$this->response->get('@<<lsStatus'));
+      } 
+
+      if($this->response->get('@<<lsOutput') !== null)
+      {       
+        $this->addMonit($this->response->get('@<<lsOutput'));
+      }       
       
       if($this->response->get('@<<fgetFile') !== null)
       {          
@@ -13409,6 +13454,129 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         }
         $this->response->set('@<<fdelStatus', $result);  
       }
+      
+      /* Dir create */
+      if($this->request->get('@mkdir') !== null)
+      {
+        if(!is_array($this->request->get('@mkdir')))
+        {
+          $result = 'NO DIRNAME IN PARAM';
+          $this->response->set('@<<mkdirStatus', $result);  
+          return false;
+        }      
+        
+        $params = $this->request->get('@mkdir');
+        if(isset($params['path']) && !empty($params['path']))
+        {
+          $dir = $params['path'];
+        } else {
+           $result = 'NO DIRNAME IN PARAM';
+           $this->response->set('@<<mkdirStatus', $result);  
+           return false;
+        }        
+        
+        
+        $result = 'TRYING';
+        if(!is_dir($dir))
+        {
+          if(mkdir($dir))
+          {
+            $result = 'DIR CREATED: '.$dir;           
+          } else {
+            $result = 'DIR NOT CREATED: '.$dir;
+          }
+        } else {
+          $result = 'DIR EXISTS: '.$dir;
+        }
+        $this->response->set('@<<mkdirStatus', $result);  
+      }
+      
+      /* Directory delete */
+      if($this->request->get('@rmdir') !== null)
+      {
+        if(!is_array($this->request->get('@rmdir')))
+        {
+          $result = 'NO PATH IN PARAM';
+          $this->response->set('@<<rmdirStatus', $result);  
+          return false;
+        }      
+        
+        $params = $this->request->get('@rmdir');
+        if(isset($params['path']) && !empty($params['path']))
+        {
+          $dir = $params['path'];
+        } else {
+           $result = 'NO PATH IN PARAM';
+           $this->response->set('@<<rmdirStatus', $result);  
+           return false;
+        }        
+       
+        $result = 'TRYING';
+        if(file_exists($dir))
+        {
+          if($this->rrmdir($dir))
+          {
+            $result = 'DIRECTORY DELETED: '.$dir;           
+          } else {
+            $result = 'DIRECTORY NOT DELETED: '.$dir;
+          }
+        } else {
+          $result = 'DIRECTORY NOT EXISTS: '.$dir;
+        }
+        $this->response->set('@<<rmdirStatus', $result);  
+      }
+      
+      /* Directory listing */
+      if($this->request->get('@ls') !== null)
+      {
+        $path = '';
+        if(is_array($this->request->get('@ls')) && isset($this->request->get('@ls')['path']))
+        {
+          $path = $this->request->get('@ls')['path'];
+        } 
+        
+        if(!empty($path) && substr($path, -1) == '/')
+        {
+          $path = rtrim($path, '/');          
+        }
+        
+        if(!empty($path) && !is_dir($path))
+        {
+           $result = 'DIRECTORY NOT EXISTS: '.$path;
+           $this->response->set('@<<lsStatus', $result);  
+           return false;
+        }
+        
+        $pattern = '*';
+        if(isset($this->request->get('@ls')['pattern']) && !empty($this->request->get('@ls')['pattern']))
+        {
+          $pattern = $this->request->get('@ls')['pattern'];
+        } 
+        
+        if(!empty($path))
+        {
+          $path.= '/';
+        }
+        
+        $list = [];
+        $files = glob($path.$pattern);        
+        $cFiles = 0;
+        $cDirs = 0;
+        
+        foreach($files as $file)
+        {
+          if(is_dir($file))
+          {
+            $list[] = '['.str_replace($path, '', $file).']';
+            $cDirs++;
+          } else {
+            $list[] = str_replace($path, '', $file);
+            $cFiles++;
+          }
+        }
+        $this->response->set('@<<lsStatus', 'Directory: '.$path.', Pattern: '.$pattern.', Files: '.$cFiles.', Dirs: '.$cDirs);  
+        $this->response->set('@<<lsOutput', $list);        
+      }
     }
   }
 
@@ -13481,9 +13649,12 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {    
     $cli = [];
     $console = [];  
-    $console[] = ['@fget', 'path:"/path/to"', ''];
-    $console[] = ['@fput', 'path:"/path/to",data:"data_to_save"', '']; 
-    $console[] = ['@fdel', 'path:"/path/to"', ''];    
+    $console[] = ['@ls', ['', 'path:"/path/to"', 'path:"/path/to", pattern:"*"'], ''];
+    $console[] = ['@fget', 'path:"/path/to/file"', ''];
+    $console[] = ['@fput', ['path:"/path/to/file", data:"data_to_save"', 'path:"/path/to/file", source:"/path/to/file""'], '']; 
+    $console[] = ['@fdel', 'path:"/path/to/file"', ''];
+    $console[] = ['@mkdir', 'path:"/path/to"', ''];
+    $console[] = ['@rmdir', 'path:"/path/to"', ''];
     
     return array('cli' => $cli, 'console' => $console);    
   }  
@@ -13504,6 +13675,35 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
     $tables = [];
     $fields = [];
     return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
+ 
+ /**
+  * Recursively removes dir
+  * 
+  * @param string $dir
+  */ 
+  private function rrmdir($dir) 
+  { 
+    if(is_dir($dir)) 
+    { 
+      $objects = scandir($dir); 
+      foreach($objects as $object) 
+      { 
+       if($object != "." && $object != "..") 
+       { 
+         if(is_dir($dir."/".$object))
+         {
+           $this->rrmdir($dir."/".$object);
+         } else {
+           @unlink($dir."/".$object); 
+         }
+       } 
+      }
+      if(@rmdir($dir))
+      {
+        return true;
+      }
+    } 
   }
 }
 
