@@ -1951,6 +1951,44 @@ whitch is status of listing, and in:
 whitch is an array with remote files/dirs list.
 
 
+###  Zip packer/unpacker 
+
+
+With Skynet you can send ZIP archive into remote cluster and tell Skynet to unpack files from it.
+To send archive use command:
+
+```php
+@zip_put path:"/path/to/", file:"local.zip";
+```
+
+
+Command above will send local file "local.zip" into remote cluster and then archive will be unpacked into directory "/path/to".
+
+Result of operation will be returned by:
+
+```php
+@<<zip_putStatus
+```
+
+
+If you want to pack files on remote cluster and get packed files as zip archive use command:
+
+```php
+@zip_get path:"/path/to/", pattern:"*", file:"local.zip";
+```
+
+
+With command above Skynet will pack remote files from remote directory "/path/to" into zip archive and gets this archive in response.
+After this an archive will be stored into "/_download" folder with name "local.zip".
+
+Result of this operation will be returned by:
+
+```php
+@<<zip_getStatus
+```
+
+
+
 
 # 5.10. Remote system shell execution
 **Event Listener:** Skynet\EventListener\SkynetEventListenerExec
@@ -4087,6 +4125,20 @@ Destroys (deletes) remote cluster(s)
 Resets clusters registry on remote cluster(s)
 ```php
 @reset;
+```
+
+
+**@zip_put**
+Send zip archive to remote cluster and unpacks it
+```php
+@zip_put path:"/path/to/", file:"local.zip";
+```
+
+
+**@zip_get**
+Packs files on remote cluster and gets them as zip archive
+```php
+]@zip_get path:"/path/to/", pattern:"*", file:"local.zip";
 ```
 
 
