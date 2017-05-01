@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenersFactory.php
  *
  * @package Skynet
- * @version 1.1.3
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -46,7 +46,8 @@ class SkynetEventListenersFactory
     $this->register('exec', new SkynetEventListenerExec());
     $this->register('clusters', new SkynetEventListenerClusters());
     $this->register('cloner', new SkynetEventListenerCloner());
-    $this->register('cli', new SkynetEventListenerCli());  
+    $this->register('cli', new SkynetEventListenerCli());
+    $this->register('packer', new SkynetEventListenerPacker());
     $this->register('files', new SkynetEventListenerFiles());    
     $this->register('options', new SkynetEventListenerOptions());
     $this->register('registry', new SkynetEventListenerRegistry());

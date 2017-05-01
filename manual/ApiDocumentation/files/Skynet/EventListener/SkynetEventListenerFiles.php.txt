@@ -4,7 +4,7 @@
  * Skynet/EventListener/SkynetEventListenerFiles.php
  *
  * @package Skynet
- * @version 1.1.6
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -54,11 +54,121 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {
     if($context == 'beforeSend')
     {
-      $this->addLog('xxxx');
+      if($this->request->get('@fput') !== null)
+      {       
+        $params = $this->request->get('@fput');
+        if(isset($params['source']))
+        {
+          $source = $params['source'];
+          if(!empty($source))
+          {
+            if(file_exists($source))
+            {
+              $data = file_get_contents($source);
+              if($data !== null && $data !== false)
+              {
+                $params['data'] = $data;                
+                $this->request->set('@fput', $params);
+              } else {
+                $this->addMonit('[WARNING] @fput: File is NULL or file open error: '.$source);
+              }
+              
+            } else {
+              $this->addMonit('[WARNING] @fput: File not exists: '.$source);
+            }
+            
+          } else {
+            $this->addMonit('[WARNING] @fput: File source is empty');
+          }
+        }
+        //var_dump($params);
+      }
     }
     
     if($context == 'afterReceive')
     {
+      
+    }
+  }
+
+ /**
+  * onResponse Event
+  *
+  * Actions executes when onResponse event is fired.
+  * Context: beforeSend - executes in responder when creating response for request.
+  * Context: afterReceive - executes in sender when response for request is received from responder.
+  *
+  * @param string $context Context - beforeSend | afterReceive
+  */
+  public function onResponse($context = null)
+  {
+    if($context == 'afterReceive')
+    {
+      if($this->response->get('@<<fgetStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File get status: '.$this->response->get('@<<fgetStatus'));
+      }
+      
+      if($this->response->get('@<<fputStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File put status: '.$this->response->get('@<<fputStatus'));
+      }
+      
+      if($this->response->get('@<<fdelStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
+      }   
+
+      if($this->response->get('@<<mkdirStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] Directory create: '.$this->response->get('@<<mkdirStatus'));
+      }  
+
+      if($this->response->get('@<<rmdirStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] Directory delete: '.$this->response->get('@<<rmdirStatus'));
+      }   
+
+      if($this->response->get('@<<lsStatus') !== null)
+      {       
+        $this->addMonit('[STATUS] Directory listing: '.$this->response->get('@<<lsStatus'));
+      } 
+
+      if($this->response->get('@<<lsOutput') !== null)
+      {       
+        $this->addMonit($this->response->get('@<<lsOutput'));
+      }       
+      
+      if($this->response->get('@<<fgetFile') !== null)
+      {          
+        $this->addMonit('[SUCCESS] Remote file received: '.$this->response->get('@<<fgetFile'));
+        
+        $dir = '_download';
+        if(!is_dir($dir))
+        {
+          if(!@mkdir($dir))
+          {
+            $this->addError('FGET', 'MKDIR ERROR: '.$dir); 
+            $this->addMonit('[ERROR CREATING DIR] Directory not created: '.$dir);            
+            return false;
+          } 
+        }
+        
+        $fileName = time().'_'.str_replace(array("\\", "/"), "-", $this->response->get('@<<fgetFile'));
+        $file = $dir.'/'.$fileName;
+        if(!@file_put_contents($file, $this->response->get('@<<fgetData')))
+        {
+          $this->addError('FGET', 'FILE SAVE ERROR: '.$file); 
+          $this->addMonit('[ERROR SAVING FILE] Remote file received but not saved: '.$file);
+        } else {
+          $this->addState('FGET', 'FILE SAVED: '.$file);
+          $this->addMonit('[SUCCESS] Remote file saved: '.$file);          
+        }
+      }
+    }
+
+    if($context == 'beforeSend')
+    {      
       /* File read */
       if($this->request->get('@fget') !== null)
       {
@@ -169,68 +279,129 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
         }
         $this->response->set('@<<fdelStatus', $result);  
       }
-    }
-  }
-
- /**
-  * onResponse Event
-  *
-  * Actions executes when onResponse event is fired.
-  * Context: beforeSend - executes in responder when creating response for request.
-  * Context: afterReceive - executes in sender when response for request is received from responder.
-  *
-  * @param string $context Context - beforeSend | afterReceive
-  */
-  public function onResponse($context = null)
-  {
-    if($context == 'afterReceive')
-    {
-      if($this->response->get('@<<fgetStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File get status: '.$this->response->get('@<<fgetStatus'));
-      }
       
-      if($this->response->get('@<<fputStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File put status: '.$this->response->get('@<<fputStatus'));
-      }
-      
-      if($this->response->get('@<<fdelStatus') !== null)
-      {       
-        $this->addMonit('[STATUS] File delete status: '.$this->response->get('@<<fdelStatus'));
-      }      
-      
-      if($this->response->get('@<<fgetFile') !== null)
-      {          
-        $this->addMonit('[SUCCESS] Remote file received: '.$this->response->get('@<<fgetFile'));
+      /* Dir create */
+      if($this->request->get('@mkdir') !== null)
+      {
+        if(!is_array($this->request->get('@mkdir')))
+        {
+          $result = 'NO DIRNAME IN PARAM';
+          $this->response->set('@<<mkdirStatus', $result);  
+          return false;
+        }      
         
-        $dir = '_download';
+        $params = $this->request->get('@mkdir');
+        if(isset($params['path']) && !empty($params['path']))
+        {
+          $dir = $params['path'];
+        } else {
+           $result = 'NO DIRNAME IN PARAM';
+           $this->response->set('@<<mkdirStatus', $result);  
+           return false;
+        }        
+        
+        
+        $result = 'TRYING';
         if(!is_dir($dir))
         {
-          if(!@mkdir($dir))
+          if(mkdir($dir))
           {
-            $this->addError('FGET', 'MKDIR ERROR: '.$dir); 
-            $this->addMonit('[ERROR CREATING DIR] Directory not created: '.$dir);            
-            return false;
-          } 
+            $result = 'DIR CREATED: '.$dir;           
+          } else {
+            $result = 'DIR NOT CREATED: '.$dir;
+          }
+        } else {
+          $result = 'DIR EXISTS: '.$dir;
+        }
+        $this->response->set('@<<mkdirStatus', $result);  
+      }
+      
+      /* Directory delete */
+      if($this->request->get('@rmdir') !== null)
+      {
+        if(!is_array($this->request->get('@rmdir')))
+        {
+          $result = 'NO PATH IN PARAM';
+          $this->response->set('@<<rmdirStatus', $result);  
+          return false;
+        }      
+        
+        $params = $this->request->get('@rmdir');
+        if(isset($params['path']) && !empty($params['path']))
+        {
+          $dir = $params['path'];
+        } else {
+           $result = 'NO PATH IN PARAM';
+           $this->response->set('@<<rmdirStatus', $result);  
+           return false;
+        }        
+       
+        $result = 'TRYING';
+        if(file_exists($dir))
+        {
+          if($this->rrmdir($dir))
+          {
+            $result = 'DIRECTORY DELETED: '.$dir;           
+          } else {
+            $result = 'DIRECTORY NOT DELETED: '.$dir;
+          }
+        } else {
+          $result = 'DIRECTORY NOT EXISTS: '.$dir;
+        }
+        $this->response->set('@<<rmdirStatus', $result);  
+      }
+      
+      /* Directory listing */
+      if($this->request->get('@ls') !== null)
+      {
+        $path = '';
+        if(is_array($this->request->get('@ls')) && isset($this->request->get('@ls')['path']))
+        {
+          $path = $this->request->get('@ls')['path'];
+        } 
+        
+        if(!empty($path) && substr($path, -1) == '/')
+        {
+          $path = rtrim($path, '/');          
         }
         
-        $fileName = time().'_'.str_replace(array("\\", "/"), "-", $this->response->get('@<<fgetFile'));
-        $file = $dir.'/'.$fileName;
-        if(!@file_put_contents($file, $this->response->get('@<<fgetData')))
+        if(!empty($path) && !is_dir($path))
         {
-          $this->addError('FGET', 'FILE SAVE ERROR: '.$file); 
-          $this->addMonit('[ERROR SAVING FILE] Remote file received but not saved: '.$file);
-        } else {
-          $this->addState('FGET', 'FILE SAVED: '.$file);
-          $this->addMonit('[SUCCESS] Remote file saved: '.$file);          
+           $result = 'DIRECTORY NOT EXISTS: '.$path;
+           $this->response->set('@<<lsStatus', $result);  
+           return false;
         }
+        
+        $pattern = '*';
+        if(isset($this->request->get('@ls')['pattern']) && !empty($this->request->get('@ls')['pattern']))
+        {
+          $pattern = $this->request->get('@ls')['pattern'];
+        } 
+        
+        if(!empty($path))
+        {
+          $path.= '/';
+        }
+        
+        $list = [];
+        $files = glob($path.$pattern);        
+        $cFiles = 0;
+        $cDirs = 0;
+        
+        foreach($files as $file)
+        {
+          if(is_dir($file))
+          {
+            $list[] = '['.str_replace($path, '', $file).']';
+            $cDirs++;
+          } else {
+            $list[] = str_replace($path, '', $file);
+            $cFiles++;
+          }
+        }
+        $this->response->set('@<<lsStatus', 'Directory: '.$path.', Pattern: '.$pattern.', Files: '.$cFiles.', Dirs: '.$cDirs);  
+        $this->response->set('@<<lsOutput', $list);        
       }
-    }
-
-    if($context == 'beforeSend')
-    {      
-      
     }
   }
 
@@ -303,9 +474,12 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
   {    
     $cli = [];
     $console = [];  
-    $console[] = ['@fget', 'path:"/path/to"', ''];
-    $console[] = ['@fput', 'path:"/path/to",data:"data_to_save"', '']; 
-    $console[] = ['@fdel', 'path:"/path/to"', ''];    
+    $console[] = ['@ls', ['', 'path:"/path/to"', 'path:"/path/to", pattern:"*"'], ''];
+    $console[] = ['@fget', 'path:"/path/to/file"', ''];
+    $console[] = ['@fput', ['path:"/path/to/file", data:"data_to_save"', 'path:"/path/to/file", source:"/path/to/file""'], '']; 
+    $console[] = ['@fdel', 'path:"/path/to/file"', ''];
+    $console[] = ['@mkdir', 'path:"/path/to"', ''];
+    $console[] = ['@rmdir', 'path:"/path/to"', ''];
     
     return array('cli' => $cli, 'console' => $console);    
   }  
@@ -326,5 +500,34 @@ class SkynetEventListenerFiles extends SkynetEventListenerAbstract implements Sk
     $tables = [];
     $fields = [];
     return array('queries' => $queries, 'tables' => $tables, 'fields' => $fields);  
+  }
+ 
+ /**
+  * Recursively removes dir
+  * 
+  * @param string $dir
+  */ 
+  private function rrmdir($dir) 
+  { 
+    if(is_dir($dir)) 
+    { 
+      $objects = scandir($dir); 
+      foreach($objects as $object) 
+      { 
+       if($object != "." && $object != "..") 
+       { 
+         if(is_dir($dir."/".$object))
+         {
+           $this->rrmdir($dir."/".$object);
+         } else {
+           @unlink($dir."/".$object); 
+         }
+       } 
+      }
+      if(@rmdir($dir))
+      {
+        return true;
+      }
+    } 
   }
 }

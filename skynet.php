@@ -1,6 +1,6 @@
 <?php 
 
-/* Skynet Standalone | version compiled: 2017.05.01 02:15:21 (1493604921) */
+/* Skynet Standalone [core version: 1.2.1 ] | version compiled: 2017.05.01 02:35:23 (1493606123) */
 
 namespace Skynet;
 
@@ -13984,8 +13984,10 @@ class SkynetEventListenerOptions extends SkynetEventListenerAbstract implements 
   */
 class SkynetEventListenerPacker extends SkynetEventListenerAbstract implements SkynetEventListenerInterface
 {  
+  /** @var ZipArchive Zip archive */
   private $zip;
   
+  /** @var int Packed files counter */
   private $counter = 0;
  
  /**
@@ -16334,7 +16336,7 @@ class SkynetEventListenerEmailer extends SkynetEventListenerAbstract implements 
  * Skynet/EventLogger/SkynetEventListenerLoggerDatabase.php
  *
  * @package Skynet
- * @version 1.2.0
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
@@ -16626,8 +16628,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       VALUES(:skynet_id, :created_at, :content, :sender_url,  :receiver_url)'
       );
 
-      $receiver = '';
-      $sender = '';
+      $sender = $this->senderClusterUrl;
+      $receiver = $this->receiverClusterUrl;
       $skynet_id = '';
       $logInfo = '';
 
@@ -25366,13 +25368,15 @@ class SkynetStatesRegistry
  * Skynet/Tools/SkynetCompiler.php
  *
  * @package Skynet
- * @version 1.0.0
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski
  * @license https://opensource.org/licenses/GPL-3.0 GNU Public License
  * @since 1.0.0
  */
+ 
+ 
  
  
 
@@ -25664,7 +25668,7 @@ class SkynetCompiler
   */   
   private function generateStandalone($src)
   {     
-    $header = " ".$this->nl1.$this->nl1."/* Skynet Standalone | version compiled: ".date('Y.m.d H:i:s')." (".time().") */".$this->nl1.$this->nl1."".$this->nl1;
+    $header = " ".$this->nl1.$this->nl1."/* Skynet Standalone [core version: ".SkynetVersion::VERSION." ] | version compiled: ".date('Y.m.d H:i:s')." (".time().") */".$this->nl1.$this->nl1."".$this->nl1;
     $code = $this->nl1."\$skynet = new SkynetLauncher(true, true);".$this->nl1."echo \$skynet;";
     $src = $header.$src.$code;
     return $src;

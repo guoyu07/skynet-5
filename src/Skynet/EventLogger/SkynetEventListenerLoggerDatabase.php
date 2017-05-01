@@ -4,7 +4,7 @@
  * Skynet/EventLogger/SkynetEventListenerLoggerDatabase.php
  *
  * @package Skynet
- * @version 1.2.0
+ * @version 1.2.1
  * @author Marcin Szczyglinski <szczyglis83@gmail.com>
  * @link http://github.com/szczyglinski/skynet
  * @copyright 2017 Marcin Szczyglinski

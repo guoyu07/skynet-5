@@ -21,7 +21,55 @@
     <script src="../js/jquery.smooth-scroll.js"></script>
     <script src="../js/prism.min.js"></script>
     <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
-    
+        <script type="text/javascript">
+        function loadExternalCodeSnippets() {
+            Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+                var src = pre.getAttribute('data-src');
+                var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+                var language = 'php';
+
+                var code = document.createElement('code');
+                code.className = 'language-' + language;
+
+                pre.textContent = '';
+
+                code.textContent = 'Loading…';
+
+                pre.appendChild(code);
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.open('GET', src, true);
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+
+                        if (xhr.status < 400 && xhr.responseText) {
+                            code.textContent = xhr.responseText;
+
+                            Prism.highlightElement(code);
+                        }
+                        else if (xhr.status >= 400) {
+                            code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                        }
+                        else {
+                            code.textContent = '✖ Error: File does not exist or is empty';
+                        }
+                    }
+                };
+
+                xhr.send(null);
+            });
+        }
+
+        $(document).ready(function(){
+            loadExternalCodeSnippets();
+        });
+        $('#source-view').on('shown', function () {
+            loadExternalCodeSnippets();
+        })
+    </script>
+
     <link rel="shortcut icon" href="../images/favicon.ico"/>
     <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
     <link rel="apple-touch-icon" sizes="72x72" href="../images/apple-touch-icon-72x72.png"/>
@@ -97,28 +145,28 @@
                                 <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-1696866019"></a>
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-2105002113"></a>
                                 <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
             </div>
-            <div id="namespace-1696866019" class="accordion-body collapse in">
+            <div id="namespace-2105002113" class="accordion-body collapse in">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-999252523"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-273949270"></a>
                                 <a href="../namespaces/Skynet.html" style="margin-left: 30px; padding-left: 0">Skynet</a>
             </div>
-            <div id="namespace-999252523" class="accordion-body collapse ">
+            <div id="namespace-273949270" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1469019721"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-464464845"></a>
                                 <a href="../namespaces/Skynet.Cluster.html" style="margin-left: 30px; padding-left: 0">Cluster</a>
             </div>
-            <div id="namespace-1469019721" class="accordion-body collapse ">
+            <div id="namespace-464464845" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -136,10 +184,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1883994772"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-597547798"></a>
                                 <a href="../namespaces/Skynet.Common.html" style="margin-left: 30px; padding-left: 0">Common</a>
             </div>
-            <div id="namespace-1883994772" class="accordion-body collapse ">
+            <div id="namespace-597547798" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -155,10 +203,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1766626654"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1654705027"></a>
                                 <a href="../namespaces/Skynet.Connection.html" style="margin-left: 30px; padding-left: 0">Connection</a>
             </div>
-            <div id="namespace-1766626654" class="accordion-body collapse ">
+            <div id="namespace-1654705027" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -177,10 +225,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-870634990"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-793754175"></a>
                                 <a href="../namespaces/Skynet.Console.html" style="margin-left: 30px; padding-left: 0">Console</a>
             </div>
-            <div id="namespace-870634990" class="accordion-body collapse ">
+            <div id="namespace-793754175" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -199,10 +247,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1083494249"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1543462580"></a>
                                 <a href="../namespaces/Skynet.Core.html" style="margin-left: 30px; padding-left: 0">Core</a>
             </div>
-            <div id="namespace-1083494249" class="accordion-body collapse ">
+            <div id="namespace-1543462580" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -222,10 +270,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1406465493"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-84128043"></a>
                                 <a href="../namespaces/Skynet.Data.html" style="margin-left: 30px; padding-left: 0">Data</a>
             </div>
-            <div id="namespace-1406465493" class="accordion-body collapse ">
+            <div id="namespace-84128043" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -243,10 +291,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1620340396"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-380797353"></a>
                                 <a href="../namespaces/Skynet.Database.html" style="margin-left: 30px; padding-left: 0">Database</a>
             </div>
-            <div id="namespace-1620340396" class="accordion-body collapse ">
+            <div id="namespace-380797353" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -266,10 +314,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1494075536"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-473198977"></a>
                                 <a href="../namespaces/Skynet.Debug.html" style="margin-left: 30px; padding-left: 0">Debug</a>
             </div>
-            <div id="namespace-1494075536" class="accordion-body collapse ">
+            <div id="namespace-473198977" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -284,10 +332,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1287616585"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-547808008"></a>
                                 <a href="../namespaces/Skynet.Encryptor.html" style="margin-left: 30px; padding-left: 0">Encryptor</a>
             </div>
-            <div id="namespace-1287616585" class="accordion-body collapse ">
+            <div id="namespace-547808008" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -306,10 +354,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1795546753"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1101554981"></a>
                                 <a href="../namespaces/Skynet.Error.html" style="margin-left: 30px; padding-left: 0">Error</a>
             </div>
-            <div id="namespace-1795546753" class="accordion-body collapse ">
+            <div id="namespace-1101554981" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -327,10 +375,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1513341923"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-605369806"></a>
                                 <a href="../namespaces/Skynet.EventListener.html" style="margin-left: 30px; padding-left: 0">EventListener</a>
             </div>
-            <div id="namespace-1513341923" class="accordion-body collapse ">
+            <div id="namespace-605369806" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -359,10 +407,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-56906076"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-283223618"></a>
                                 <a href="../namespaces/Skynet.EventLogger.html" style="margin-left: 30px; padding-left: 0">EventLogger</a>
             </div>
-            <div id="namespace-56906076" class="accordion-body collapse ">
+            <div id="namespace-283223618" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -380,10 +428,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-301436363"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1744257217"></a>
                                 <a href="../namespaces/Skynet.Filesystem.html" style="margin-left: 30px; padding-left: 0">Filesystem</a>
             </div>
-            <div id="namespace-301436363" class="accordion-body collapse ">
+            <div id="namespace-1744257217" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -400,19 +448,19 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1746557429"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1343463257"></a>
                                 <a href="../namespaces/Skynet.Renderer.html" style="margin-left: 30px; padding-left: 0">Renderer</a>
             </div>
-            <div id="namespace-1746557429" class="accordion-body collapse ">
+            <div id="namespace-1343463257" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1827383180"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-358040866"></a>
                                 <a href="../namespaces/Skynet.Renderer.Cli.html" style="margin-left: 30px; padding-left: 0">Cli</a>
             </div>
-            <div id="namespace-1827383180" class="accordion-body collapse ">
+            <div id="namespace-358040866" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -431,10 +479,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1994677724"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-911676349"></a>
                                 <a href="../namespaces/Skynet.Renderer.Html.html" style="margin-left: 30px; padding-left: 0">Html</a>
             </div>
-            <div id="namespace-1994677724" class="accordion-body collapse ">
+            <div id="namespace-911676349" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -474,10 +522,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-967922786"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1400696927"></a>
                                 <a href="../namespaces/Skynet.Secure.html" style="margin-left: 30px; padding-left: 0">Secure</a>
             </div>
-            <div id="namespace-967922786" class="accordion-body collapse ">
+            <div id="namespace-1400696927" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -493,10 +541,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-412929608"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1976038507"></a>
                                 <a href="../namespaces/Skynet.State.html" style="margin-left: 30px; padding-left: 0">State</a>
             </div>
-            <div id="namespace-412929608" class="accordion-body collapse ">
+            <div id="namespace-1976038507" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -513,10 +561,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-382539586"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1886110673"></a>
                                 <a href="../namespaces/Skynet.Tools.html" style="margin-left: 30px; padding-left: 0">Tools</a>
             </div>
-            <div id="namespace-382539586" class="accordion-body collapse ">
+            <div id="namespace-1886110673" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -533,10 +581,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-809792772"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1590708196"></a>
                                 <a href="../namespaces/Skynet.Updater.html" style="margin-left: 30px; padding-left: 0">Updater</a>
             </div>
-            <div id="namespace-809792772" class="accordion-body collapse ">
+            <div id="namespace-1590708196" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -562,10 +610,10 @@
                                                     <div class="accordion" style="margin-bottom: 0">
         <div class="accordion-group">
             <div class="accordion-heading">
-                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-644373436"></a>
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1261341298"></a>
                                 <a href="../namespaces/SkynetUser.html" style="margin-left: 30px; padding-left: 0">SkynetUser</a>
             </div>
-            <div id="namespace-644373436" class="accordion-body collapse ">
+            <div id="namespace-1261341298" class="accordion-body collapse ">
                 <div class="accordion-inner">
 
                     
@@ -591,37 +639,79 @@
     <section class="row-fluid">
         <div class="span10 offset2">
             <div class="row-fluid">
-                <div class="span8 content namespace">
+                <div class="span8 content file">
                     <nav>
-                                                <a href="../namespaces/default.html">\</a>
-                                            </nav>
-                    <h1><small>\</small>SkynetUser</h1>
+                                                                    </nav>
 
+                    <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
+                    <h1><small></small>SkynetEventListenerPacker.php</h1>
+                    <p><em>Skynet/EventListener/SkynetEventListenerPacker.php</em></p>
                     
+
                     
                     
                                         <h2>Classes</h2>
                     <table class="table table-hover">
                                             <tr>
-                            <td><a href="../classes/SkynetUser.SkynetConfig.html">SkynetConfig</a></td>
-                            <td><em>Skynet Config</em></td>
-                        </tr>
-                                            <tr>
-                            <td><a href="../classes/SkynetUser.SkynetEventListenerMyListener.html">SkynetEventListenerMyListener</a></td>
-                            <td><em>Skynet Event Listener - Your custom event listener - see documentation for API Reference</em></td>
+                            <td><a href="../classes/Skynet.EventListener.SkynetEventListenerPacker.html">SkynetEventListenerPacker</a></td>
+                            <td><em>Skynet Event Listener - Packer/unpacker</em></td>
                         </tr>
                                         </table>
                                     </div>
 
                 <aside class="span4 detailsbar">
                     <dl>
-                        <dt>Namespace hierarchy</dt>
-                        <dd class="hierarchy">
-                                                                                                                                                                                                                                                                
-                                    <div class="namespace-wrapper"><a href="../namespaces/default.html">\</a></div>
-                                                                                        <div class="namespace-wrapper">\SkynetUser</div>
-                        </dd>
+                                                    <dt>Package</dt>
+                            <dd><div class="namespace-wrapper">\Skynet</div></dd>
+                        
+                                                                                    <dt>See also</dt>
+                                                                                        <dd><a href="http://github.com/szczyglinski/skynet"><div class="namespace-wrapper">http://github.com/szczyglinski/skynet</div></a></dd>
+                                                    
                     </dl>
+                    <h2>Tags</h2>
+                    <table class="table table-condensed">
+                                                    <tr>
+                                <th>
+                                    version
+                                </th>
+                                <td>
+                                                                            
+                                                                    </td>
+                            </tr>
+                                                    <tr>
+                                <th>
+                                    author
+                                </th>
+                                <td>
+                                                                            <p>Marcin Szczyglinski <a href="mailto:szczyglis83@gmail.com">szczyglis83@gmail.com</a></p>
+                                                                    </td>
+                            </tr>
+                                                    <tr>
+                                <th>
+                                    copyright
+                                </th>
+                                <td>
+                                                                            <p>2017 Marcin Szczyglinski</p>
+                                                                    </td>
+                            </tr>
+                                                    <tr>
+                                <th>
+                                    license
+                                </th>
+                                <td>
+                                                                            <p><a href="https://opensource.org/licenses/GPL-3.0">https://opensource.org/licenses/GPL-3.0</a> GNU Public License</p>
+                                                                    </td>
+                            </tr>
+                                                    <tr>
+                                <th>
+                                    since
+                                </th>
+                                <td>
+                                                                            
+                                                                    </td>
+                            </tr>
+                                            </table>
+
                 </aside>
             </div>
 
@@ -629,6 +719,16 @@
             
         </div>
     </section>
+
+    <div id="source-view" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-view-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="source-view-label"></h3>
+        </div>
+        <div class="modal-body">
+            <pre data-src="../files/Skynet\EventListener\SkynetEventListenerPacker.php.txt" class="language-php line-numbers"></pre>
+        </div>
+    </div>
 
     <footer class="row-fluid">
         <section class="span10 offset2">
