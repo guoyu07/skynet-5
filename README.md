@@ -4138,7 +4138,7 @@ Send zip archive to remote cluster and unpacks it
 **@zip_get**
 Packs files on remote cluster and gets them as zip archive
 ```php
-]@zip_get path:"/path/to/", pattern:"*", file:"local.zip";
+@zip_get path:"/path/to/", pattern:"*", file:"local.zip";
 ```
 
 
