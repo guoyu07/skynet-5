@@ -307,8 +307,8 @@ class SkynetEventListenerLoggerDatabase extends SkynetEventListenerAbstract impl
       VALUES(:skynet_id, :created_at, :content, :sender_url,  :receiver_url)'
       );
 
-      $receiver = '';
-      $sender = '';
+      $sender = $this->senderClusterUrl;
+      $receiver = $this->receiverClusterUrl;
       $skynet_id = '';
       $logInfo = '';
 

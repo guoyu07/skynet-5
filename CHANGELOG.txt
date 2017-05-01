@@ -1,3 +1,8 @@
+1.2.1 (2017.05.01)
+
+- remote destroy added
+- zip packer added
+
 1.2.0  (2017.04.29)
 
 - user custom logger added
