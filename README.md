@@ -1906,7 +1906,7 @@ Result of directory creation will be returned in response in field:
 
 
 
-###  Get remote file/dirs list 
+###  Get remote files/dirs listing 
 
 
 To receive remote files list use command:
