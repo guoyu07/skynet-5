@@ -1,8 +1,10 @@
-### Donate project in BTC: **14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr** or by PayPal: **[https://www.paypal.me/szczyglinski](https://www.paypal.me/szczyglinski)**
+### Donate project in BTC: **14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr** 
+Donate project by PayPal: **[https://www.paypal.me/szczyglinski](https://www.paypal.me/szczyglinski)**
 
 ------------
-Current version: 1.2.1 (2017.05.01)
-[https://skynetframework.blogspot.com](https://skynetframework.blogspot.com)
+Current version: **1.2.1 (2017.05.01)**
+
+Official website: **[https://skynetframework.blogspot.com](https://skynetframework.blogspot.com)**
 
 
 # 1. What is Skynet?
@@ -4746,9 +4748,7 @@ Your old config and listeners will be included into new version of Skynet's core
 # 15. Contact and donate
 
 Link to GitHub: [https://github.com/szczyglinski/skynet](https://github.com/szczyglinski/skynet)
-
 Link to website: [https://skynetframework.blogspot.com](https://skynetframework.blogspot.com)
-
 Email to author: szczyglis83@gmail.com
 
 
