@@ -1,4 +1,4 @@
-### Donate project in BTC: **14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr** or by PayPal: [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
+### Donate project in BTC: **14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr** or by PayPal: **[https://www.paypal.me/szczyglinski](https://www.paypal.me/szczyglinski)**
 
 ------------
 Current version: 1.2.1 (2017.05.01)
@@ -4755,6 +4755,6 @@ Email to author: szczyglis83@gmail.com
 **14X6zSCbkU5wojcXZMgT9a4EnJNcieTrcr**
 
 or by PayPal:
- [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WNLXYMQRKU3Q6)
+ **[https://www.paypal.me/szczyglinski](https://www.paypal.me/szczyglinski)**
 
 Enjoy!
