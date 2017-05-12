@@ -7,7 +7,7 @@ PayPal: **[https://www.paypal.me/szczyglinski](https://www.paypal.me/szczyglinsk
 Current version: **1.2.1 (2017.05.01)**
 
 Official website: **[https://skynetframework.blogspot.com](https://skynetframework.blogspot.com)**
-FB: **[https://www.facebook.com/Skynet-Framework-441383486200242](https://www.facebook.com/Skynet-Framework-441383486200242)**
+FB: **[https://www.facebook.com/Skynet-Framework-441383486200242](Skynet-Framework-441383486200242)**
 
 
 # 1. What is Skynet?
